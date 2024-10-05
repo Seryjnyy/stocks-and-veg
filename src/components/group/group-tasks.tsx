@@ -8,11 +8,64 @@ import {
     TaskWithCompletion,
     useGetGroupTasks,
 } from "@/lib/hooks/queries/use-get-group-tasks";
+import {
+    GroupUserWithProfile,
+    useGetGroupUsers,
+} from "@/lib/hooks/queries/use-get-group-users";
 import { useGetUserProfile } from "@/lib/hooks/queries/use-get-profile";
+import { useAuth } from "@/lib/hooks/use-auth";
 import { Tables } from "@/lib/supabase/database.types";
 import SpinnerButton from "@/spinner-button";
 import { CheckIcon } from "@radix-ui/react-icons";
 import { useQueryClient } from "@tanstack/react-query";
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
+} from "@/components/ui/dialog";
+
+const GroupUserProfile = ({
+    groupUser,
+}: {
+    groupUser: GroupUserWithProfile;
+}) => {
+    return (
+        <div className="flex items-center gap-4 border p-3">
+            <div className="w-4 h-4 bg-red-500"></div>
+            <div>{groupUser.profile?.username}</div>
+            <Dialog>
+                <DialogTrigger>Open</DialogTrigger>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle className="sr-only">
+                            Group user
+                        </DialogTitle>
+                        <DialogDescription className="sr-only">
+                            View some more details about this user.
+                        </DialogDescription>
+                    </DialogHeader>
+
+                    <div className="border p-2 flex items-end gap-4 flex-wrap">
+                        <div className="w-4 h-4 bg-red-500"></div>
+                        <div>
+                            <div>{groupUser.profile?.username}</div>
+                            <div>joined at {groupUser.created_at}</div>
+                        </div>
+                    </div>
+
+                    <div>More stats</div>
+                    <DialogFooter>
+                        <Button variant={"destructive"}>Remove user</Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+        </div>
+    );
+};
 
 export default function GroupTasks({ groupID }: { groupID: string }) {
     const {
@@ -20,6 +73,7 @@ export default function GroupTasks({ groupID }: { groupID: string }) {
         isError,
         isLoading,
     } = useGetGroupTasks({ groupID: groupID });
+    const { session } = useAuth();
 
     if (isError) {
         return <DataError message="Couldn't fetch group tasks." />;
@@ -33,6 +87,8 @@ export default function GroupTasks({ groupID }: { groupID: string }) {
         return <DataError message="Group tasks data is missing." />;
     }
 
+    const userTasks = tasks.filter((task) => task.user_id == session?.user.id);
+
     return (
         <>
             <div className="border p-4">
@@ -41,18 +97,35 @@ export default function GroupTasks({ groupID }: { groupID: string }) {
                     <GroupTasksList tasks={tasks || []} />
                 </ul>
                 <span>{(tasks || []).length}</span>
-                <CreateTask groupID={groupID} />
+                <div className="border p-2">
+                    <CreateTask
+                        groupID={groupID}
+                        userTasksCount={userTasks.length}
+                    />
+                </div>
             </div>
-            <UserTasksToday tasks={tasks || []} />
+            <UserTasksToday tasks={userTasks} />
         </>
     );
 }
 
 const GroupTask = ({ task }: { task: Tables<"task"> }) => {
-    // TODO : I feel like users should get fetched then use context instead of fetching everywhere
-    const { data, isError, isLoading } = useGetUserProfile({
-        user_id: task.user_id,
+    // const { data, isError, isLoading } = useGetUserProfile({
+    //     user_id: task.user_id,
+    // });
+
+    // TODO : Idk if this is a good approach, the group page should get group_users with profile data, and use that everywhere
+    const { data, isError, isLoading } = useGetGroupUsers({
+        groupID: task.group_id,
     });
+
+    if (isLoading) return null;
+
+    if (isError) return null;
+
+    const user = data?.find((groupUser) => groupUser.user_id == task.user_id);
+
+    if (!user) return null;
 
     return (
         <li className="p-4 border">
@@ -62,9 +135,9 @@ const GroupTask = ({ task }: { task: Tables<"task"> }) => {
                 <span>{task.created_at}</span>
             </div>
             <div>
-                {isLoading ?? <Loading />}
-                {isError ?? <DataError message="Couldn't get user data." />}
-                {data?.username}
+                {!isLoading && !isError && user && (
+                    <GroupUserProfile groupUser={user} />
+                )}
             </div>
         </li>
     );
@@ -75,16 +148,20 @@ const GroupTasksList = ({ tasks }: { tasks: TaskWithCompletion[] }) => {
 };
 
 const UserTaskToday = ({ task }: { task: TaskWithCompletion }) => {
+    const { session } = useAuth();
+
     return (
         <div className="p-2 border flex justify-between fle">
             <div className="flex flex-col">
                 <span>{task.name}</span>
                 <span>{task.desc}</span>
-                <span>{task.user_id}</span>
+                <span>user id: {task.user_id}</span>
                 <span>task id: {task.id}</span>
-                <span>{task.group_id}</span>
+                <span>group id: {task.group_id}</span>
             </div>
-            <UserTaskTodayCompletion task={task} />
+            {task.user_id == session?.user.id && (
+                <UserTaskTodayCompletion task={task} />
+            )}
         </div>
     );
 };
@@ -101,7 +178,19 @@ const UserTasksToday = ({ tasks }: { tasks: TaskWithCompletion[] }) => {
             <h3>Your tasks for today</h3>
             <ul>
                 <UserTasksTodayList tasks={tasks} />
+                {tasks.length == 0 && (
+                    <div>You don't have any tasks at all.</div>
+                )}
             </ul>
+            <div>
+                <span className="text-muted-foreground">
+                    All : {tasks.length} Completed:{" "}
+                    {
+                        tasks.filter((task) => task.task_completion.length > 0)
+                            .length
+                    }
+                </span>
+            </div>
         </div>
     );
 };

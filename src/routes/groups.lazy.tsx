@@ -1,19 +1,13 @@
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import GroupCreate from "@/components/groups/group-create";
 import { Button } from "@/components/ui/button";
-import { useCreateGroup } from "@/lib/hooks/mutations/use-create-group";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { CONFIG } from "@/lib/config";
 import { useGetUserProfile } from "@/lib/hooks/queries/use-get-profile";
 import { useGetUserGroups } from "@/lib/hooks/queries/use-get-user-groups";
 import { useAuth } from "@/lib/hooks/use-auth";
 import { Tables } from "@/lib/supabase/database.types";
 import { timestampSplit } from "@/lib/utils";
-import {
-    createLazyFileRoute,
-    Link,
-    Outlet,
-    useNavigate,
-} from "@tanstack/react-router";
-import { CONFIG } from "@/lib/config";
+import { createLazyFileRoute, Link } from "@tanstack/react-router";
 
 export const Route = createLazyFileRoute("/groups")({
     component: GroupsTabs,

@@ -1,8 +1,3 @@
-import React from "react";
-import { z } from "zod";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import { Button } from "@/components/ui/button";
 import {
     Form,
     FormControl,
@@ -13,10 +8,13 @@ import {
     FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { GenericFormProps } from "@/lib/types";
-import { useCreateGroup } from "@/lib/hooks/mutations/use-create-group";
 import { useToast } from "@/hooks/use-toast";
-import SpinnerFormButton from "../spinner-form-button";
+import { useCreateGroup } from "@/lib/hooks/mutations/use-create-group";
+import { GenericFormProps } from "@/lib/types";
+import SpinnerButton from "@/spinner-button";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
 
 const formSchema = z.object({
     name: z.string().min(2).max(50).regex(/\S+/, {
@@ -80,9 +78,9 @@ export default function GroupCreateForm({
                         </FormItem>
                     )}
                 />
-                <SpinnerFormButton isPending={isPending}>
+                <SpinnerButton isPending={isPending} disabled={isPending}>
                     Submit
-                </SpinnerFormButton>
+                </SpinnerButton>
             </form>
         </Form>
     );

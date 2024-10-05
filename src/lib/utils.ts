@@ -1,5 +1,6 @@
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
+import { CONFIG } from "./config";
 
 export function cn(...inputs: ClassValue[]) {
     return twMerge(clsx(inputs));
@@ -14,4 +15,8 @@ export const timestampSplit = (timestamp: string) => {
         time: time,
         dateTime: `${date} - ${time}`,
     };
+};
+
+export const formatInviteLink = (token: string) => {
+    return `${CONFIG.inviteURL}?token=${token}`;
 };

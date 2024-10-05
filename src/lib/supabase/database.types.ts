@@ -59,6 +59,7 @@ export type Database = {
           group_id: string
           id: string
           user_id: string
+          get_group_user_profile: unknown | null
         }
         Insert: {
           created_at?: string
@@ -147,7 +148,7 @@ export type Database = {
           {
             foreignKeyName: "profile_user_id_fkey"
             columns: ["user_id"]
-            isOneToOne: false
+            isOneToOne: true
             referencedRelation: "users"
             referencedColumns: ["id"]
           },
@@ -249,7 +250,17 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_group_user_profile: {
+        Args: {
+          "": unknown
+        }
+        Returns: {
+          created_at: string
+          id: string
+          user_id: string
+          username: string
+        }[]
+      }
     }
     Enums: {
       [_ in never]: never

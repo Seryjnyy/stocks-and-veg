@@ -18,6 +18,8 @@ import { title } from "process";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import SpinnerFormButton from "../spinner-form-button";
+import { CONFIG } from "@/lib/config";
+import SpinnerButton from "@/spinner-button";
 
 const taskSchema = z.object({
     name: z.string().min(2).max(50).regex(/\S+/, {
@@ -30,10 +32,12 @@ type taskSchemaType = z.infer<typeof taskSchema>;
 
 interface CreateTaskFormProps extends GenericFormProps {
     groupID: string;
+    userTasksCount: number;
 }
 
 export default function CreateTaskForm({
     groupID,
+    userTasksCount,
     onError,
     onSuccess,
 }: CreateTaskFormProps) {
@@ -120,9 +124,20 @@ export default function CreateTaskForm({
                         </FormItem>
                     )}
                 />
-                <SpinnerFormButton isPending={isPending}>
-                    Submit
-                </SpinnerFormButton>
+                <div>
+                    <SpinnerButton
+                        isPending={isPending}
+                        disabled={
+                            isPending || userTasksCount == CONFIG.maxTasks
+                        }
+                        type="submit"
+                    >
+                        Submit
+                    </SpinnerButton>
+                    <div>
+                        {userTasksCount}/{CONFIG.maxTasks}
+                    </div>
+                </div>
             </form>
         </Form>
     );
