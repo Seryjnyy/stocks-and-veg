@@ -2,18 +2,20 @@ import supabase from "@/lib/supabase/supabaseClient";
 import { useQuery } from "@supabase-cache-helpers/postgrest-react-query";
 import { Session } from "@supabase/supabase-js";
 
-export const useGetUserGroups = ({
-    user_id,
+export const useGetInviteLink = ({
+    groupID,
 }: {
-    user_id: string | undefined;
+    groupID: string | undefined;
 }) => {
     return useQuery(
         supabase
-            .from("group")
+            .from("invite_link")
             .select("*")
-            .eq("creator_id", user_id ?? ""),
+            .eq("group_id", groupID ?? "")
+            .limit(1)
+            .maybeSingle(),
         {
-            enabled: !!user_id,
+            enabled: !!groupID,
         }
     );
 };

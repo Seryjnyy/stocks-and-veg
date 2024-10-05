@@ -2,18 +2,20 @@ import supabase from "@/lib/supabase/supabaseClient";
 import { useQuery } from "@supabase-cache-helpers/postgrest-react-query";
 import { Session } from "@supabase/supabase-js";
 
-export const useGetUserGroups = ({
-    user_id,
+export const useGetGroupUsers = ({
+    groupID,
 }: {
-    user_id: string | undefined;
+    groupID: string | undefined;
 }) => {
     return useQuery(
         supabase
-            .from("group")
+            .from("group_user")
             .select("*")
-            .eq("creator_id", user_id ?? ""),
+            .eq("group_id", groupID ?? ""),
         {
-            enabled: !!user_id,
+            refetchOnReconnect: false,
+            refetchOnWindowFocus: false,
+            enabled: !!groupID,
         }
     );
 };

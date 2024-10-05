@@ -1,13 +1,9 @@
 import Nav from "@/components/nav";
-import AuthProvider, { AuthContext, AuthState } from "@/lib/hooks/use-auth";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { ThemeProvider } from "@/components/theme-provider";
+import { Toaster } from "@/components/ui/toaster";
+import { AuthContext } from "@/lib/hooks/use-auth";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
-import {
-    createRootRoute,
-    createRootRouteWithContext,
-    Link,
-    Outlet,
-} from "@tanstack/react-router";
+import { createRootRouteWithContext, Outlet } from "@tanstack/react-router";
 import { TanStackRouterDevtools } from "@tanstack/router-devtools";
 
 interface RouterContext {
@@ -18,18 +14,17 @@ export const Route = createRootRouteWithContext<RouterContext>()({
     component: Root,
 });
 
-const queryClient = new QueryClient();
-
 function Root() {
     return (
         <>
-            <QueryClientProvider client={queryClient}>
+            <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
                 <Nav />
                 <Outlet />
-                <ReactQueryDevtools initialIsOpen={false} />
-            </QueryClientProvider>
+            </ThemeProvider>
+            <ReactQueryDevtools initialIsOpen={false} />
 
             <TanStackRouterDevtools />
+            <Toaster />
         </>
     );
 }

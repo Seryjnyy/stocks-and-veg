@@ -13,9 +13,11 @@ import { createFileRoute } from '@tanstack/react-router'
 // Import Routes
 
 import { Route as rootRoute } from './routes/__root'
+import { Route as InviteLinkImport } from './routes/invite-link'
+import { Route as GroupsImport } from './routes/groups'
 import { Route as AuthImport } from './routes/auth'
-import { Route as GroupsRouteImport } from './routes/groups/route'
 import { Route as IndexImport } from './routes/index'
+import { Route as GroupsGroupIDImport } from './routes/groups_.$groupID'
 
 // Create Virtual Routes
 
@@ -28,20 +30,30 @@ const AboutLazyRoute = AboutLazyImport.update({
   getParentRoute: () => rootRoute,
 } as any).lazy(() => import('./routes/about.lazy').then((d) => d.Route))
 
+const InviteLinkRoute = InviteLinkImport.update({
+  path: '/invite-link',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const GroupsRoute = GroupsImport.update({
+  path: '/groups',
+  getParentRoute: () => rootRoute,
+} as any).lazy(() => import('./routes/groups.lazy').then((d) => d.Route))
+
 const AuthRoute = AuthImport.update({
   path: '/auth',
   getParentRoute: () => rootRoute,
 } as any)
 
-const GroupsRouteRoute = GroupsRouteImport.update({
-  path: '/groups',
-  getParentRoute: () => rootRoute,
-} as any).lazy(() => import('./routes/groups/route.lazy').then((d) => d.Route))
-
 const IndexRoute = IndexImport.update({
   path: '/',
   getParentRoute: () => rootRoute,
 } as any).lazy(() => import('./routes/index.lazy').then((d) => d.Route))
+
+const GroupsGroupIDRoute = GroupsGroupIDImport.update({
+  path: '/groups/$groupID',
+  getParentRoute: () => rootRoute,
+} as any)
 
 // Populate the FileRoutesByPath interface
 
@@ -54,18 +66,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexImport
       parentRoute: typeof rootRoute
     }
-    '/groups': {
-      id: '/groups'
-      path: '/groups'
-      fullPath: '/groups'
-      preLoaderRoute: typeof GroupsRouteImport
-      parentRoute: typeof rootRoute
-    }
     '/auth': {
       id: '/auth'
       path: '/auth'
       fullPath: '/auth'
       preLoaderRoute: typeof AuthImport
+      parentRoute: typeof rootRoute
+    }
+    '/groups': {
+      id: '/groups'
+      path: '/groups'
+      fullPath: '/groups'
+      preLoaderRoute: typeof GroupsImport
+      parentRoute: typeof rootRoute
+    }
+    '/invite-link': {
+      id: '/invite-link'
+      path: '/invite-link'
+      fullPath: '/invite-link'
+      preLoaderRoute: typeof InviteLinkImport
       parentRoute: typeof rootRoute
     }
     '/about': {
@@ -75,6 +94,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AboutLazyImport
       parentRoute: typeof rootRoute
     }
+    '/groups/$groupID': {
+      id: '/groups/$groupID'
+      path: '/groups/$groupID'
+      fullPath: '/groups/$groupID'
+      preLoaderRoute: typeof GroupsGroupIDImport
+      parentRoute: typeof rootRoute
+    }
   }
 }
 
@@ -82,47 +108,70 @@ declare module '@tanstack/react-router' {
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/groups': typeof GroupsRouteRoute
   '/auth': typeof AuthRoute
+  '/groups': typeof GroupsRoute
+  '/invite-link': typeof InviteLinkRoute
   '/about': typeof AboutLazyRoute
+  '/groups/$groupID': typeof GroupsGroupIDRoute
 }
 
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/groups': typeof GroupsRouteRoute
   '/auth': typeof AuthRoute
+  '/groups': typeof GroupsRoute
+  '/invite-link': typeof InviteLinkRoute
   '/about': typeof AboutLazyRoute
+  '/groups/$groupID': typeof GroupsGroupIDRoute
 }
 
 export interface FileRoutesById {
   __root__: typeof rootRoute
   '/': typeof IndexRoute
-  '/groups': typeof GroupsRouteRoute
   '/auth': typeof AuthRoute
+  '/groups': typeof GroupsRoute
+  '/invite-link': typeof InviteLinkRoute
   '/about': typeof AboutLazyRoute
+  '/groups/$groupID': typeof GroupsGroupIDRoute
 }
 
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/groups' | '/auth' | '/about'
+  fullPaths:
+    | '/'
+    | '/auth'
+    | '/groups'
+    | '/invite-link'
+    | '/about'
+    | '/groups/$groupID'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/groups' | '/auth' | '/about'
-  id: '__root__' | '/' | '/groups' | '/auth' | '/about'
+  to: '/' | '/auth' | '/groups' | '/invite-link' | '/about' | '/groups/$groupID'
+  id:
+    | '__root__'
+    | '/'
+    | '/auth'
+    | '/groups'
+    | '/invite-link'
+    | '/about'
+    | '/groups/$groupID'
   fileRoutesById: FileRoutesById
 }
 
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  GroupsRouteRoute: typeof GroupsRouteRoute
   AuthRoute: typeof AuthRoute
+  GroupsRoute: typeof GroupsRoute
+  InviteLinkRoute: typeof InviteLinkRoute
   AboutLazyRoute: typeof AboutLazyRoute
+  GroupsGroupIDRoute: typeof GroupsGroupIDRoute
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  GroupsRouteRoute: GroupsRouteRoute,
   AuthRoute: AuthRoute,
+  GroupsRoute: GroupsRoute,
+  InviteLinkRoute: InviteLinkRoute,
   AboutLazyRoute: AboutLazyRoute,
+  GroupsGroupIDRoute: GroupsGroupIDRoute,
 }
 
 export const routeTree = rootRoute
@@ -138,22 +187,30 @@ export const routeTree = rootRoute
       "filePath": "__root.tsx",
       "children": [
         "/",
-        "/groups",
         "/auth",
-        "/about"
+        "/groups",
+        "/invite-link",
+        "/about",
+        "/groups/$groupID"
       ]
     },
     "/": {
       "filePath": "index.tsx"
     },
-    "/groups": {
-      "filePath": "groups/route.tsx"
-    },
     "/auth": {
       "filePath": "auth.tsx"
     },
+    "/groups": {
+      "filePath": "groups.tsx"
+    },
+    "/invite-link": {
+      "filePath": "invite-link.tsx"
+    },
     "/about": {
       "filePath": "about.lazy.tsx"
+    },
+    "/groups/$groupID": {
+      "filePath": "groups_.$groupID.tsx"
     }
   }
 }

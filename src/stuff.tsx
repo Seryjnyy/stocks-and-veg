@@ -13,7 +13,7 @@ function Stuff() {
 
     const { data, error, refetch } = useGetUserGroups({ session: session });
 
-    const { mutateAsync: insert, isPending } = useCreateGroup();
+    const { mutateAsync: insert, isPending } = useCreateGroup({});
 
     if (error) {
         return null;

@@ -6,6 +6,7 @@ import "./index.css";
 // Import the generated route tree
 import { routeTree } from "./routeTree.gen";
 import AuthProvider, { useAuth } from "./lib/hooks/use-auth";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 // Create a new router instance
 const router = createRouter({
@@ -29,15 +30,26 @@ const App = () => {
     return <RouterProvider router={router} context={{ auth }} />;
 };
 
+const queryClient = new QueryClient({
+    defaultOptions: {
+        queries: {
+            staleTime: Infinity,
+            refetchOnWindowFocus: false,
+        },
+    },
+});
+
 // Render the app
 const rootElement = document.getElementById("root")!;
 if (!rootElement.innerHTML) {
     const root = ReactDOM.createRoot(rootElement);
     root.render(
         <StrictMode>
-            <AuthProvider>
-                <App />
-            </AuthProvider>
+            <QueryClientProvider client={queryClient}>
+                <AuthProvider>
+                    <App />
+                </AuthProvider>
+            </QueryClientProvider>
         </StrictMode>
     );
 }

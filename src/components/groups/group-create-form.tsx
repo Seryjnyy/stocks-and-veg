@@ -13,6 +13,10 @@ import {
     FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { GenericFormProps } from "@/lib/types";
+import { useCreateGroup } from "@/lib/hooks/mutations/use-create-group";
+import { useToast } from "@/hooks/use-toast";
+import SpinnerFormButton from "../spinner-form-button";
 
 const formSchema = z.object({
     name: z.string().min(2).max(50).regex(/\S+/, {
@@ -22,8 +26,30 @@ const formSchema = z.object({
 
 type formSchemaType = z.infer<typeof formSchema>;
 
-export default function GroupCreateForm() {
-    const form = useForm<z.infer<typeof formSchema>>({
+export default function GroupCreateForm({
+    onSuccess,
+    onError,
+}: GenericFormProps) {
+    const { toast } = useToast();
+
+    const { mutateAsync, isPending } = useCreateGroup({
+        onSuccess: () => {
+            toast({
+                title: "Successfully created group.",
+            });
+            onSuccess?.();
+        },
+        onError: (e) => {
+            toast({
+                title: "Something went wrong.",
+                description: e.message,
+                variant: "destructive",
+            });
+            onError?.();
+        },
+    });
+
+    const form = useForm<formSchemaType>({
         resolver: zodResolver(formSchema),
         defaultValues: {
             name: "",
@@ -31,7 +57,7 @@ export default function GroupCreateForm() {
     });
 
     const onSubmit = (values: formSchemaType) => {
-        console.log(values);
+        mutateAsync([{ name: values.name.trim() }]);
     };
 
     return (
@@ -40,6 +66,7 @@ export default function GroupCreateForm() {
                 <FormField
                     control={form.control}
                     name="name"
+                    disabled={isPending}
                     render={({ field }) => (
                         <FormItem>
                             <FormLabel>Username</FormLabel>
@@ -53,7 +80,9 @@ export default function GroupCreateForm() {
                         </FormItem>
                     )}
                 />
-                <Button type="submit">Submit</Button>
+                <SpinnerFormButton isPending={isPending}>
+                    Submit
+                </SpinnerFormButton>
             </form>
         </Form>
     );
