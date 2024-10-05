@@ -2,9 +2,7 @@ import Loading from "@/components/loading";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/hooks/use-toast";
 import { useAddUserToGroup } from "@/lib/hooks/mutations/use-add-user-to-group";
-import { useGetGroup } from "@/lib/hooks/queries/use-get-group";
 import { useGetGroupUser } from "@/lib/hooks/queries/use-get-group-user";
-import { useGetInviteLink } from "@/lib/hooks/queries/use-get-invite-link";
 import { useGetInviteLinkWithToken } from "@/lib/hooks/queries/use-get-invite-link-with-token";
 import { useAuth } from "@/lib/hooks/use-auth";
 import SpinnerButton from "@/spinner-button";
@@ -32,6 +30,7 @@ function InviteLink() {
     });
 
     const { mutateAsync: addUserToGroup, isPending } = useAddUserToGroup();
+    // TODO : not group user but us
     const {
         data: groupUser,
         isLoading: isGroupUserLoading,
@@ -101,7 +100,7 @@ function InviteLink() {
                                 <div>by: {data?.group?.creator_id}</div>
                                 <div>to join: {data?.group?.name}</div>
                             </div>
-                            {groupUser && groupUser.length > 0 ? (
+                            {groupUser ? (
                                 <div className="relative">
                                     <Link
                                         to="/groups/$groupID"

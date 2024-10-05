@@ -56,22 +56,49 @@ export type Database = {
       group_user: {
         Row: {
           created_at: string
+          day_full_completes: number
+          day_partial_completes: number
           group_id: string
           id: string
+          tasks_completed: number
+          tasks_not_completed: number
+          times_tomatoed: number
+          tomatoes: number
+          tomatoes_received: number
+          tomatoes_thrown: number
           user_id: string
+          xp: number | null
           get_group_user_profile: unknown | null
         }
         Insert: {
           created_at?: string
+          day_full_completes?: number
+          day_partial_completes?: number
           group_id: string
           id?: string
+          tasks_completed?: number
+          tasks_not_completed?: number
+          times_tomatoed?: number
+          tomatoes?: number
+          tomatoes_received?: number
+          tomatoes_thrown?: number
           user_id: string
+          xp?: number | null
         }
         Update: {
           created_at?: string
+          day_full_completes?: number
+          day_partial_completes?: number
           group_id?: string
           id?: string
+          tasks_completed?: number
+          tasks_not_completed?: number
+          times_tomatoed?: number
+          tomatoes?: number
+          tomatoes_received?: number
+          tomatoes_thrown?: number
           user_id?: string
+          xp?: number | null
         }
         Relationships: [
           {

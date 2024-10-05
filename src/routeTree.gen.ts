@@ -18,6 +18,7 @@ import { Route as GroupsImport } from './routes/groups'
 import { Route as AuthImport } from './routes/auth'
 import { Route as IndexImport } from './routes/index'
 import { Route as GroupsGroupIDImport } from './routes/groups_.$groupID'
+import { Route as GroupsGroupIDTomatoUserIDImport } from './routes/groups_.$groupID_.tomato.$userID'
 
 // Create Virtual Routes
 
@@ -52,6 +53,11 @@ const IndexRoute = IndexImport.update({
 
 const GroupsGroupIDRoute = GroupsGroupIDImport.update({
   path: '/groups/$groupID',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const GroupsGroupIDTomatoUserIDRoute = GroupsGroupIDTomatoUserIDImport.update({
+  path: '/groups/$groupID/tomato/$userID',
   getParentRoute: () => rootRoute,
 } as any)
 
@@ -101,6 +107,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof GroupsGroupIDImport
       parentRoute: typeof rootRoute
     }
+    '/groups/$groupID/tomato/$userID': {
+      id: '/groups/$groupID/tomato/$userID'
+      path: '/groups/$groupID/tomato/$userID'
+      fullPath: '/groups/$groupID/tomato/$userID'
+      preLoaderRoute: typeof GroupsGroupIDTomatoUserIDImport
+      parentRoute: typeof rootRoute
+    }
   }
 }
 
@@ -113,6 +126,7 @@ export interface FileRoutesByFullPath {
   '/invite-link': typeof InviteLinkRoute
   '/about': typeof AboutLazyRoute
   '/groups/$groupID': typeof GroupsGroupIDRoute
+  '/groups/$groupID/tomato/$userID': typeof GroupsGroupIDTomatoUserIDRoute
 }
 
 export interface FileRoutesByTo {
@@ -122,6 +136,7 @@ export interface FileRoutesByTo {
   '/invite-link': typeof InviteLinkRoute
   '/about': typeof AboutLazyRoute
   '/groups/$groupID': typeof GroupsGroupIDRoute
+  '/groups/$groupID/tomato/$userID': typeof GroupsGroupIDTomatoUserIDRoute
 }
 
 export interface FileRoutesById {
@@ -132,6 +147,7 @@ export interface FileRoutesById {
   '/invite-link': typeof InviteLinkRoute
   '/about': typeof AboutLazyRoute
   '/groups/$groupID': typeof GroupsGroupIDRoute
+  '/groups/$groupID/tomato/$userID': typeof GroupsGroupIDTomatoUserIDRoute
 }
 
 export interface FileRouteTypes {
@@ -143,8 +159,16 @@ export interface FileRouteTypes {
     | '/invite-link'
     | '/about'
     | '/groups/$groupID'
+    | '/groups/$groupID/tomato/$userID'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/auth' | '/groups' | '/invite-link' | '/about' | '/groups/$groupID'
+  to:
+    | '/'
+    | '/auth'
+    | '/groups'
+    | '/invite-link'
+    | '/about'
+    | '/groups/$groupID'
+    | '/groups/$groupID/tomato/$userID'
   id:
     | '__root__'
     | '/'
@@ -153,6 +177,7 @@ export interface FileRouteTypes {
     | '/invite-link'
     | '/about'
     | '/groups/$groupID'
+    | '/groups/$groupID/tomato/$userID'
   fileRoutesById: FileRoutesById
 }
 
@@ -163,6 +188,7 @@ export interface RootRouteChildren {
   InviteLinkRoute: typeof InviteLinkRoute
   AboutLazyRoute: typeof AboutLazyRoute
   GroupsGroupIDRoute: typeof GroupsGroupIDRoute
+  GroupsGroupIDTomatoUserIDRoute: typeof GroupsGroupIDTomatoUserIDRoute
 }
 
 const rootRouteChildren: RootRouteChildren = {
@@ -172,6 +198,7 @@ const rootRouteChildren: RootRouteChildren = {
   InviteLinkRoute: InviteLinkRoute,
   AboutLazyRoute: AboutLazyRoute,
   GroupsGroupIDRoute: GroupsGroupIDRoute,
+  GroupsGroupIDTomatoUserIDRoute: GroupsGroupIDTomatoUserIDRoute,
 }
 
 export const routeTree = rootRoute
@@ -191,7 +218,8 @@ export const routeTree = rootRoute
         "/groups",
         "/invite-link",
         "/about",
-        "/groups/$groupID"
+        "/groups/$groupID",
+        "/groups/$groupID/tomato/$userID"
       ]
     },
     "/": {
@@ -211,6 +239,9 @@ export const routeTree = rootRoute
     },
     "/groups/$groupID": {
       "filePath": "groups_.$groupID.tsx"
+    },
+    "/groups/$groupID/tomato/$userID": {
+      "filePath": "groups_.$groupID_.tomato.$userID.tsx"
     }
   }
 }

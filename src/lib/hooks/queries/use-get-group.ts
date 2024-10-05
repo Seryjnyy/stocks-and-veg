@@ -1,13 +1,12 @@
 import supabase from "@/lib/supabase/supabaseClient";
 import { useQuery } from "@supabase-cache-helpers/postgrest-react-query";
-import { Session } from "@supabase/supabase-js";
 
 export const useGetGroup = ({
     groupID,
-    session,
+    enabled,
 }: {
     groupID: string;
-    session: Session | null;
+    enabled: boolean;
 }) => {
     return useQuery(
         supabase
@@ -19,7 +18,7 @@ export const useGetGroup = ({
         {
             refetchOnReconnect: false,
             refetchOnWindowFocus: false,
-            enabled: !!session,
+            enabled: enabled,
         }
     );
 };

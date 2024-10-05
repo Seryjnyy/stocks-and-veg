@@ -1,6 +1,6 @@
 import supabase from "@/lib/supabase/supabaseClient";
 import { useQuery } from "@supabase-cache-helpers/postgrest-react-query";
-import { Session } from "@supabase/supabase-js";
+import { GroupUserWithProfile } from "./use-get-group-users";
 
 export const useGetGroupUser = ({
     groupID,
@@ -14,9 +14,11 @@ export const useGetGroupUser = ({
     return useQuery(
         supabase
             .from("group_user")
-            .select("*")
+            .select("*, profile:get_group_user_profile(*)")
             .eq("group_id", groupID ?? "")
-            .eq("user_id", userID ?? ""),
+            .eq("user_id", userID ?? "")
+            .limit(1)
+            .returns<GroupUserWithProfile[]>(),
         {
             refetchOnReconnect: false,
             refetchOnWindowFocus: false,
