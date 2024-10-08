@@ -13,6 +13,8 @@ import { createFileRoute } from '@tanstack/react-router'
 // Import Routes
 
 import { Route as rootRoute } from './routes/__root'
+import { Route as TestImport } from './routes/test'
+import { Route as ProfileImport } from './routes/profile'
 import { Route as InviteLinkImport } from './routes/invite-link'
 import { Route as GroupsImport } from './routes/groups'
 import { Route as AuthImport } from './routes/auth'
@@ -30,6 +32,16 @@ const AboutLazyRoute = AboutLazyImport.update({
   path: '/about',
   getParentRoute: () => rootRoute,
 } as any).lazy(() => import('./routes/about.lazy').then((d) => d.Route))
+
+const TestRoute = TestImport.update({
+  path: '/test',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const ProfileRoute = ProfileImport.update({
+  path: '/profile',
+  getParentRoute: () => rootRoute,
+} as any)
 
 const InviteLinkRoute = InviteLinkImport.update({
   path: '/invite-link',
@@ -93,6 +105,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof InviteLinkImport
       parentRoute: typeof rootRoute
     }
+    '/profile': {
+      id: '/profile'
+      path: '/profile'
+      fullPath: '/profile'
+      preLoaderRoute: typeof ProfileImport
+      parentRoute: typeof rootRoute
+    }
+    '/test': {
+      id: '/test'
+      path: '/test'
+      fullPath: '/test'
+      preLoaderRoute: typeof TestImport
+      parentRoute: typeof rootRoute
+    }
     '/about': {
       id: '/about'
       path: '/about'
@@ -124,6 +150,8 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/groups': typeof GroupsRoute
   '/invite-link': typeof InviteLinkRoute
+  '/profile': typeof ProfileRoute
+  '/test': typeof TestRoute
   '/about': typeof AboutLazyRoute
   '/groups/$groupID': typeof GroupsGroupIDRoute
   '/groups/$groupID/tomato/$userID': typeof GroupsGroupIDTomatoUserIDRoute
@@ -134,6 +162,8 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/groups': typeof GroupsRoute
   '/invite-link': typeof InviteLinkRoute
+  '/profile': typeof ProfileRoute
+  '/test': typeof TestRoute
   '/about': typeof AboutLazyRoute
   '/groups/$groupID': typeof GroupsGroupIDRoute
   '/groups/$groupID/tomato/$userID': typeof GroupsGroupIDTomatoUserIDRoute
@@ -145,6 +175,8 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/groups': typeof GroupsRoute
   '/invite-link': typeof InviteLinkRoute
+  '/profile': typeof ProfileRoute
+  '/test': typeof TestRoute
   '/about': typeof AboutLazyRoute
   '/groups/$groupID': typeof GroupsGroupIDRoute
   '/groups/$groupID/tomato/$userID': typeof GroupsGroupIDTomatoUserIDRoute
@@ -157,6 +189,8 @@ export interface FileRouteTypes {
     | '/auth'
     | '/groups'
     | '/invite-link'
+    | '/profile'
+    | '/test'
     | '/about'
     | '/groups/$groupID'
     | '/groups/$groupID/tomato/$userID'
@@ -166,6 +200,8 @@ export interface FileRouteTypes {
     | '/auth'
     | '/groups'
     | '/invite-link'
+    | '/profile'
+    | '/test'
     | '/about'
     | '/groups/$groupID'
     | '/groups/$groupID/tomato/$userID'
@@ -175,6 +211,8 @@ export interface FileRouteTypes {
     | '/auth'
     | '/groups'
     | '/invite-link'
+    | '/profile'
+    | '/test'
     | '/about'
     | '/groups/$groupID'
     | '/groups/$groupID/tomato/$userID'
@@ -186,6 +224,8 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRoute
   GroupsRoute: typeof GroupsRoute
   InviteLinkRoute: typeof InviteLinkRoute
+  ProfileRoute: typeof ProfileRoute
+  TestRoute: typeof TestRoute
   AboutLazyRoute: typeof AboutLazyRoute
   GroupsGroupIDRoute: typeof GroupsGroupIDRoute
   GroupsGroupIDTomatoUserIDRoute: typeof GroupsGroupIDTomatoUserIDRoute
@@ -196,6 +236,8 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRoute,
   GroupsRoute: GroupsRoute,
   InviteLinkRoute: InviteLinkRoute,
+  ProfileRoute: ProfileRoute,
+  TestRoute: TestRoute,
   AboutLazyRoute: AboutLazyRoute,
   GroupsGroupIDRoute: GroupsGroupIDRoute,
   GroupsGroupIDTomatoUserIDRoute: GroupsGroupIDTomatoUserIDRoute,
@@ -217,6 +259,8 @@ export const routeTree = rootRoute
         "/auth",
         "/groups",
         "/invite-link",
+        "/profile",
+        "/test",
         "/about",
         "/groups/$groupID",
         "/groups/$groupID/tomato/$userID"
@@ -233,6 +277,12 @@ export const routeTree = rootRoute
     },
     "/invite-link": {
       "filePath": "invite-link.tsx"
+    },
+    "/profile": {
+      "filePath": "profile.tsx"
+    },
+    "/test": {
+      "filePath": "test.tsx"
     },
     "/about": {
       "filePath": "about.lazy.tsx"

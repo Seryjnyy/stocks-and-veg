@@ -3,10 +3,10 @@ import { useQuery } from "@supabase-cache-helpers/postgrest-react-query";
 
 export const useGetGroup = ({
     groupID,
-    enabled,
+    enabled = true,
 }: {
     groupID: string;
-    enabled: boolean;
+    enabled?: boolean;
 }) => {
     return useQuery(
         supabase

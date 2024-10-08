@@ -272,6 +272,45 @@ export type Database = {
           },
         ]
       }
+      tomato_target: {
+        Row: {
+          created_at: string
+          group_id: string
+          id: string
+          tomatoes_received: number
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          group_id: string
+          id?: string
+          tomatoes_received?: number
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          group_id?: string
+          id?: string
+          tomatoes_received?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tomatoe_target_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "group"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tomatoe_target_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -287,6 +326,21 @@ export type Database = {
           user_id: string
           username: string
         }[]
+      }
+      increment_tomatoes_received: {
+        Args: {
+          tomatoe_target_id: string
+          amount: number
+        }
+        Returns: undefined
+      }
+      throw_tomatoes: {
+        Args: {
+          throwing_user_id: string
+          tomato_target_id: string
+          amount_to_throw: number
+        }
+        Returns: undefined
       }
     }
     Enums: {

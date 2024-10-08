@@ -5,11 +5,11 @@ import { GroupUserWithProfile } from "./use-get-group-users";
 export const useGetGroupUser = ({
     groupID,
     userID,
-    enabled,
+    enabled = true,
 }: {
     groupID: string | undefined;
     userID: string | undefined;
-    enabled: boolean;
+    enabled?: boolean;
 }) => {
     return useQuery(
         supabase

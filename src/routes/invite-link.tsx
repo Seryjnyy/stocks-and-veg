@@ -100,7 +100,7 @@ function InviteLink() {
                                 <div>by: {data?.group?.creator_id}</div>
                                 <div>to join: {data?.group?.name}</div>
                             </div>
-                            {groupUser ? (
+                            {groupUser && groupUser.length > 0 ? (
                                 <div className="relative">
                                     <Link
                                         to="/groups/$groupID"
