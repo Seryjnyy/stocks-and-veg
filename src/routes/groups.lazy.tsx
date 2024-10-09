@@ -90,13 +90,15 @@ const GroupsList = ({ groups }: { groups: Tables<"group">[] }) => {
 
 const Groups = () => {
     const { session } = useAuth();
-    const {
-        data: groups,
-        error,
-        refetch,
-    } = useGetUserGroups({
+    const { data, error, refetch } = useGetUserGroups({
         user_id: session?.user.id,
     });
+
+    const groups = data
+        ? data
+              .map((x) => (x.group ? x.group : undefined))
+              .filter((group) => group != undefined)
+        : undefined;
 
     if (error) {
         return null;

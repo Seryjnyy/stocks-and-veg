@@ -22,7 +22,7 @@ export default function Nav() {
     };
 
     return (
-        <nav className="w-full flex justify-between items-center p-4 bg-gray-700">
+        <nav className="w-full flex justify-between items-center p-1 backdrop-blur-lg bg-secondary/25 fixed top-0 left-0 z-50">
             <div className="flex items-center gap-4">
                 <Link to="/">tomatoe</Link>
                 <Link to="/groups">groups</Link>

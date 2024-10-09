@@ -20,3 +20,5 @@ export const timestampSplit = (timestamp: string) => {
 export const formatInviteLink = (token: string) => {
     return `${CONFIG.inviteURL}?token=${token}`;
 };
+
+export const TOMATO_EMOJI = "🍅";

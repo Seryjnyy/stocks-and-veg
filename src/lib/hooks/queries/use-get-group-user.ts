@@ -18,7 +18,7 @@ export const useGetGroupUser = ({
             .eq("group_id", groupID ?? "")
             .eq("user_id", userID ?? "")
             .limit(1)
-            .returns<GroupUserWithProfile[]>(),
+            .maybeSingle<GroupUserWithProfile>(),
         {
             refetchOnReconnect: false,
             refetchOnWindowFocus: false,

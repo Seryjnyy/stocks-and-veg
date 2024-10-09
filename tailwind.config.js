@@ -56,6 +56,25 @@ export default {
                     5: "hsl(var(--chart-5))",
                 },
             },
+            keyframes: {
+                explode: {
+                    "75%": {
+                        transform: "scale(2)",
+                        opacity: 0,
+                    },
+                    "90%": {
+                        transform: "scale(2)",
+                        opacity: 0,
+                    },
+                    "100%": {
+                        transform: "scale(0)",
+                        opacity: 0,
+                    },
+                },
+            },
+            animation: {
+                explosion: "explode 2s cubic-bezier(0,0,0.2,1) forwards",
+            },
         },
     },
     plugins: [require("tailwindcss-animate")],

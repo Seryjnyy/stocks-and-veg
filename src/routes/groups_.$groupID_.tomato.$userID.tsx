@@ -8,6 +8,7 @@ import {
     useUpdateTomatoTarget,
 } from "@/lib/tomatoService";
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { Test } from "./test";
 
 // TODO : user can travel to this page through link, need to redirect or give message that they can't do it
 export const Route = createFileRoute("/groups/$groupID/tomato/$userID")({
@@ -23,7 +24,6 @@ const TomatoTarget = ({
     // onTomatoesThrown: () => void;
 }) => {
     const { session } = useAuth();
-    const { mutateAsync: throwTomato } = useUpdateTomatoTarget();
     const { data, isError, isLoading, refetch } = useGetGroupUserTomato({
         userID: targetUserID,
         groupID: groupID,
@@ -78,7 +78,7 @@ function Tomato() {
     // check if user is part of group
     const { session } = useAuth();
     const {
-        data: us,
+        data: currentUser,
         isError: isUsError,
         isLoading: isUsLoading,
     } = useGetGroupUser({
@@ -106,61 +106,57 @@ function Tomato() {
         enabled: !!session,
     });
 
-    const groupUserUs = us && us.length > 0 ? us[0] : undefined;
-    const groupUserTarget =
-        targetUser && targetUser.length > 0 ? targetUser[0] : undefined;
-
-    if (isUsError || !groupUserTarget || !groupUserTarget) {
+    if (isUsError || !targetUser || !currentUser) {
         // Can't do anything if we are not part of group
         return null;
     }
 
-    const isWeTryingToTomatoOurself =
-        !groupUserTarget ||
-        !groupUserUs ||
-        groupUserTarget.user_id == groupUserUs.user_id;
+    const areWeTheTarget = targetUser.user_id == currentUser?.user_id;
 
     return (
         <div>
-            <div>{group?.name}</div>
-            <div>{groupUserUs?.profile?.username}</div>
-            <div>
-                <div>target</div>
-                <div>{groupUserTarget?.profile?.username}</div>
-            </div>
-            <div>
-                {isWeTryingToTomatoOurself ? (
+            {/* <div className="p-3">
+                <div className="border p-2">
+                    Group data
                     <div>
-                        <span>
-                            "Don't be so tough on yourself, you're doing good."
-                        </span>
-                        <span className="text-xs text-muted-foreground">
-                            You can't throw tomatoes at yourself.
-                        </span>
-                        <Link
-                            to="/groups/$groupID"
-                            params={{ groupID: groupID }}
-                        >
-                            <Button>Back to group</Button>
-                        </Link>
+                        Group name ---
+                        {group?.name}
                     </div>
-                ) : (
-                    // <TomatoTarget groupID={groupID} targetUserID={userID} />
-                    <>shoot them</>
-                )}
-            </div>
-            <div className="border p-4">
-                <TomatoTarget
-                    groupID={groupID}
-                    targetUserID={userID}
-                    // onTomatoesThrown={}
-                />
-            </div>
+                    <div>
+                        Group ID ---
+                        {group?.id}
+                    </div>
+                </div>
 
-            <div className="flex flex-col border p-3">
+                <div className="border p-2">
+                    Us data
+                    <div>username ----- {currentUser?.profile?.username}</div>
+                    <div>user id ----- {currentUser?.user_id}</div>
+                </div>
+
+                <div className="border p-2">
+                    <div>target</div>
+                    <div>username ---- {targetUser?.profile?.username}</div>
+                    <div>user id ---- {targetUser?.user_id}</div>
+                </div>
+                <div className="border p-2">
+                    Are we the target {areWeTheTarget ? "yes" : "no"}
+                </div>
+
+                <div className="border p-4">
+                    <TomatoTarget
+                        groupID={groupID}
+                        targetUserID={userID}
+                        // onTomatoesThrown={}
+                    />
+                </div>
+            </div> */}
+
+            {/* <div className="flex flex-col border p-3">
                 <div>Your tomatoes</div>
-                {us && <div>{`${groupUserUs?.tomatoes}`}count</div>}
-            </div>
+                {currentUser && <div>{`${currentUser?.tomatoes}`}count</div>}
+            </div> */}
+            <Test targetUser={targetUser} currentUser={currentUser} />
         </div>
     );
 }

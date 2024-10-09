@@ -19,11 +19,13 @@ function Root() {
         <>
             <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
                 <Nav />
-                <Outlet />
+                <div className="pt-12">
+                    <Outlet />
+                </div>
             </ThemeProvider>
             <ReactQueryDevtools initialIsOpen={false} />
 
-            <TanStackRouterDevtools />
+            {/* <TanStackRouterDevtools /> */}
             <Toaster />
         </>
     );

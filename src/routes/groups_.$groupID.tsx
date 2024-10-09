@@ -37,6 +37,9 @@ import { Input } from "@/components/ui/input";
 import { Tables } from "@/lib/supabase/database.types";
 import { Label } from "@/components/ui/label";
 import { useGetGroupTomatoes } from "@/lib/tomatoService";
+import GroupTodaysTargets from "@/components/group/group-todays-targets";
+import GroupUserProfile from "@/components/group/group-user-profile";
+import { useGetGroupUser } from "@/lib/hooks/queries/use-get-group-user";
 
 export const Route = createFileRoute("/groups/$groupID")({
     component: Group,
@@ -76,7 +79,13 @@ const GroupUser = ({ user }: { user: GroupUserWithProfile }) => {
 };
 
 const GroupUsersList = ({ users }: { users: GroupUserWithProfile[] }) => {
-    return users.map((user) => <GroupUser user={user} key={user.id} />);
+    return users.map((user) => (
+        <GroupUserProfile
+            groupUser={user}
+            key={user.id}
+            className="w-full p-6"
+        />
+    ));
 };
 
 const GroupUsers = ({ groupID }: { groupID: string }) => {
@@ -89,9 +98,9 @@ const GroupUsers = ({ groupID }: { groupID: string }) => {
     }
 
     return (
-        <div className="border p-4">
-            <h3>Group users</h3>
-            <ul>
+        <div className="p-4 flex flex-col gap-6">
+            <h3 className="text-3xl font-semibold text-center">Group users</h3>
+            <ul className="flex flex-col gap-4">
                 <GroupUsersList users={data || []} />
             </ul>
             <span>
@@ -260,25 +269,6 @@ const GroupManage = ({ group }: { group: Tables<"group"> }) => {
     );
 };
 
-const GroupTodaysTargets = ({ group }: { group: Tables<"group"> }) => {
-    const { data, isError, isLoading } = useGetGroupTomatoes({
-        groupID: group.id,
-    });
-
-    if (isLoading) {
-        return <Loading />;
-    }
-
-    return (
-        <div className="p-4 border flex flex-col">
-            <h3>Todays targets</h3>
-            {isError && <DataError message="" />}
-
-            <div>No targets today. You're all doing well today.</div>
-        </div>
-    );
-};
-
 // TODO : is it better to drill stuff like session, or let components use useAuth hook?
 function Group() {
     const { groupID } = Route.useParams();
@@ -286,6 +276,12 @@ function Group() {
     const { data, error, isLoading } = useGetGroup({
         enabled: !!session,
         groupID: groupID,
+    });
+
+    const { data: groupUser } = useGetGroupUser({
+        groupID: groupID,
+        userID: session?.user.id,
+        enabled: !!session,
     });
 
     if (error) {
@@ -302,18 +298,36 @@ function Group() {
 
     const isCreator = session && data && session.user.id == data.creator_id;
     return (
-        <div className="p-12 space-y-8">
-            <h1 className="font-bold text-3xl">{data.name}</h1>
-
-            {session?.user.id == data?.creator_id
-                ? "we created"
-                : "we not created"}
-
-            <GroupTodaysTargets group={data} />
-            <GroupUsers groupID={groupID} />
-            <GroupTasks groupID={groupID} />
-            <Invite groupID={groupID} />
-            {isCreator && <GroupManage group={data} />}
+        <div>
+            <div className="border min-w-[14rem] fixed top-10 bg-secondary/25 h-screen flex flex-col items-stretch ">
+                <div className="bg-gradient-to-br from-purple-500 to-emerald-400 w-full h-[5rem] opacity-45"></div>
+                <div>
+                    <ul>
+                        <li>Todays targets</li>
+                        <li>Your tasks today</li>
+                        <li>Other user tasks</li>
+                        <li>Group users</li>
+                        <li>Invite</li>
+                        <li>Manage group</li>
+                    </ul>
+                </div>
+                {groupUser && <GroupUserProfile groupUser={groupUser} small />}
+            </div>
+            <div className="pr-12 py-20 space-y-8 pl-[17rem]">
+                <h1 className="font-bold text-5xl">
+                    {data.name}
+                    <Badge>
+                        <CrownIcon className="size-3" />
+                    </Badge>
+                </h1>
+                <div className="space-y-[16rem]">
+                    <GroupTodaysTargets group={data} />
+                    <GroupTasks groupID={groupID} />
+                    <GroupUsers groupID={groupID} />
+                    <Invite groupID={groupID} />
+                    {isCreator && <GroupManage group={data} />}
+                </div>
+            </div>
         </div>
     );
 }

@@ -14,6 +14,7 @@ import { useAuth } from "@/lib/hooks/use-auth";
 import SpinnerButton from "@/spinner-button";
 import { EyeOpenIcon } from "@radix-ui/react-icons";
 import { useNavigate } from "@tanstack/react-router";
+import { GroupUser } from "./group-user-profile";
 
 export default function GroupUserDialog({
     groupUser,
@@ -53,12 +54,11 @@ export default function GroupUserDialog({
                     </DialogDescription>
                 </DialogHeader>
 
-                <div className="border p-2 flex items-end gap-4 flex-wrap">
-                    <div className="w-4 h-4 bg-red-500"></div>
-                    <div>
-                        <div>{groupUser.profile?.username}</div>
-                        <div>joined at {groupUser.created_at}</div>
-                    </div>
+                <div className="border p-4 flex items-end gap-4 flex-wrap rounded-xl">
+                    <GroupUser groupUser={groupUser} />
+
+                    <div>joined at {groupUser.created_at}</div>
+
                     {isUserCreator && (
                         <SpinnerButton
                             size={"sm"}
