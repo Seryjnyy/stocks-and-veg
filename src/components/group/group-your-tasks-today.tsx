@@ -13,44 +13,48 @@ import { CheckIcon } from "@radix-ui/react-icons";
 import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "../ui/button";
 import GroupCreateTaskModal from "./group-create-task-modal";
+import { useGetGroupTasks } from "@/lib/hooks/queries/use-get-group-tasks";
+import { InView } from "react-intersection-observer";
+import { cn } from "@/lib/utils";
+import { useAtom } from "jotai";
+import { currentSectionInGroupPageAtom } from "@/lib/atoms/current-section-group-page";
 
-export default function GroupYourTasksToday({
-    tasks,
-    groupID,
-}: {
-    tasks: TaskWithCompletion[];
-    groupID: string;
-}) {
+// TODO : loading and error
+export default function GroupYourTasksToday({ groupID }: { groupID: string }) {
+    const {
+        data: tasks,
+        isError,
+        isLoading,
+    } = useGetGroupTasks({ groupID: groupID });
+    const { session } = useAuth();
+
+    const userTasks =
+        (tasks && tasks.filter((task) => task.user_id == session?.user.id)) ||
+        [];
+
     return (
-        <Collapsible className="p-4 flex flex-col gap-2" defaultOpen={true}>
-            <CollapsibleTrigger>
-                <h3 className="text-4xl font-semibold text-center">
-                    Your tasks for today
-                </h3>
-            </CollapsibleTrigger>
-            <CollapsibleContent className="p-4">
-                <ul className="flex flex-col gap-2">
-                    <UserTasksTodayList tasks={tasks} />
-                    {tasks.length == 0 && (
-                        <div>You don't have any tasks at all.</div>
-                    )}
-                </ul>
-                <div className="flex items-center justify-between mt-1 border px-3 py-1 rounded-lg bg-secondary/50 text-secondary-foreground ">
-                    <span className="text-muted-foreground text-xs">
-                        All : {tasks.length} Completed:{" "}
-                        {
-                            tasks.filter(
-                                (task) => task.task_completion.length > 0
-                            ).length
-                        }
-                    </span>
-                    <GroupCreateTaskModal
-                        groupID={groupID}
-                        userTasksCount={tasks.length}
-                    />
-                </div>
-            </CollapsibleContent>
-        </Collapsible>
+        <div>
+            <ul className="flex flex-col gap-2">
+                <UserTasksTodayList tasks={userTasks} />
+                {userTasks.length == 0 && (
+                    <div>You don't have any tasks at all.</div>
+                )}
+            </ul>
+            <div className="flex items-center justify-between mt-1 border px-3 py-1 rounded-lg bg-secondary/50 text-secondary-foreground ">
+                <span className="text-muted-foreground text-xs">
+                    All : {userTasks.length} Completed:{" "}
+                    {
+                        userTasks.filter(
+                            (task) => task.task_completion.length > 0
+                        ).length
+                    }
+                </span>
+                <GroupCreateTaskModal
+                    groupID={groupID}
+                    userTasksCount={userTasks.length}
+                />
+            </div>
+        </div>
     );
 }
 

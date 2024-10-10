@@ -5,7 +5,7 @@ import { GroupUserWithProfile } from "@/lib/hooks/queries/use-get-group-users";
 import { useGetUserProfile } from "@/lib/hooks/queries/use-get-profile";
 import supabase from "@/lib/supabase/supabaseClient";
 import { useGetGroupUserTomato } from "@/lib/tomatoService";
-import { TOMATO_EMOJI } from "@/lib/utils";
+import { getExpiryDateUnixFromDate, TOMATO_EMOJI } from "@/lib/utils";
 import { useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
@@ -15,6 +15,8 @@ import { RealtimeChannel } from "@supabase/supabase-js";
 import { useToast } from "@/hooks/use-toast";
 import { title } from "process";
 import { ArrowLeftIcon } from "@radix-ui/react-icons";
+import CountdownTimer from "@/components/countdown-timer";
+import { differenceInMilliseconds } from "date-fns";
 
 export const Route = createFileRoute("/test")({
     component: TestWrapper,
@@ -77,6 +79,7 @@ export function Test({ targetUser, currentUser }: TestProps) {
     const [animKey, setAnimKey] = useState(0);
 
     const [otherAnimKey, setOtherAnimKey] = useState(0);
+    const [isOutOfTime, setIsOutOfTime] = useState(false);
     const [channel, setChannel] = useState<RealtimeChannel | null>(null);
     const { toast } = useToast();
 
@@ -148,13 +151,34 @@ export function Test({ targetUser, currentUser }: TestProps) {
     };
 
     useEffect(() => {
-        // const roomOne = supabase.channel("room", {
-        //     config: { presence: { key: "what" } },
-        // });
+        if (targetUserTomato) {
+            const timeDiff = Math.abs(
+                differenceInMilliseconds(
+                    Date.parse(targetUserTomato.created_at),
+                    Date.parse(new Date().toISOString())
+                )
+            );
+            console.log("🚀 ~ useEffect ~ timeDiff:", timeDiff);
 
-        // setOnlineUsers((prev) =>
-        //     prev.includes(session.user.id) ? prev : [...prev, session.user.id]
-        // );
+            const dateNow = Date.parse(new Date().toISOString());
+            const dateCreated = Date.parse(targetUserTomato.created_at);
+
+            if (
+                targetUserTomato &&
+                dateNow >
+                    Date.parse(
+                        getExpiryDateUnixFromDate(
+                            Date.parse(targetUserTomato.created_at)
+                        ).toString()
+                    )
+            ) {
+                console.log("CHECKED EXPIRED!");
+                setIsOutOfTime(dateNow > dateCreated);
+            } else {
+                console.log("CHECKED FINE");
+            }
+            console.log(dateNow > dateCreated ? "true" : "false");
+        }
 
         const tempChannel = supabase.channel("room1");
         tempChannel
@@ -231,7 +255,8 @@ export function Test({ targetUser, currentUser }: TestProps) {
                     disabled={
                         !channel ||
                         currentUser.tomatoes <= 0 ||
-                        targetUser.user_id == currentUser.user_id
+                        targetUser.user_id == currentUser.user_id ||
+                        isOutOfTime
                     }
                 >
                     {TOMATO_EMOJI}
@@ -247,8 +272,15 @@ export function Test({ targetUser, currentUser }: TestProps) {
                             <ArrowLeftIcon /> Exit
                         </Button>
                     </Link>
-                    <div className="text-muted-foreground text-xs">
-                        24:32 left
+                    <div className="text-muted-foreground text-xs space-x-2">
+                        {isOutOfTime && <span>Session has ended 00:00:00</span>}
+                        {targetUserTomato && (
+                            <CountdownTimer
+                                expireDate={Date.parse(
+                                    targetUserTomato.created_at
+                                )}
+                            />
+                        )}
                     </div>
                 </div>
                 <div className="flex justify-center  w-full items-start">

@@ -18,10 +18,10 @@ function Root() {
     return (
         <>
             <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
-                <Nav />
-                <div className="pt-12">
-                    <Outlet />
-                </div>
+                {/* <Nav /> */}
+                {/* <div className="pt-12"> */}
+                <Outlet />
+                {/* </div> */}
             </ThemeProvider>
             <ReactQueryDevtools initialIsOpen={false} />
 

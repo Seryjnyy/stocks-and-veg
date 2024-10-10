@@ -57,14 +57,14 @@ export const GroupUserAvatar = ({
             }}
         >
             {usBadge && isUs ? (
-                <Badge className="px-1 -bottom-1 absolute -left-2 opacity-80">
-                    <User2 className="size-3" />
+                <Badge className="px-1 -bottom-1 absolute -left-2 opacity-90">
+                    <User2 className="size-[0.6rem]" />
                 </Badge>
             ) : null}
 
             {creatorBadge && isCreator ? (
-                <Badge className="px-1 -bottom-1 absolute -right-2 opacity-80">
-                    <CrownIcon className="size-3" />
+                <Badge className="px-1 -bottom-1 absolute -right-2 opacity-90">
+                    <CrownIcon className="size-[0.6rem]" />
                 </Badge>
             ) : null}
             {children}
@@ -76,12 +76,16 @@ export const GroupUser = ({
     groupUser,
     children,
     className,
+    usBadge = false,
+    creatorBadge = false,
     small,
 }: {
     groupUser: GroupUserWithProfile;
     children?: ReactNode;
     className?: string;
     small?: boolean;
+    usBadge?: boolean;
+    creatorBadge?: boolean;
 }) => {
     return (
         <div
@@ -90,11 +94,15 @@ export const GroupUser = ({
                 className
             )}
         >
-            <GroupUserAvatar groupUser={groupUser} />
+            <GroupUserAvatar
+                groupUser={groupUser}
+                usBadge={usBadge}
+                creatorBadge={creatorBadge}
+            />
             <div className={small ? "max-w-[6rem]" : ""}>
                 <div>{groupUser.profile?.username}</div>
                 <div className="text-xs text-muted-foreground">
-                    {groupUser.user_id}
+                    {groupUser.user_id.split("-")[0]}
                 </div>
                 <div className="flex items-center text-xs gap-2 text-muted-foreground">
                     <span>2</span>
@@ -107,17 +115,28 @@ export const GroupUser = ({
     );
 };
 
+// TODO : These components are hot garbage, but I can't stop using them
 export default function GroupUserProfile({
     groupUser,
     className,
     small,
+    usBadge = false,
+    creatorBadge = false,
 }: {
     groupUser: GroupUserWithProfile;
     className?: string;
     small?: boolean;
+    usBadge?: boolean;
+    creatorBadge?: boolean;
 }) {
     return (
-        <GroupUser groupUser={groupUser} className={className} small={small}>
+        <GroupUser
+            groupUser={groupUser}
+            className={className}
+            small={small}
+            usBadge={usBadge}
+            creatorBadge={creatorBadge}
+        >
             <div className="border-l pl-2">
                 <GroupUserDialog groupUser={groupUser} />
             </div>

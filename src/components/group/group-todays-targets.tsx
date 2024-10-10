@@ -7,8 +7,12 @@ import { useAuth } from "@/lib/hooks/use-auth";
 import { Tables } from "@/lib/supabase/database.types";
 import { useGetGroupTomatoes } from "@/lib/tomatoService";
 import GroupUserProfile from "./group-user-profile";
-import { TOMATO_EMOJI } from "@/lib/utils";
+import { cn, TOMATO_EMOJI } from "@/lib/utils";
 import { Link } from "@tanstack/react-router";
+import CountdownTimer from "../countdown-timer";
+import { InView } from "react-intersection-observer";
+import { currentSectionInGroupPageAtom } from "@/lib/atoms/current-section-group-page";
+import { useAtom } from "jotai";
 
 const Target = ({ target }: { target: Tables<"tomato_target"> }) => {
     const { session } = useAuth();
@@ -71,19 +75,24 @@ export default function GroupTodaysTargets({
     }
 
     return (
-        <div className="p-4  flex flex-col gap-2">
-            <h3 className="text-4xl font-semibold text-center">
-                Todays targets
-            </h3>
-            {isError || (!data && <DataError message="" />)}
+        <>
+            <div className="absolute -top-6 right-0">
+                <CountdownTimer
+                    className="absolute right-0 top-3 text-muted-foreground text-xs"
+                    expireDate={Date.parse(new Date().toISOString())}
+                />
+            </div>
+            <div>
+                {isError || (!data && <DataError message="" />)}
 
-            {data?.length == 0 && (
-                <div>No targets today. You're all doing well today.</div>
-            )}
+                {data?.length == 0 && (
+                    <div>No targets today. You're all doing well today.</div>
+                )}
 
-            <ul>
-                <TargetsList targets={data || []} />
-            </ul>
-        </div>
+                <ul>
+                    <TargetsList targets={data || []} />
+                </ul>
+            </div>
+        </>
     );
 }

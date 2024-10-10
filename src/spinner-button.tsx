@@ -2,6 +2,7 @@ import { VariantProps } from "class-variance-authority";
 import React from "react";
 import { Button, buttonVariants } from "./components/ui/button";
 import { Loader2 } from "lucide-react";
+import { cn } from "./lib/utils";
 
 export interface ButtonProps
     extends React.ButtonHTMLAttributes<HTMLButtonElement>,
@@ -12,12 +13,13 @@ export interface ButtonProps
 export default function SpinnerButton({
     children,
     isPending,
+    className,
     ...props
 }: ButtonProps) {
     return (
         <Button
             {...props}
-            className="relative overflow-hidden"
+            className={cn("relative overflow-hidden", className)}
             disabled={isPending}
         >
             {isPending && (
