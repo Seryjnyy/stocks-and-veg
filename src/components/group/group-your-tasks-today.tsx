@@ -90,6 +90,37 @@ const UserTasksTodayList = ({ tasks }: { tasks: TaskWithCompletion[] }) => {
         ));
 };
 
+const DeleteTaskDialog = ({
+    children,
+    onDeleteTask,
+}: {
+    children: React.ReactNode;
+    onDeleteTask: () => void;
+}) => {
+    return (
+        <AlertDialog>
+            <AlertDialogTrigger asChild>{children}</AlertDialogTrigger>
+            <AlertDialogContent>
+                <AlertDialogHeader>
+                    <AlertDialogTitle>
+                        Are you absolutely sure?
+                    </AlertDialogTitle>
+                    <AlertDialogDescription>
+                        This action cannot be undone. This will permanently
+                        delete your task.
+                    </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction onClick={onDeleteTask}>
+                        Continue
+                    </AlertDialogAction>
+                </AlertDialogFooter>
+            </AlertDialogContent>
+        </AlertDialog>
+    );
+};
+
 const TaskViewMoreModal = ({
     task,
     groupInfo = false,
@@ -98,6 +129,11 @@ const TaskViewMoreModal = ({
     groupInfo?: boolean;
 }) => {
     const { session } = useAuth();
+    const { mutateAsync: deleteTask, isPending } = useDeleteTask();
+
+    const onDeleteTask = async () => {
+        await deleteTask({ id: task.id });
+    };
 
     const { data: group, isLoading: isGroupLoading } = useGetGroup({
         groupID: task.group_id,
@@ -161,9 +197,16 @@ const TaskViewMoreModal = ({
                     </div>
                 )}
                 <div className="flex justify-between items-center">
-                    <Button variant={"destructive"} size={"sm"}>
-                        <Trash2 className="size-3 mr-2" /> Delete task
-                    </Button>
+                    <DeleteTaskDialog onDeleteTask={onDeleteTask}>
+                        <SpinnerButton
+                            isPending={isPending}
+                            disabled={isPending}
+                            variant={"destructive"}
+                            size={"sm"}
+                        >
+                            <Trash2 className="size-3 mr-2" /> Delete task
+                        </SpinnerButton>
+                    </DeleteTaskDialog>
                     {task.user_id == session?.user.id && (
                         <UserTaskTodayCompletion task={task} />
                     )}
