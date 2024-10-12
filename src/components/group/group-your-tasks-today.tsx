@@ -1,23 +1,39 @@
-import {
-    Collapsible,
-    CollapsibleContent,
-    CollapsibleTrigger,
-} from "@/components/ui/collapsible";
-
+import { useAuth } from "@/hooks/use-auth";
 import { useCreateTaskCompletion } from "@/lib/hooks/mutations/use-create-task-completion";
 import { useDeleteTaskCompletion } from "@/lib/hooks/mutations/use-delete-task-completion";
-import { useAuth } from "@/hooks/use-auth";
+import { useGetGroupTasks } from "@/lib/hooks/queries/use-get-group-tasks";
 import { TaskWithCompletion } from "@/lib/types";
 import SpinnerButton from "@/spinner-button";
-import { CheckIcon } from "@radix-ui/react-icons";
+import { CheckIcon, EyeOpenIcon } from "@radix-ui/react-icons";
 import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "../ui/button";
 import GroupCreateTaskModal from "./group-create-task-modal";
-import { useGetGroupTasks } from "@/lib/hooks/queries/use-get-group-tasks";
-import { InView } from "react-intersection-observer";
-import { cn } from "@/lib/utils";
-import { useAtom } from "jotai";
-import { currentSectionInGroupPageAtom } from "@/lib/atoms/current-section-group-page";
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
+} from "@/components/ui/dialog";
+import { timestampSplit } from "@/lib/utils";
+import { ArrowRight, Calendar, Trash2 } from "lucide-react";
+import { useGetGroup } from "@/lib/hooks/queries/use-get-group";
+import { Link } from "@tanstack/react-router";
+import { Skeleton } from "../ui/skeleton";
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+    AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { useDeleteTask } from "@/lib/hooks/mutations/use-delete-task";
+import { useState } from "react";
 
 // TODO : loading and error
 export default function GroupYourTasksToday({ groupID }: { groupID: string }) {
@@ -74,6 +90,89 @@ const UserTasksTodayList = ({ tasks }: { tasks: TaskWithCompletion[] }) => {
         ));
 };
 
+const TaskViewMoreModal = ({
+    task,
+    groupInfo = false,
+}: {
+    task: TaskWithCompletion;
+    groupInfo?: boolean;
+}) => {
+    const { session } = useAuth();
+
+    const { data: group, isLoading: isGroupLoading } = useGetGroup({
+        groupID: task.group_id,
+    });
+
+    return (
+        <Dialog>
+            <DialogTrigger asChild>
+                <Button
+                    size={"sm"}
+                    variant={"ghost"}
+                    className="text-muted-foreground"
+                >
+                    <EyeOpenIcon />
+                </Button>
+            </DialogTrigger>
+            <DialogContent>
+                <DialogHeader>
+                    <DialogTitle>
+                        <span className="text-muted-foreground">Task: </span>
+                        {task.name}
+                    </DialogTitle>
+                    <DialogDescription>{task.desc}</DialogDescription>
+                    <span className="flex items-center gap-2 text-xs text-muted-foreground">
+                        <Calendar className="size-3" />
+                        {timestampSplit(task.created_at).date}
+                    </span>
+                </DialogHeader>
+
+                {groupInfo && (
+                    <div className="flex flex-col">
+                        {!group && isGroupLoading && (
+                            <Skeleton className="w-[16rem] h-5" />
+                        )}
+
+                        {group && (
+                            <div className="py-2 flex items-center justify-between">
+                                <span>
+                                    <span className="text-muted-foreground">
+                                        Group:
+                                    </span>
+                                    <span className="ml-2">
+                                        {group && group.name}
+                                    </span>
+                                </span>
+                                <Link
+                                    to="/groups/$groupID"
+                                    params={{ groupID: group?.id || "" }}
+                                >
+                                    <Button
+                                        variant={"outline"}
+                                        size={"sm"}
+                                        className="group"
+                                    >
+                                        View group{" "}
+                                        <ArrowRight className="size-3 ml-2 group-hover:translate-x-1 transition-all" />
+                                    </Button>
+                                </Link>
+                            </div>
+                        )}
+                    </div>
+                )}
+                <div className="flex justify-between items-center">
+                    <Button variant={"destructive"} size={"sm"}>
+                        <Trash2 className="size-3 mr-2" /> Delete task
+                    </Button>
+                    {task.user_id == session?.user.id && (
+                        <UserTaskTodayCompletion task={task} />
+                    )}
+                </div>
+            </DialogContent>
+        </Dialog>
+    );
+};
+
 const UserTaskToday = ({ task }: { task: TaskWithCompletion }) => {
     const { session } = useAuth();
 
@@ -82,9 +181,12 @@ const UserTaskToday = ({ task }: { task: TaskWithCompletion }) => {
             <div className="flex flex-col">
                 <h3 className="text-xl">{task.name}</h3>
             </div>
-            {task.user_id == session?.user.id && (
-                <UserTaskTodayCompletion task={task} />
-            )}
+            <div className="flex items-center gap-3">
+                {task.user_id == session?.user.id && (
+                    <UserTaskTodayCompletion task={task} />
+                )}
+                <TaskViewMoreModal task={task} />
+            </div>
         </div>
     );
 };

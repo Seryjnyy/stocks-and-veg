@@ -25,7 +25,7 @@ export default function SpinnerButton({
         >
             {isPending && (
                 <div className="absolute bg-inherit w-full h-full flex justify-center items-center ">
-                    <Loader2 className="animate-spin" />
+                    <Loader2 className="animate-spin size-3" />
                 </div>
             )}
             {children}
