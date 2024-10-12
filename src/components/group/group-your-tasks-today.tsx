@@ -48,19 +48,44 @@ export default function GroupYourTasksToday({ groupID }: { groupID: string }) {
         (tasks && tasks.filter((task) => task.user_id == session?.user.id)) ||
         [];
 
+    const completedTasks = userTasks.filter(
+        (task) => task.task_completion.length > 0
+    );
+
+    const uncompletedTasks = userTasks.filter(
+        (task) => task.task_completion.length == 0
+    );
+
     return (
         <>
             <span className="absolute -top-6 right-0 text-xs text-muted-foreground">
-                {
-                    userTasks.filter((task) => task.task_completion.length > 0)
-                        .length
-                }
-                /{userTasks.length}
+                {completedTasks.length}/{userTasks.length}
             </span>
             <div>
                 <ul className="flex flex-col gap-2">
                     {isLoading && <Skeleton className="w-full h-12" />}
-                    <UserTasksTodayList tasks={userTasks} />
+
+                    <li>
+                        {uncompletedTasks.length > 0 && (
+                            <span className="text-xs text-muted-foreground">
+                                Uncompleted
+                            </span>
+                        )}
+                        <ul className="flex flex-col gap-2">
+                            <UserTasksTodayList tasks={uncompletedTasks} />
+                        </ul>
+                    </li>
+                    <li>
+                        {completedTasks.length > 0 && (
+                            <span className="text-xs text-muted-foreground">
+                                Completed
+                            </span>
+                        )}
+                        <ul className="flex flex-col gap-2">
+                            <UserTasksTodayList tasks={completedTasks} />
+                        </ul>
+                    </li>
+
                     {isError && (
                         <DataError message="Sorry, something has gone wrong." />
                     )}
@@ -73,11 +98,7 @@ export default function GroupYourTasksToday({ groupID }: { groupID: string }) {
                 <footer className="flex items-center justify-between mt-2 border px-3 py-1 rounded-lg bg-secondary/50 text-secondary-foreground ">
                     <span className="text-muted-foreground text-xs">
                         All : {userTasks.length} Completed:{" "}
-                        {
-                            userTasks.filter(
-                                (task) => task.task_completion.length > 0
-                            ).length
-                        }
+                        {completedTasks.length}
                     </span>
                     <GroupCreateTaskModal
                         groupID={groupID}

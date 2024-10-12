@@ -95,6 +95,14 @@ const Grouped = ({
 
     if (!user) return null;
 
+    const completedTasks = userTasks.tasks.filter(
+        (task) => task.task_completion.length > 0
+    );
+
+    const uncompletedTasks = userTasks.tasks.filter(
+        (task) => task.task_completion.length == 0
+    );
+
     return (
         <div>
             <div
@@ -103,16 +111,11 @@ const Grouped = ({
             >
                 <GroupUserProfile groupUser={user} className="border-none" />
                 <span className="text-xs text-muted-foreground">
-                    {
-                        userTasks.tasks.filter(
-                            (task) => task.task_completion.length > 0
-                        ).length
-                    }
-                    /{userTasks.tasks.length}
+                    {completedTasks.length}/{userTasks.tasks.length}
                 </span>
             </div>
             <ul className="flex flex-col gap-2 pl-12">
-                {userTasks.tasks
+                {/* {userTasks.tasks
                     .sort(
                         (a, b) =>
                             (a.task_completion.length > 0 ? 1 : -1) -
@@ -120,7 +123,31 @@ const Grouped = ({
                     )
                     .map((task) => (
                         <GroupTask key={task.id} task={task} />
-                    ))}
+                    ))} */}
+                <li>
+                    {uncompletedTasks.length > 0 && (
+                        <span className="text-xs text-muted-foreground">
+                            Uncompleted
+                        </span>
+                    )}
+                    <ul className="flex flex-col gap-2">
+                        {uncompletedTasks.map((task) => (
+                            <GroupTask key={task.id} task={task} />
+                        ))}
+                    </ul>
+                </li>
+                <li>
+                    {completedTasks.length > 0 && (
+                        <span className="text-xs text-muted-foreground">
+                            Completed
+                        </span>
+                    )}
+                    <ul className="flex flex-col gap-2">
+                        {completedTasks.map((task) => (
+                            <GroupTask key={task.id} task={task} />
+                        ))}
+                    </ul>
+                </li>
             </ul>
             {userTasks.tasks.length == 0 && <div>No tasks.</div>}
         </div>
