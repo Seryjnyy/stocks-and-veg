@@ -34,8 +34,8 @@ import {
 } from "@/components/ui/alert-dialog";
 import { useDeleteTask } from "@/lib/hooks/mutations/use-delete-task";
 import { useState } from "react";
+import DataError from "../data-error";
 
-// TODO : loading and error
 export default function GroupYourTasksToday({ groupID }: { groupID: string }) {
     const {
         data: tasks,
@@ -49,34 +49,47 @@ export default function GroupYourTasksToday({ groupID }: { groupID: string }) {
         [];
 
     return (
-        <div>
-            <ul className="flex flex-col gap-2">
-                <ul>
+        <>
+            <span className="absolute -top-6 right-0 text-xs text-muted-foreground">
+                {
+                    userTasks.filter((task) => task.task_completion.length > 0)
+                        .length
+                }
+                /{userTasks.length}
+            </span>
+            <div>
+                <ul className="flex flex-col gap-2">
+                    {isLoading && <Skeleton className="w-full h-12" />}
                     <UserTasksTodayList tasks={userTasks} />
+                    {isError && (
+                        <DataError message="Sorry, something has gone wrong." />
+                    )}
+                    {userTasks.length == 0 && (
+                        <li className="w-full flex justify-center text-muted-foreground py-3 border rounded-xl">
+                            You don't have any tasks. Create some.
+                        </li>
+                    )}
                 </ul>
-                {userTasks.length == 0 && (
-                    <div>You don't have any tasks at all.</div>
-                )}
-            </ul>
-            <footer className="flex items-center justify-between mt-1 border px-3 py-1 rounded-lg bg-secondary/50 text-secondary-foreground ">
-                <span className="text-muted-foreground text-xs">
-                    All : {userTasks.length} Completed:{" "}
-                    {
-                        userTasks.filter(
-                            (task) => task.task_completion.length > 0
-                        ).length
-                    }
-                </span>
-                <GroupCreateTaskModal
-                    groupID={groupID}
-                    userTasksCount={userTasks.length}
-                >
-                    <Button size={"sm"} variant={"outline"}>
-                        <Plus className="size-3 mr-2" /> Add task
-                    </Button>
-                </GroupCreateTaskModal>
-            </footer>
-        </div>
+                <footer className="flex items-center justify-between mt-2 border px-3 py-1 rounded-lg bg-secondary/50 text-secondary-foreground ">
+                    <span className="text-muted-foreground text-xs">
+                        All : {userTasks.length} Completed:{" "}
+                        {
+                            userTasks.filter(
+                                (task) => task.task_completion.length > 0
+                            ).length
+                        }
+                    </span>
+                    <GroupCreateTaskModal
+                        groupID={groupID}
+                        userTasksCount={userTasks.length}
+                    >
+                        <Button size={"sm"} variant={"outline"}>
+                            <Plus className="size-3 mr-2" /> Add task
+                        </Button>
+                    </GroupCreateTaskModal>
+                </footer>
+            </div>
+        </>
     );
 }
 

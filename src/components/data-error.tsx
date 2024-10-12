@@ -4,8 +4,8 @@ import { AlertTriangle } from "lucide-react";
 
 export default function DataError({ message }: { message: string }) {
     return (
-        <Alert>
-            <AlertTitle className="flex items-center">
+        <Alert variant={"destructive"}>
+            <AlertTitle className="flex items-center  ">
                 <AlertTriangle className="size-4  mr-2" />
                 Error
             </AlertTitle>
