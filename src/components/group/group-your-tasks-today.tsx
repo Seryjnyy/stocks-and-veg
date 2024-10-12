@@ -17,7 +17,7 @@ import {
     DialogTrigger,
 } from "@/components/ui/dialog";
 import { timestampSplit } from "@/lib/utils";
-import { ArrowRight, Calendar, Trash2 } from "lucide-react";
+import { ArrowRight, Calendar, Plus, Trash2 } from "lucide-react";
 import { useGetGroup } from "@/lib/hooks/queries/use-get-group";
 import { Link } from "@tanstack/react-router";
 import { Skeleton } from "../ui/skeleton";
@@ -72,7 +72,7 @@ export default function GroupYourTasksToday({ groupID }: { groupID: string }) {
                     userTasksCount={userTasks.length}
                 >
                     <Button size={"sm"} variant={"outline"}>
-                        Add task
+                        <Plus className="size-3 mr-2" /> Add task
                     </Button>
                 </GroupCreateTaskModal>
             </footer>

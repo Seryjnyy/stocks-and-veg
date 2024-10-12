@@ -15,6 +15,7 @@ import { useCreateTask } from "@/lib/hooks/mutations/use-create-task";
 import { GenericFormProps } from "@/lib/types";
 import SpinnerButton from "@/spinner-button";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { Plus } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
@@ -29,14 +30,13 @@ type taskSchemaType = z.infer<typeof taskSchema>;
 
 interface CreateTaskFormProps extends GenericFormProps {
     groupID: string;
-    userTasksCount: number;
 }
 
 export default function CreateTaskForm({
     groupID,
-    userTasksCount,
     onError,
     onSuccess,
+    disabled,
 }: CreateTaskFormProps) {
     const { session } = useAuth();
     const { toast } = useToast();
@@ -98,8 +98,8 @@ export default function CreateTaskForm({
                             <FormControl>
                                 <Input {...field} />
                             </FormControl>
-                            <FormDescription>
-                                This is will be the task name.
+                            <FormDescription className="sr-only">
+                                This is will be the task's name.
                             </FormDescription>
                             <FormMessage />
                         </FormItem>
@@ -115,8 +115,8 @@ export default function CreateTaskForm({
                             <FormControl>
                                 <Input {...field} />
                             </FormControl>
-                            <FormDescription>
-                                This is will be the task desc.
+                            <FormDescription className="sr-only">
+                                Add a description to the task if you need it.
                             </FormDescription>
                             <FormMessage />
                         </FormItem>
@@ -125,16 +125,11 @@ export default function CreateTaskForm({
                 <div>
                     <SpinnerButton
                         isPending={isPending}
-                        disabled={
-                            isPending || userTasksCount == CONFIG.maxTasks
-                        }
+                        disabled={isPending || disabled}
                         type="submit"
                     >
-                        Submit
+                        <Plus className="size-3 mr-2" /> Add task
                     </SpinnerButton>
-                    <div>
-                        {userTasksCount}/{CONFIG.maxTasks}
-                    </div>
                 </div>
             </form>
         </Form>

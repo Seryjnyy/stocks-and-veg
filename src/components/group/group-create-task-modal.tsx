@@ -9,6 +9,9 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "../ui/button";
 import CreateTaskForm from "./create-task-form";
+import { CONFIG } from "@/lib/config";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { AlertTriangle } from "lucide-react";
 
 export default function GroupCreateTaskModal({
     groupID,
@@ -19,19 +22,34 @@ export default function GroupCreateTaskModal({
     userTasksCount: number;
     children: React.ReactNode;
 }) {
+    const isTaskLimitReached = userTasksCount >= CONFIG.maxTasks;
+
     return (
         <Dialog>
             <DialogTrigger asChild>{children}</DialogTrigger>
             <DialogContent>
                 <DialogHeader>
-                    <DialogTitle>Create new task</DialogTitle>
-                    <DialogDescription>
+                    <DialogTitle className="flex items-center gap-2">
+                        <span>Create task</span>
+                        <span className="text-muted-foreground text-xs">
+                            {userTasksCount ?? 0}/{CONFIG.maxTasks}
+                        </span>
+                    </DialogTitle>
+                    <DialogDescription className="sr-only">
                         Create a new task for yourself.
                     </DialogDescription>
                 </DialogHeader>
+                {isTaskLimitReached && (
+                    <Alert variant="warning" className="mb-2">
+                        <AlertTriangle className="size-4 mr-2" />
+                        <span>
+                            You have reached the maximum number of tasks.
+                        </span>
+                    </Alert>
+                )}
                 <CreateTaskForm
                     groupID={groupID}
-                    userTasksCount={userTasksCount}
+                    disabled={isTaskLimitReached}
                 />
             </DialogContent>
         </Dialog>
