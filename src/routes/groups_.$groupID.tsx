@@ -613,7 +613,7 @@ function GroupTwo() {
                                     "Time remaining today to do tasks."}
                             </span>
                             <CountdownTimer
-                                className="text-muted-foreground text-blue-400 text-xs"
+                                className=" text-blue-400 text-xs"
                                 expireDate={Date.parse(
                                     new Date().toISOString()
                                 )}

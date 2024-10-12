@@ -193,7 +193,7 @@ function Component2({ group }: { group: Tables<"group"> }) {
                 <GroupTargetUsers groupID={group.id} />
             </div>
             <div className="border p-4 rounded-lg">
-                <div className="text-sm text-gray-400 mb-2 flex items-center ">
+                <div className="text-sm text-muted-foreground mb-2 flex items-center ">
                     <Users className="w-4 h-4 mr-1 text-purple-400 " />
                     Group Members
                 </div>
