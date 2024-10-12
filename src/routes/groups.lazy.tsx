@@ -6,6 +6,7 @@ import {
 import GroupCreateModal from "@/components/groups/group-create-modal";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
     Tooltip,
@@ -258,14 +259,8 @@ const GroupTasksProgress = ({ group }: { group: Tables<"group"> }) => {
             <div className="text-3xl font-bold text-purple-600 dark:text-purple-400">
                 {completedLength}/{totalTasks}
             </div>
-            <div className="w-full bg-gray-700 h-2 rounded-full mt-2">
-                {/* TODO : use shadcn progress */}
-                <div
-                    className="bg-gradient-to-r from-purple-600 to-indigo-600 h-full rounded-full"
-                    style={{
-                        width: `${(completedLength / totalTasks) * 100}%`,
-                    }}
-                />
+            <div className="py-4">
+                <Progress value={(completedLength / totalTasks) * 100} />
             </div>
         </div>
     );
