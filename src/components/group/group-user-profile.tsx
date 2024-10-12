@@ -80,6 +80,39 @@ export const UserAvatar = ({
     );
 };
 
+const userDetailVariants = cva("", {
+    variants: {
+        size: {
+            xs: "max-w-[4rem] min-w-[4rem]",
+            sm: "max-w-[6rem] min-w-[6rem]",
+            md: "max-w-[8rem] min-w-[8rem]",
+            lg: "max-w-[10rem] min-w-[10rem]",
+            xl: "max-w-[12rem] min-w-[12rem]",
+            "2xl": "max-w-[14rem] min-w-[14rem]",
+        },
+    },
+    defaultVariants: {
+        size: "md",
+    },
+});
+
+interface UserDetailProps
+    extends React.HTMLAttributes<HTMLDivElement>,
+        VariantProps<typeof userDetailVariants> {
+    user: Tables<"profile">;
+}
+
+export const UserDetail = ({ user, size, className }: UserDetailProps) => {
+    return (
+        <div className={cn(userDetailVariants({ size, className }))}>
+            <div className="truncate">{user.username}</div>
+            <div className="text-xs text-muted-foreground truncate">
+                {user.user_id.split("-")[0]}
+            </div>
+        </div>
+    );
+};
+
 export const GroupUserAvatar = ({
     groupUser,
     usBadge,
@@ -117,70 +150,102 @@ export const GroupUserAvatar = ({
     );
 };
 
+const groupUserVariants = cva("", {
+    variants: {
+        variant: {
+            default: "",
+            dashed: "border-dashed border",
+        },
+    },
+    defaultVariants: {
+        variant: "default",
+    },
+});
+
+interface GroupUserProps
+    extends React.HTMLAttributes<HTMLDivElement>,
+        VariantProps<typeof groupUserVariants> {
+    groupUser: GroupUserWithProfile;
+    children?: ReactNode;
+    className?: string;
+    usBadge?: boolean;
+    progressBar?: boolean;
+    creatorBadge?: boolean;
+    detailSize?: VariantProps<typeof userDetailVariants>["size"];
+    avatarSize?: VariantProps<typeof avatarVariants>["size"];
+}
+
 export const GroupUser = ({
     groupUser,
     children,
     className,
     usBadge = false,
     creatorBadge = false,
-    small,
-}: {
-    groupUser: GroupUserWithProfile;
-    children?: ReactNode;
-    className?: string;
-    small?: boolean;
-    usBadge?: boolean;
-    creatorBadge?: boolean;
-}) => {
+    progressBar,
+    detailSize,
+    avatarSize,
+    variant,
+}: GroupUserProps) => {
     return (
         <div
             className={cn(
-                "flex items-center gap-4 border p-3 border-dashed w-fit rounded-lg",
-                className
+                "flex items-center  gap-4 p-3  w-fit rounded-lg",
+                groupUserVariants({ variant, className })
             )}
         >
             <GroupUserAvatar
                 groupUser={groupUser}
                 usBadge={usBadge}
                 creatorBadge={creatorBadge}
+                size={avatarSize}
             />
-            <div className={small ? "max-w-[6rem]" : ""}>
-                <div>{groupUser.profile?.username}</div>
-                <div className="text-xs text-muted-foreground">
-                    {groupUser.user_id.split("-")[0]}
-                </div>
-                <div className="flex items-center text-xs gap-2 text-muted-foreground">
-                    <span>2</span>
-                    <Progress value={3} />
-                    <span>3</span>
-                </div>
+            <div>
+                {groupUser.profile && (
+                    <UserDetail user={groupUser.profile} size={detailSize} />
+                )}
+
+                {progressBar && (
+                    <div className="flex items-center text-xs gap-2 text-muted-foreground">
+                        <span className="text-[0.6rem]">2</span>
+                        <Progress value={3} />
+                        <span className="text-[0.6rem]">3</span>
+                    </div>
+                )}
             </div>
             {children}
         </div>
     );
 };
 
-// TODO : These components are hot garbage, but I can't stop using them
 export default function GroupUserProfile({
     groupUser,
     className,
-    small,
     usBadge = false,
     creatorBadge = false,
+    progressBar,
+    detailSize,
+    avatarSize,
+    variant,
 }: {
     groupUser: GroupUserWithProfile;
     className?: string;
-    small?: boolean;
     usBadge?: boolean;
     creatorBadge?: boolean;
+    progressBar?: boolean;
+    detailSize?: VariantProps<typeof userDetailVariants>["size"];
+    avatarSize?: VariantProps<typeof avatarVariants>["size"];
+    variant?: VariantProps<typeof groupUserVariants>["variant"];
 }) {
     return (
         <GroupUser
             groupUser={groupUser}
             className={className}
-            small={small}
             usBadge={usBadge}
             creatorBadge={creatorBadge}
+            detailSize={detailSize}
+            avatarSize={avatarSize}
+            variant={variant}
+            progressBar={progressBar}
         >
             <div className="border-l pl-2">
                 <GroupUserDialog groupUser={groupUser} />
