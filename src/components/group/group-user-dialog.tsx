@@ -23,9 +23,13 @@ import { useGetGroup } from "@/lib/hooks/queries/use-get-group";
 import { GroupUserWithProfile } from "@/lib/hooks/queries/use-get-group-users";
 import { useAuth } from "@/hooks/use-auth";
 import SpinnerButton from "@/spinner-button";
-import { EyeOpenIcon } from "@radix-ui/react-icons";
+import { ExitIcon, EyeOpenIcon } from "@radix-ui/react-icons";
 import { useNavigate } from "@tanstack/react-router";
-import { GroupUser, GroupUserAvatar } from "./group-user-profile";
+import GroupUserProfile, {
+    GroupUser,
+    GroupUserAvatar,
+    UserDetail,
+} from "./group-user-profile";
 import {
     AlertDialog,
     AlertDialogAction,
@@ -49,7 +53,7 @@ const LeaveGroupDialog = ({
         <AlertDialog>
             <AlertDialogTrigger asChild>
                 <Button variant={"destructive"} size={"sm"}>
-                    Leave group
+                    <ExitIcon className="size-3 mr-2" /> Leave group
                 </Button>
             </AlertDialogTrigger>
             <AlertDialogContent>
@@ -151,7 +155,7 @@ export default function GroupUserDialog({
                     <EyeOpenIcon />
                 </Button>
             </DialogTrigger>
-            <DialogContent className="min-w-[80vw] h-[90vh] ">
+            <DialogContent className="min-w-[80vw] h-[90vh] px-0 pb-0">
                 <DialogHeader>
                     <DialogTitle className="sr-only">Group user</DialogTitle>
                     <DialogDescription className="sr-only">
@@ -159,28 +163,19 @@ export default function GroupUserDialog({
                     </DialogDescription>
                 </DialogHeader>
 
-                <div className="overflow-hidden rounded-lg ">
-                    <div className="h-full border rounded-lg overflow-y-scroll  ">
+                <div className="overflow-hidden rounded-lg">
+                    <div className="h-full border-t rounded-lg overflow-y-scroll  px-12 py-4">
                         <div className="border flex flex-col  rounded-xl ">
                             <div className="flex">
-                                <GroupUserAvatar
+                                <GroupUser
                                     groupUser={groupUser}
-                                    size={"xl"}
+                                    avatarSize={"xl"}
+                                    detailSize={"2xl"}
                                 />
-                                <div className="flex flex-col">
-                                    <span>{groupUser.profile?.username}</span>
-                                    <span className="text-muted-foreground text-xs">
-                                        {
-                                            groupUser.profile?.user_id.split(
-                                                "-"
-                                            )[0]
-                                        }
-                                    </span>
-                                </div>
 
                                 <div>joined at {groupUser.created_at}</div>
                             </div>
-                            <div>
+                            <div className="flex items-center justify-between">
                                 {isUserCreator && !isUserUs && (
                                     <RemoveUserDialog
                                         handleRemoveUser={handleRemoveUser}
@@ -192,7 +187,12 @@ export default function GroupUserDialog({
                                     />
                                 )}
                                 {isAbleToBeTomatoed && (
-                                    <Button>Tomato them</Button>
+                                    <Button size={"sm"} variant={"default"}>
+                                        Chuck tomatoes
+                                        <span className="size-3 ml-2">
+                                            {TOMATO_EMOJI}
+                                        </span>
+                                    </Button>
                                 )}
                             </div>
                         </div>
@@ -224,7 +224,7 @@ function UserStatsVariant2() {
     };
 
     return (
-        <div className="w-full max-w-6xl mx-auto p-4 space-y-6">
+        <div className="w-full   space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <Card className="col-span-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white">
                     <CardContent className="flex justify-between items-center p-6">

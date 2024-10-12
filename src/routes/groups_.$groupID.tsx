@@ -32,6 +32,7 @@ import GroupOtherUsersTasks from "@/components/group/group-other-users-tasks";
 import GroupTodaysTargets from "@/components/group/group-todays-targets";
 import GroupUserProfile, {
     GroupUserAvatar,
+    UserDetail,
 } from "@/components/group/group-user-profile";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
@@ -71,7 +72,14 @@ export const Route = createFileRoute("/groups/$groupID")({
 
 const GroupUsersList = ({ users }: { users: GroupUserWithProfile[] }) => {
     return users.map((user) => (
-        <GroupUserProfile groupUser={user} key={user.id} usBadge creatorBadge />
+        <GroupUserProfile
+            groupUser={user}
+            key={user.id}
+            progressBar={true}
+            usBadge
+            creatorBadge
+            variant="dashed"
+        />
     ));
 };
 
@@ -316,120 +324,6 @@ const GroupManage = ({ group }: { group: Tables<"group"> }) => {
 };
 
 // TODO : is it better to drill stuff like session, or let components use useAuth hook?
-function Group() {
-    const { groupID } = Route.useParams();
-    const { session } = useAuth();
-    const { data, error, isLoading } = useGetGroup({
-        enabled: !!session,
-        groupID: groupID,
-    });
-
-    const { data: groupUser } = useGetGroupUser({
-        groupID: groupID,
-        userID: session?.user.id,
-        enabled: !!session,
-    });
-
-    if (error) {
-        return <DataError message={error.message} />;
-    }
-
-    if (isLoading) {
-        return <Loading />;
-    }
-
-    if (data == null) {
-        return (
-            <div className="flex justify-center items-center px-12 bg-red-400">
-                <DataError message="Group data is missing." />
-            </div>
-        );
-    }
-
-    const isCreator = session && data && session.user.id == data.creator_id;
-
-    const links = [
-        {
-            label: <span>Todays targets</span>,
-            value: "todays-targets-section",
-            link: "#todays-targets-section",
-        },
-        {
-            label: <span>Your tasks for today</span>,
-            value: "your-tasks-for-today-section",
-            link: "#your-tasks-for-today-section",
-        },
-        {
-            label: <span>Other user tasks</span>,
-            value: "other-user-tasks-section",
-            link: "#other-user-tasks-section",
-        },
-        {
-            label: <span>Group users</span>,
-            value: "group-users-section",
-            link: "#group-users-section",
-        },
-        {
-            label: <span>Invite</span>,
-            value: "invite-section",
-            link: "#invite-section",
-        },
-        {
-            label: <span>Manage group</span>,
-            value: "manage-group-section",
-            link: "#manage-group-section",
-        },
-    ];
-
-    return (
-        <div className="flex h-screen overflow-hidden">
-            <aside className="border min-w-[14rem]  bg-secondary/25  flex flex-col  transition-all">
-                {/* <div className="bg-gradient-to-br from-purple-500 to-emerald-400 w-full h-[10rem] opacity-45"></div> */}
-
-                <nav className="h-full">
-                    <ul className="px-1 py-1 ">
-                        {links.map((link, index) => (
-                            <li key={index}>
-                                <a href={link.link}>
-                                    <Button
-                                        className="w-full flex justify-start"
-                                        variant={"outline"}
-                                    >
-                                        {link.label}
-                                    </Button>
-                                </a>
-                            </li>
-                        ))}
-                    </ul>
-                </nav>
-
-                {groupUser && (
-                    <GroupUserProfile
-                        groupUser={groupUser}
-                        small
-                        className="border-none"
-                    />
-                )}
-            </aside>
-            {/* <div className="pr-12 py-20 space-y-8 pl-[17rem]">
-                <h1 className="font-bold text-5xl">
-                    {data.name}
-                    <Badge>
-                        <CrownIcon className="size-3" />
-                    </Badge>
-                </h1>
-                <div className="space-y-[16rem]">
-                    <GroupTodaysTargets group={data} />
-                    <GroupTasks groupID={groupID} />
-                    <GroupUsers groupID={groupID} />
-                    <Invite groupID={groupID} />
-                    {isCreator && <GroupManage group={data} />}
-                </div>
-            </div> */}
-        </div>
-    );
-}
-
 function GroupTwo() {
     const [expanded, setExpanded] = useState(true);
     const { groupID } = Route.useParams();
@@ -468,7 +362,7 @@ function GroupTwo() {
 
     if (data == null) {
         return (
-            <div className="flex justify-center  px-12  py-12 flex flex-col gap-4">
+            <div className="flex justify-center  px-12  py-12 flex-col gap-4">
                 <Link to="/groups" className="w-fit">
                     <BackButton />
                 </Link>
@@ -646,37 +540,28 @@ function GroupTwo() {
 
                                             <div
                                                 className={cn(
-                                                    "flex items-center w-full overflow-hidden transition-opacity duration-200 gap-5",
+                                                    "flex items-center w-full overflow-hidden transition-opacity duration-200 gap-2",
                                                     expanded
                                                         ? "w-full opacity-100"
                                                         : "w-0 absolute  opacity-0"
                                                 )}
                                             >
-                                                {expanded && (
-                                                    <>
-                                                        <div className="flex flex-col">
-                                                            <span className="truncate max-w-[7rem] min-w-[7rem] inline-block">
-                                                                {
+                                                {expanded &&
+                                                    groupUser.profile && (
+                                                        <>
+                                                            <UserDetail
+                                                                user={
+                                                                    groupUser.profile
+                                                                }
+                                                                size={"md"}
+                                                            />
+                                                            <GroupUserDialog
+                                                                groupUser={
                                                                     groupUser
-                                                                        .profile
-                                                                        ?.username
                                                                 }
-                                                            </span>
-                                                            <span className="text-xs text-muted-foreground truncate max-w-[7rem] min-w-[7rem] inline-block">
-                                                                {
-                                                                    groupUser.user_id.split(
-                                                                        "-"
-                                                                    )[0]
-                                                                }
-                                                            </span>
-                                                        </div>
-                                                        <GroupUserDialog
-                                                            groupUser={
-                                                                groupUser
-                                                            }
-                                                        />
-                                                    </>
-                                                )}
+                                                            />
+                                                        </>
+                                                    )}
                                             </div>
                                         </div>
                                     )}
