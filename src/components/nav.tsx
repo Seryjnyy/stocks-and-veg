@@ -15,83 +15,17 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { UserAvatar } from "./group/group-user-profile";
+import {
+    Sheet,
+    SheetContent,
+    SheetDescription,
+    SheetHeader,
+    SheetTitle,
+    SheetTrigger,
+} from "@/components/ui/sheet";
+import { UserAvatar, UserDetail } from "./group/group-user-profile";
 
 export default function Nav() {
-    const { session, signOut, profile } = useAuth();
-    const navigate = useNavigate();
-    const location = useLocation();
-
-    const handleSignOut = () => {
-        signOut();
-        if (location.pathname != "auth") {
-            navigate({ to: "/" });
-        }
-    };
-
-    return (
-        <header className=" ">
-            {/* <div className="flex items-center justify-between px-4 py-2">
-    <div className="flex items-center">
-        <Button variant="ghost" size="icon" className="mr-2">
-            <Menu className="h-6 w-6" />
-        </Button>
-        <h1 className="text-xl font-semibold">Dashboard</h1>
-    </div>
-    <div className="flex items-center space-x-4">
-        <div className="relative">
-            <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-400" />
-            <Input
-                type="search"
-                placeholder="Search..."
-                className="pl-8 w-64"
-            />
-        </div>
-        <Button variant="ghost" size="icon">
-            <Bell className="h-5 w-5" />
-        </Button>
-        <Avatar>
-            <AvatarImage
-                src="/placeholder.svg?height=32&width=32"
-                alt="User"
-            />
-            <AvatarFallback className="bg-red-400"></AvatarFallback>
-        </Avatar>
-    </div>
-</div> */}
-            <Navbar />
-        </header>
-    );
-
-    return (
-        <nav className="w-full flex justify-between items-center p-1 backdrop-blur-lg bg-secondary/25 fixed top-0 left-0 z-50">
-            <div className="flex items-center gap-4">
-                <Link to="/">tomatoe</Link>
-                <Link to="/groups">groups</Link>
-            </div>
-            <div>
-                {session ? (
-                    <div className="flex items-center gap-3">
-                        <span className="flex items-center gap-2 border border-dashed rounded-lg px-3">
-                            <Link to="/profile">
-                                <User2 className="size-4" />
-                            </Link>
-                            {profile?.username}
-                        </span>
-                        <Button onClick={handleSignOut}>Logout</Button>
-                    </div>
-                ) : (
-                    <Link to="/auth" disabled={location.pathname == "/auth"}>
-                        Sign in/Sign up
-                    </Link>
-                )}
-            </div>
-        </nav>
-    );
-}
-
-const Navbar = () => {
     const { session, signOut, profile } = useAuth();
     const navigate = useNavigate();
     const location = useLocation();
@@ -110,7 +44,6 @@ const Navbar = () => {
     const handleSignUp = () => {
         navigate({ to: "/auth" });
     };
-
     const isLoggedIn = !!session;
     return (
         <nav className="border-b bg-[#0f0f10]">
@@ -119,7 +52,7 @@ const Navbar = () => {
                     <div className="flex">
                         <Link
                             to="/"
-                            className="flex-shrink-0 flex items-center border-x justify-center "
+                            className="flex-shrink-0 flex items-center border-x justify-center hover:bg-muted/50 "
                         >
                             <span className="h-8 w-8 flex justify-center items-center ">
                                 {TOMATO_EMOJI}
@@ -135,9 +68,7 @@ const Navbar = () => {
                             </Link>
                         </div>
                     </div>
-                    {/* <div className="flex items-center text-muted-foreground font-bold">
-                        <span>some group</span>
-                    </div> */}
+
                     <div className="hidden sm:ml-6 sm:flex sm:items-center">
                         {isLoggedIn ? (
                             <DropdownMenu>
@@ -152,7 +83,7 @@ const Navbar = () => {
                                                 size={"xs"}
                                             />
                                         )}
-                                        <span className="ml-2">
+                                        <span className="ml-2 max-w-[5rem] truncate">
                                             {profile?.username}
                                         </span>
                                     </Button>
@@ -200,48 +131,79 @@ const Navbar = () => {
                                 </Button>
                             </SheetTrigger>
                             <SheetContent side="right">
+                                <SheetHeader>
+                                    <SheetTitle className="sr-only">
+                                        Navigation menu
+                                    </SheetTitle>
+                                    <SheetDescription className="sr-only">
+                                        Navigate to some page and view your log
+                                        in status.
+                                    </SheetDescription>
+                                </SheetHeader>
                                 <div className="pt-5 pb-6 px-5">
                                     <div className="mt-6">
-                                        <nav className="grid gap-y-8">
-                                            <Link
-                                                to="/groups"
-                                                className="-m-3 p-3 flex items-center rounded-md hover:bg-gray-50"
-                                            >
-                                                <span className="ml-3 text-base font-medium text-gray-900">
-                                                    Groups
-                                                </span>
-                                            </Link>
-                                        </nav>
-                                    </div>
-                                </div>
-                                <div className="py-6 px-5 space-y-6">
-                                    {isLoggedIn ? (
-                                        <div className="space-y-6">
-                                            <span className="text-base font-medium text-gray-900">
-                                                {profile?.username}
-                                            </span>
-                                            <Link to="/profile">
+                                        <h2 className="text-2xl text-muted-foreground">
+                                            Links
+                                        </h2>
+                                        <nav className="grid gap-y-8 pt-3">
+                                            <Link to="/groups">
                                                 <Button
                                                     variant="outline"
                                                     className="w-full"
                                                 >
+                                                    Groups
+                                                </Button>
+                                            </Link>
+                                        </nav>
+                                    </div>
+                                </div>
+                                <div className="py-6 px-5">
+                                    <h2 className="text-2xl text-muted-foreground">
+                                        User
+                                    </h2>
+                                    {isLoggedIn ? (
+                                        <div className="flex flex-col gap-3 pt-3">
+                                            {profile && (
+                                                <div className="flex items-start gap-4 border border-dashed rounded-lg p-3">
+                                                    <UserAvatar
+                                                        user={profile}
+                                                        size={"lg"}
+                                                    />
+                                                    <UserDetail
+                                                        user={profile}
+                                                        size={"lg"}
+                                                    />
+                                                </div>
+                                            )}
+
+                                            <Link
+                                                to="/profile"
+                                                className="h-fit "
+                                            >
+                                                <Button
+                                                    variant="outline"
+                                                    className="w-full"
+                                                >
+                                                    <User className="mr-2 h-4 w-4" />
                                                     Profile
                                                 </Button>
                                             </Link>
+
                                             <Button
                                                 className="w-full"
                                                 onClick={handleSignOut}
                                             >
+                                                <LogOut className="mr-2 h-4 w-4" />
                                                 Log out
                                             </Button>
                                         </div>
                                     ) : (
-                                        <div>
+                                        <div className=" pt-3">
                                             <Button
                                                 className="w-full"
                                                 onClick={handleSignIn}
                                             >
-                                                Log in
+                                                Sign in
                                             </Button>
                                             <Button
                                                 variant="outline"
@@ -260,4 +222,4 @@ const Navbar = () => {
             </div>
         </nav>
     );
-};
+}
