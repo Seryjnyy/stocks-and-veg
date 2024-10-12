@@ -4,6 +4,7 @@ import supabase from "./supabase/supabaseClient";
 export interface GenericFormProps {
     onSuccess?: () => void;
     onError?: () => void;
+    disabled?: boolean;
 }
 
 export interface GenericSupabaseQueryProps {

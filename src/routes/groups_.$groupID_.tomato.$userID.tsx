@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { useGetGroup } from "@/lib/hooks/queries/use-get-group";
 import { useGetGroupUser } from "@/lib/hooks/queries/use-get-group-user";
-import { useAuth } from "@/lib/hooks/use-auth";
+import { useAuth } from "@/hooks/use-auth";
 import supabase from "@/lib/supabase/supabaseClient";
 import {
     useGetGroupUserTomato,

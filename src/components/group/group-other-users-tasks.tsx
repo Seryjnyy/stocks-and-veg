@@ -2,14 +2,10 @@ import DataError from "@/components/data-error";
 import Loading from "@/components/loading";
 import { useGetGroupTasks } from "@/lib/hooks/queries/use-get-group-tasks";
 import { useGetGroupUsers } from "@/lib/hooks/queries/use-get-group-users";
-import { useAuth } from "@/lib/hooks/use-auth";
-import { Tables } from "@/lib/supabase/database.types";
 import { TaskWithCompletion } from "@/lib/types";
 import { cn } from "@/lib/utils";
-import GroupUserProfile from "./group-user-profile";
-import GroupYourTasksToday from "./group-your-tasks-today";
 import { CheckIcon } from "@radix-ui/react-icons";
-import { useInView } from "react-intersection-observer";
+import GroupUserProfile from "./group-user-profile";
 
 export default function GroupOtherUsersTasks({ groupID }: { groupID: string }) {
     const {
@@ -39,7 +35,7 @@ export default function GroupOtherUsersTasks({ groupID }: { groupID: string }) {
     );
 }
 
-const GroupTask = ({ task }: { task: Tables<"task"> }) => {
+const GroupTask = ({ task }: { task: TaskWithCompletion }) => {
     // const { data, isError, isLoading } = useGetUserProfile({
     //     user_id: task.user_id,
     // });
@@ -63,14 +59,14 @@ const GroupTask = ({ task }: { task: Tables<"task"> }) => {
     return (
         <li
             className={cn(
-                "px-8 py-2 border flex justify-between items-center  w-full rounded-lg",
+                "p-2 border flex justify-between px-8 rounded-lg w-full",
                 className
             )}
         >
-            <span className="text-2xl font-semibold pb-2">{task.name}</span>
-            <span>
-                <CheckIcon />
-            </span>
+            <span className="text-xl ">{task.name}</span>
+            <div className="flex items-center">
+                {task.task_completion.length > 0 && <CheckIcon />}
+            </div>
         </li>
     );
 };
@@ -107,13 +103,24 @@ const Grouped = ({
             >
                 <GroupUserProfile groupUser={user} className="border-none" />
                 <span className="text-xs text-muted-foreground">
-                    {userTasks.tasks.length}
+                    {
+                        userTasks.tasks.filter(
+                            (task) => task.task_completion.length > 0
+                        ).length
+                    }
+                    /{userTasks.tasks.length}
                 </span>
             </div>
             <ul className="flex flex-col gap-2 pl-12">
-                {userTasks.tasks.map((task) => (
-                    <GroupTask key={task.id} task={task} />
-                ))}
+                {userTasks.tasks
+                    .sort(
+                        (a, b) =>
+                            (a.task_completion.length > 0 ? 1 : -1) -
+                            (b.task_completion.length > 0 ? 1 : -1)
+                    )
+                    .map((task) => (
+                        <GroupTask key={task.id} task={task} />
+                    ))}
             </ul>
             {userTasks.tasks.length == 0 && <div>No tasks.</div>}
         </div>

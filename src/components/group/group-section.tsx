@@ -19,11 +19,14 @@ export default function GroupSection({
     );
 
     return (
-        <div className="p-4  flex flex-col gap-2 pt-12" id={sectionData.value}>
+        <section
+            className="p-4  flex flex-col gap-2 pt-12"
+            id={sectionData.value}
+        >
             <InView
                 as="h3"
                 className={cn(
-                    "text-4xl font-semibold text-center ",
+                    "text-5xl font-semibold text-center ",
                     currentSection == sectionData.value && "text-blue-300"
                 )}
                 onChange={(val) => val && setCurrentSection(sectionData.value)}
@@ -31,7 +34,7 @@ export default function GroupSection({
                 {sectionData.label}
             </InView>
 
-            <div className="relative ">{children}</div>
-        </div>
+            <div className="relative pt-8">{children}</div>
+        </section>
     );
 }

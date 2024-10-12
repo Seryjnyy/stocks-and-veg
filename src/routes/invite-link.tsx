@@ -4,7 +4,7 @@ import { toast } from "@/hooks/use-toast";
 import { useAddUserToGroup } from "@/lib/hooks/mutations/use-add-user-to-group";
 import { useGetGroupUser } from "@/lib/hooks/queries/use-get-group-user";
 import { useGetInviteLinkWithToken } from "@/lib/hooks/queries/use-get-invite-link-with-token";
-import { useAuth } from "@/lib/hooks/use-auth";
+import { useAuth } from "@/hooks/use-auth";
 import SpinnerButton from "@/spinner-button";
 import { ArrowDownIcon } from "@radix-ui/react-icons";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";

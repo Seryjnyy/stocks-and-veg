@@ -14,13 +14,14 @@ export default function SpinnerButton({
     children,
     isPending,
     className,
+    disabled,
     ...props
 }: ButtonProps) {
     return (
         <Button
             {...props}
             className={cn("relative overflow-hidden", className)}
-            disabled={isPending}
+            disabled={disabled || isPending}
         >
             {isPending && (
                 <div className="absolute bg-inherit w-full h-full flex justify-center items-center ">

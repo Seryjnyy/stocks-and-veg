@@ -13,17 +13,15 @@ import CreateTaskForm from "./create-task-form";
 export default function GroupCreateTaskModal({
     groupID,
     userTasksCount,
+    children,
 }: {
     groupID: string;
     userTasksCount: number;
+    children: React.ReactNode;
 }) {
     return (
         <Dialog>
-            <DialogTrigger asChild>
-                <Button size={"sm"} variant={"outline"}>
-                    Add task
-                </Button>
-            </DialogTrigger>
+            <DialogTrigger asChild>{children}</DialogTrigger>
             <DialogContent>
                 <DialogHeader>
                     <DialogTitle>Create new task</DialogTitle>

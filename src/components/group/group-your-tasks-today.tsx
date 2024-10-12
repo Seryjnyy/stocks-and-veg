@@ -6,7 +6,7 @@ import {
 
 import { useCreateTaskCompletion } from "@/lib/hooks/mutations/use-create-task-completion";
 import { useDeleteTaskCompletion } from "@/lib/hooks/mutations/use-delete-task-completion";
-import { useAuth } from "@/lib/hooks/use-auth";
+import { useAuth } from "@/hooks/use-auth";
 import { TaskWithCompletion } from "@/lib/types";
 import SpinnerButton from "@/spinner-button";
 import { CheckIcon } from "@radix-ui/react-icons";
@@ -35,12 +35,14 @@ export default function GroupYourTasksToday({ groupID }: { groupID: string }) {
     return (
         <div>
             <ul className="flex flex-col gap-2">
-                <UserTasksTodayList tasks={userTasks} />
+                <ul>
+                    <UserTasksTodayList tasks={userTasks} />
+                </ul>
                 {userTasks.length == 0 && (
                     <div>You don't have any tasks at all.</div>
                 )}
             </ul>
-            <div className="flex items-center justify-between mt-1 border px-3 py-1 rounded-lg bg-secondary/50 text-secondary-foreground ">
+            <footer className="flex items-center justify-between mt-1 border px-3 py-1 rounded-lg bg-secondary/50 text-secondary-foreground ">
                 <span className="text-muted-foreground text-xs">
                     All : {userTasks.length} Completed:{" "}
                     {
@@ -52,8 +54,12 @@ export default function GroupYourTasksToday({ groupID }: { groupID: string }) {
                 <GroupCreateTaskModal
                     groupID={groupID}
                     userTasksCount={userTasks.length}
-                />
-            </div>
+                >
+                    <Button size={"sm"} variant={"outline"}>
+                        Add task
+                    </Button>
+                </GroupCreateTaskModal>
+            </footer>
         </div>
     );
 }
@@ -61,7 +67,11 @@ export default function GroupYourTasksToday({ groupID }: { groupID: string }) {
 const UserTasksTodayList = ({ tasks }: { tasks: TaskWithCompletion[] }) => {
     return tasks
         .sort((a, b) => a.task_completion.length - b.task_completion.length)
-        .map((task) => <UserTaskToday key={task.id} task={task} />);
+        .map((task) => (
+            <li key={task.id}>
+                <UserTaskToday task={task} />
+            </li>
+        ));
 };
 
 const UserTaskToday = ({ task }: { task: TaskWithCompletion }) => {
@@ -70,7 +80,7 @@ const UserTaskToday = ({ task }: { task: TaskWithCompletion }) => {
     return (
         <div className="p-2 border flex justify-between px-8 rounded-lg">
             <div className="flex flex-col">
-                <span className="text-xl">{task.name}</span>
+                <h3 className="text-xl">{task.name}</h3>
             </div>
             {task.user_id == session?.user.id && (
                 <UserTaskTodayCompletion task={task} />

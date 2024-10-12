@@ -13,6 +13,7 @@ import { useCreateGroup } from "@/lib/hooks/mutations/use-create-group";
 import { GenericFormProps } from "@/lib/types";
 import SpinnerButton from "@/spinner-button";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { Plus } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
@@ -25,27 +26,13 @@ const formSchema = z.object({
 type formSchemaType = z.infer<typeof formSchema>;
 
 export default function GroupCreateForm({
+    disabled,
     onSuccess,
     onError,
 }: GenericFormProps) {
     const { toast } = useToast();
 
-    const { mutateAsync, isPending } = useCreateGroup({
-        onSuccess: () => {
-            toast({
-                title: "Successfully created group.",
-            });
-            onSuccess?.();
-        },
-        onError: (e) => {
-            toast({
-                title: "Something went wrong.",
-                description: e.message,
-                variant: "destructive",
-            });
-            onError?.();
-        },
-    });
+    const { mutateAsync, isPending } = useCreateGroup();
 
     const form = useForm<formSchemaType>({
         resolver: zodResolver(formSchema),
@@ -55,7 +42,22 @@ export default function GroupCreateForm({
     });
 
     const onSubmit = (values: formSchemaType) => {
-        mutateAsync([{ name: values.name.trim() }]);
+        mutateAsync([{ name: values.name.trim() }], {
+            onSuccess: () => {
+                toast({
+                    title: "Successfully created group.",
+                });
+                onSuccess?.();
+            },
+            onError: (e) => {
+                toast({
+                    title: "Something went wrong.",
+                    description: e.message,
+                    variant: "destructive",
+                });
+                onError?.();
+            },
+        });
     };
 
     return (
@@ -67,7 +69,7 @@ export default function GroupCreateForm({
                     disabled={isPending}
                     render={({ field }) => (
                         <FormItem>
-                            <FormLabel>Username</FormLabel>
+                            <FormLabel>Group name</FormLabel>
                             <FormControl>
                                 <Input {...field} />
                             </FormControl>
@@ -78,8 +80,12 @@ export default function GroupCreateForm({
                         </FormItem>
                     )}
                 />
-                <SpinnerButton isPending={isPending} disabled={isPending}>
-                    Submit
+                <SpinnerButton
+                    isPending={isPending}
+                    disabled={isPending || disabled}
+                >
+                    <Plus className="size-3 mr-2" />
+                    Create group
                 </SpinnerButton>
             </form>
         </Form>

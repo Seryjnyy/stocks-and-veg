@@ -1,4 +1,3 @@
-import { Button } from "@/components/ui/button";
 import {
     Form,
     FormControl,
@@ -9,17 +8,15 @@ import {
     FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
+import { CONFIG } from "@/lib/config";
 import { useCreateTask } from "@/lib/hooks/mutations/use-create-task";
-import { useAuth } from "@/lib/hooks/use-auth";
 import { GenericFormProps } from "@/lib/types";
+import SpinnerButton from "@/spinner-button";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { title } from "process";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import SpinnerFormButton from "../spinner-form-button";
-import { CONFIG } from "@/lib/config";
-import SpinnerButton from "@/spinner-button";
 
 const taskSchema = z.object({
     name: z.string().min(2).max(50).regex(/\S+/, {
@@ -51,40 +48,41 @@ export default function CreateTaskForm({
         },
     });
 
-    const { mutateAsync, isPending } = useCreateTask({
-        onSuccess: () => {
-            toast({
-                title: "Successfully created task.",
-            });
-
-            onSuccess?.();
-            form.reset();
-        },
-        onError: (error) => {
-            toast({
-                title: "Something went wrong.",
-                description: error.message,
-                variant: "destructive",
-            });
-
-            onError?.();
-        },
-    });
+    const { mutateAsync, isPending } = useCreateTask();
 
     const onSubmit = (values: taskSchemaType) => {
-        // mutateAsync([{ name: values.name }]);
-
         console.log(values);
         if (!session) return;
 
-        mutateAsync([
+        mutateAsync(
+            [
+                {
+                    name: values.name.trim(),
+                    desc: values.desc.trim(),
+                    group_id: groupID,
+                    user_id: session.user.id,
+                },
+            ],
             {
-                name: values.name.trim(),
-                desc: values.desc.trim(),
-                group_id: groupID,
-                user_id: session.user.id,
-            },
-        ]);
+                onSuccess: () => {
+                    toast({
+                        title: "Successfully created task.",
+                    });
+
+                    onSuccess?.();
+                    form.reset();
+                },
+                onError: (error) => {
+                    toast({
+                        title: "Something went wrong.",
+                        description: error.message,
+                        variant: "destructive",
+                    });
+
+                    onError?.();
+                },
+            }
+        );
     };
 
     return (

@@ -1,4 +1,4 @@
-import { useAuth } from "@/lib/hooks/use-auth";
+import { useAuth } from "@/hooks/use-auth";
 import supabase from "@/lib/supabase/supabaseClient";
 import { Auth as AuthForm } from "@supabase/auth-ui-react";
 import { ThemeSupa } from "@supabase/auth-ui-shared";

@@ -5,12 +5,6 @@ import { error } from "console";
 
 // Db gets user id automatically
 // TODO : You have to pass {} to query if you dont want to use props, idk I don't like it
-export const useCreateGroup = ({
-    onSuccess,
-    onError,
-}: GenericSupabaseQueryProps) => {
-    return useInsertMutation(supabase.from("group"), ["id"], "", {
-        onSuccess: onSuccess,
-        onError: onError,
-    });
+export const useCreateGroup = () => {
+    return useInsertMutation(supabase.from("group"), ["id"], "");
 };

@@ -2,7 +2,7 @@ import DataError from "@/components/data-error";
 import Loading from "@/components/loading";
 import { Button } from "@/components/ui/button";
 import { useGetGroupUser } from "@/lib/hooks/queries/use-get-group-user";
-import { useAuth } from "@/lib/hooks/use-auth";
+import { useAuth } from "@/hooks/use-auth";
 
 import { Tables } from "@/lib/supabase/database.types";
 import { useGetGroupTomatoes } from "@/lib/tomatoService";
@@ -13,6 +13,7 @@ import CountdownTimer from "../countdown-timer";
 import { InView } from "react-intersection-observer";
 import { currentSectionInGroupPageAtom } from "@/lib/atoms/current-section-group-page";
 import { useAtom } from "jotai";
+import { ArrowDown } from "lucide-react";
 
 const Target = ({ target }: { target: Tables<"tomato_target"> }) => {
     const { session } = useAuth();
@@ -58,7 +59,11 @@ const Target = ({ target }: { target: Tables<"tomato_target"> }) => {
 };
 
 const TargetsList = ({ targets }: { targets: Tables<"tomato_target">[] }) => {
-    return targets.map((target) => <Target key={target.id} target={target} />);
+    return targets.map((target) => (
+        <li key={target.id}>
+            <Target target={target} />
+        </li>
+    ));
 };
 
 export default function GroupTodaysTargets({
@@ -86,7 +91,20 @@ export default function GroupTodaysTargets({
                 {isError || (!data && <DataError message="" />)}
 
                 {data?.length == 0 && (
-                    <div>No targets today. You're all doing well today.</div>
+                    <div className="flex justify-center text-muted-foreground flex-col items-center gap-2">
+                        <h3>No targets today. You all did well yesterday.</h3>
+                        {/* TODO : can break if section values change */}
+                        <a href="#your-tasks-for-today-section">
+                            <Button
+                                size={"sm"}
+                                variant={"outline"}
+                                className="group"
+                            >
+                                <ArrowDown className="size-3 mr-2 group-hover:translate-y-0.5 transition-all" />
+                                Your tasks today
+                            </Button>
+                        </a>
+                    </div>
                 )}
 
                 <ul>

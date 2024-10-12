@@ -12,7 +12,9 @@ import {
     AlertDialogTitle,
     AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
+import { useAuth } from "@/hooks/use-auth";
+import { useCopyToClipboard } from "@/hooks/use-copy-to-clipboard";
 import { useToast } from "@/hooks/use-toast";
 import { CONFIG } from "@/lib/config";
 import { useCreateInviteLink } from "@/lib/hooks/mutations/use-create-invite-link";
@@ -22,71 +24,46 @@ import {
     useGetGroupUsers,
 } from "@/lib/hooks/queries/use-get-group-users";
 import { useGetInviteLink } from "@/lib/hooks/queries/use-get-invite-link";
-import { useAuth } from "@/lib/hooks/use-auth";
-import { useCopyToClipboard } from "@/lib/hooks/use-copy-to-clipboard";
-import { formatInviteLink, TOMATO_EMOJI } from "@/lib/utils";
+import { formatInviteLink } from "@/lib/utils";
 import SpinnerButton from "@/spinner-button";
-import { CopyIcon, GearIcon } from "@radix-ui/react-icons";
+import { GearIcon } from "@radix-ui/react-icons";
 
-import GroupUserProfile from "@/components/group/group-user-profile";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import GroupOtherUsersTasks from "@/components/group/group-other-users-tasks";
+import GroupTodaysTargets from "@/components/group/group-todays-targets";
+import GroupUserProfile, {
+    GroupUserAvatar,
+} from "@/components/group/group-user-profile";
 import { Badge } from "@/components/ui/badge";
-import {
-    Card,
-    CardContent,
-    CardDescription,
-    CardHeader,
-    CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-    Popover,
-    PopoverContent,
-    PopoverTrigger,
-} from "@/components/ui/popover";
 import { useGetGroupUser } from "@/lib/hooks/queries/use-get-group-user";
 import { Tables } from "@/lib/supabase/database.types";
 import { cn } from "@/lib/utils";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import {
-    Bell,
     CheckCheckIcon,
     CheckSquare,
-    ChevronFirst,
-    ChevronLast,
     Copy,
     CrownIcon,
-    LayoutDashboard,
-    Menu,
     RefreshCw,
-    Search,
     SidebarClose,
     SidebarOpen,
     Target,
-    User2,
+    Trash2,
     UserPlus,
     Users,
 } from "lucide-react";
 import { useState } from "react";
-import GroupTodaysTargets from "@/components/group/group-todays-targets";
-import GroupOtherUsersTasks from "@/components/group/group-other-users-tasks";
 
-import { User, LogOut } from "lucide-react";
-
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuSeparator,
-    DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { InView } from "react-intersection-observer";
-import { useAtom } from "jotai";
-import { currentSectionInGroupPageAtom } from "@/lib/atoms/current-section-group-page";
-import GroupYourTasksToday from "@/components/group/group-your-tasks-today";
 import GroupSection from "@/components/group/group-section";
+import GroupYourTasksToday from "@/components/group/group-your-tasks-today";
+import { currentSectionInGroupPageAtom } from "@/lib/atoms/current-section-group-page";
+import { useAtom } from "jotai";
+import { useDeleteGroup } from "@/lib/hooks/mutations/use-delete-group";
+import BackButton from "@/components/back-button";
+import { useGetUserGroups } from "@/lib/hooks/queries/use-get-user-groups";
+import CountdownTimer from "@/components/countdown-timer";
 
 export const Route = createFileRoute("/groups/$groupID")({
     component: GroupTwo,
@@ -177,104 +154,117 @@ export default function InviteSection({ groupID }: { groupID: string }) {
         : false;
 
     return (
-        <Card className="w-full border-none">
-            <CardHeader>
-                <CardTitle
-                    className="flex items-center justify-center relative text-4xl font-semibold "
-                    id={"invite-section"}
+        <>
+            {data && (
+                <Badge
+                    className="absolute -top-8 right-0"
+                    variant={isInviteLinkExpired ? "destructive" : "secondary"}
                 >
-                    Invite Link
-                    {data && (
-                        <Badge
-                            className="absolute top-4 right-0"
+                    {isInviteLinkExpired ? "Expired" : "Active"}
+                </Badge>
+            )}
+            <Card className="w-full border-none">
+                <CardContent>
+                    <div className="space-y-4">
+                        {data ? (
+                            <div className="flex items-center space-x-2">
+                                <code
+                                    className={cn(
+                                        "flex-1 p-2 bg-muted rounded text-sm break-all",
+                                        {
+                                            "select-none text-muted-foreground/50":
+                                                isInviteLinkExpired,
+                                        }
+                                    )}
+                                >
+                                    {formatInviteLink(data?.token)}
+                                </code>
+                                <Button
+                                    size="icon"
+                                    onClick={() => {
+                                        if (data) {
+                                            handleCopy(
+                                                formatInviteLink(data?.token)
+                                            );
+                                        }
+                                    }}
+                                    disabled={
+                                        data == null ||
+                                        isInviteLinkExpired ||
+                                        isLoading ||
+                                        isPending
+                                    }
+                                >
+                                    <Copy className="h-4 w-4" />
+                                </Button>
+                            </div>
+                        ) : (
+                            <p className="text-center text-muted-foreground">
+                                No active invite link
+                            </p>
+                        )}
+                        <SpinnerButton
+                            isPending={isPending}
+                            disabled={isPending || isLoading}
+                            onClick={handleGenerateLink}
+                            className="w-full"
                             variant={
-                                isInviteLinkExpired
-                                    ? "destructive"
-                                    : "secondary"
+                                data && !isInviteLinkExpired
+                                    ? "outline"
+                                    : "default"
                             }
                         >
-                            {isInviteLinkExpired ? "Expired" : "Active"}
-                        </Badge>
-                    )}
-                </CardTitle>
-            </CardHeader>
-            <CardContent>
-                <div className="space-y-4">
-                    {data ? (
-                        <div className="flex items-center space-x-2">
-                            <code
-                                className={cn(
-                                    "flex-1 p-2 bg-muted rounded text-sm break-all",
-                                    {
-                                        "select-none text-muted-foreground/50":
-                                            isInviteLinkExpired,
-                                    }
-                                )}
-                            >
-                                {formatInviteLink(data?.token)}
-                            </code>
-                            <Button
-                                size="icon"
-                                onClick={() => {
-                                    if (data) {
-                                        handleCopy(
-                                            formatInviteLink(data?.token)
-                                        );
-                                    }
-                                }}
-                                disabled={
-                                    data == null ||
-                                    isInviteLinkExpired ||
-                                    isLoading ||
-                                    isPending
-                                }
-                            >
-                                <Copy className="h-4 w-4" />
-                            </Button>
-                        </div>
-                    ) : (
-                        <p className="text-center text-muted-foreground">
-                            No active invite link
+                            <RefreshCw className="mr-2 h-4 w-4" />
+                            {data ? "Generate New Link" : "Create Invite Link"}
+                        </SpinnerButton>
+                        <p className="text-sm text-muted-foreground">
+                            Get a invite link and share it with your friend.
+                            They can visit the link to join this group. Invite
+                            links are valid for a day.
+                            {isInviteLinkExpired &&
+                                " The current link is expired. Please generate a new one."}
                         </p>
-                    )}
-                    <SpinnerButton
-                        isPending={isPending}
-                        disabled={isPending || isLoading}
-                        onClick={handleGenerateLink}
-                        className="w-full"
-                        variant={
-                            data && !isInviteLinkExpired ? "outline" : "default"
-                        }
-                    >
-                        <RefreshCw className="mr-2 h-4 w-4" />
-                        {data ? "Generate New Link" : "Create Invite Link"}
-                    </SpinnerButton>
-                    <p className="text-sm text-muted-foreground">
-                        Get a invite link and share it with your friend. They
-                        can visit the link to join this group. Invite links are
-                        valid for a day.
-                        {isInviteLinkExpired &&
-                            " The current link is expired. Please generate a new one."}
-                    </p>
-                </div>
-            </CardContent>
-        </Card>
+                    </div>
+                </CardContent>
+            </Card>
+        </>
     );
 }
 
 const GroupManage = ({ group }: { group: Tables<"group"> }) => {
-    const handleDeleteData = () => {};
+    const { mutateAsync: deleteGroup } = useDeleteGroup();
+
+    const { toast } = useToast();
+    const navigate = useNavigate();
+
+    const handleDeleteData = async () => {
+        await deleteGroup(
+            { id: group.id },
+            {
+                onSuccess: () => {
+                    // TODO : both of these don't work
+                    toast({
+                        title: "Successfully deleted group.",
+                    });
+                },
+                onError: () => {
+                    toast({
+                        title: "Failed to delete group.",
+                        variant: "destructive",
+                    });
+                },
+            }
+        );
+
+        navigate({
+            to: "/groups",
+        });
+    };
 
     const [groupName, setGroupName] = useState("");
 
     return (
-        <div className="border p-4 flex flex-col space-y-2">
-            <h3
-                className="text-4xl font-semibold text-center"
-                id={"manage-group-section"}
-            >
-                Manage group
-            </h3>
+        <div>
             <AlertDialog>
                 <AlertDialogTrigger asChild>
                     <Button variant="destructive">Delete group</Button>
@@ -310,9 +300,11 @@ const GroupManage = ({ group }: { group: Tables<"group"> }) => {
                         <AlertDialogAction
                             onClick={handleDeleteData}
                             disabled={groupName != group.name}
-                            className="text-destructive"
+                            className={buttonVariants({
+                                variant: "destructive",
+                            })}
                         >
-                            Delete Data
+                            <Trash2 className="size-3 mr-2" /> Delete Data
                         </AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>
@@ -347,7 +339,11 @@ function Group() {
     }
 
     if (data == null) {
-        return <DataError message="Group data is missing." />;
+        return (
+            <div className="flex justify-center items-center px-12 bg-red-400">
+                <DataError message="Group data is missing." />
+            </div>
+        );
     }
 
     const isCreator = session && data && session.user.id == data.creator_id;
@@ -455,15 +451,30 @@ function GroupTwo() {
     });
 
     if (error) {
-        return <DataError message={error.message} />;
+        return (
+            <div className="flex justify-center items-center px-12  py-12">
+                <DataError message={error.message} />
+            </div>
+        );
     }
 
     if (isLoading) {
-        return <Loading />;
+        return (
+            <div className="flex justify-center items-center px-12  py-12">
+                <Loading />
+            </div>
+        );
     }
 
     if (data == null) {
-        return <DataError message="Group data is missing." />;
+        return (
+            <div className="flex justify-center  px-12  py-12 flex flex-col gap-4">
+                <Link to="/groups" className="w-fit">
+                    <BackButton />
+                </Link>
+                <DataError message="Group data is missing." />
+            </div>
+        );
     }
 
     const isCreator = session && data && session.user.id == data.creator_id;
@@ -496,50 +507,19 @@ function GroupTwo() {
         {
             icon: UserPlus,
             label: "Invite",
-            link: "#invite-section",
+            value: "invite-section",
+            section: <InviteSection groupID={groupID} />,
         },
-        // {
-        //     icon: GearIcon,
-        //     label: "Manage group",
-        //     link: "#manage-group-section",
-        // },
+        {
+            icon: GearIcon,
+            label: "Manage group",
+            value: "manage-group-section",
+            section: <GroupManage group={data} />,
+        },
     ];
 
     return (
-        <div className="flex flex-col h-screen overflow-hidden">
-            {/* Navbar */}
-            <header className=" ">
-                {/* <div className="flex items-center justify-between px-4 py-2">
-                    <div className="flex items-center">
-                        <Button variant="ghost" size="icon" className="mr-2">
-                            <Menu className="h-6 w-6" />
-                        </Button>
-                        <h1 className="text-xl font-semibold">Dashboard</h1>
-                    </div>
-                    <div className="flex items-center space-x-4">
-                        <div className="relative">
-                            <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-400" />
-                            <Input
-                                type="search"
-                                placeholder="Search..."
-                                className="pl-8 w-64"
-                            />
-                        </div>
-                        <Button variant="ghost" size="icon">
-                            <Bell className="h-5 w-5" />
-                        </Button>
-                        <Avatar>
-                            <AvatarImage
-                                src="/placeholder.svg?height=32&width=32"
-                                alt="User"
-                            />
-                            <AvatarFallback className="bg-red-400"></AvatarFallback>
-                        </Avatar>
-                    </div>
-                </div> */}
-                <Navbar />
-            </header>
-
+        <div className="flex flex-col h-[calc(100vh-4.1rem)] overflow-hidden">
             <div className="flex flex-1 overflow-hidden ">
                 {/* Sidebar */}
                 <aside
@@ -622,14 +602,34 @@ function GroupTwo() {
                             ))}
                         </ul>
 
-                        <div className="border-t flex p-3 ">
+                        <div className="flex flex-col items-center justify-center py-4">
+                            <span
+                                className={cn(
+                                    "text-muted-foreground text-xs transition-all opacity-0 w-0",
+                                    expanded && "opacity-100 w-fit delay-200"
+                                )}
+                            >
+                                {expanded &&
+                                    "Time remaining today to do tasks."}
+                            </span>
+                            <CountdownTimer
+                                className="text-muted-foreground text-blue-400 text-xs"
+                                expireDate={Date.parse(
+                                    new Date().toISOString()
+                                )}
+                            />
+                        </div>
+                        <div className="border-t flex p-3  ">
                             <div
                                 className={cn(
-                                    "flex items-center cursor-pointer  w-full",
+                                    "flex items-center   w-full",
                                     expanded
-                                        ? "w-full justify-between"
-                                        : "justify-center"
+                                        ? "w-full justify-between cursor-auto"
+                                        : "justify-center cursor-pointer"
                                 )}
+                                onClick={() => {
+                                    !expanded && setExpanded(true);
+                                }}
                             >
                                 <div
                                     className={cn(
@@ -637,30 +637,49 @@ function GroupTwo() {
                                         expanded && "gap-3"
                                     )}
                                 >
-                                    <Avatar className="rounded-none ">
-                                        <AvatarImage
-                                            src="/placeholder.svg?height=32&width=32"
-                                            alt="User"
-                                        />
-                                        <AvatarFallback className="bg-red-500"></AvatarFallback>
-                                    </Avatar>
-                                    {/* {expanded && (
-                                                <div className="flex flex-col">
-                                                    <span className="text-sm font-medium">
-                                                        {
-                                                            groupUser?.profile
-                                                                ?.username
-                                                        }
-                                                    </span>
-                                                    <span className="text-xs text-gray-500">
-                                                        {
-                                                            groupUser?.user_id.split(
-                                                                "-"
-                                                            )[0]
-                                                        }
-                                                    </span>
-                                                </div>
-                                            )} */}
+                                    {groupUser && (
+                                        <div className="flex items-center justify-between w-full gap-5 h-full relative">
+                                            <GroupUserAvatar
+                                                groupUser={groupUser}
+                                                creatorBadge
+                                            />
+
+                                            <div
+                                                className={cn(
+                                                    "flex items-center w-full overflow-hidden transition-opacity duration-200 gap-5",
+                                                    expanded
+                                                        ? "w-full opacity-100"
+                                                        : "w-0 absolute  opacity-0"
+                                                )}
+                                            >
+                                                {expanded && (
+                                                    <>
+                                                        <div className="flex flex-col">
+                                                            <span className="truncate max-w-[7rem] min-w-[7rem] inline-block">
+                                                                {
+                                                                    groupUser
+                                                                        .profile
+                                                                        ?.username
+                                                                }
+                                                            </span>
+                                                            <span className="text-xs text-muted-foreground truncate max-w-[7rem] min-w-[7rem] inline-block">
+                                                                {
+                                                                    groupUser.user_id.split(
+                                                                        "-"
+                                                                    )[0]
+                                                                }
+                                                            </span>
+                                                        </div>
+                                                        <GroupUserDialog
+                                                            groupUser={
+                                                                groupUser
+                                                            }
+                                                        />
+                                                    </>
+                                                )}
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                         </div>
@@ -668,226 +687,29 @@ function GroupTwo() {
                 </aside>
 
                 {/* Main Content */}
-                <main className="flex-1 overflow-y-auto  p-8">
-                    <div className="py-20 space-y-8 ">
-                        <h1 className="font-bold text-5xl">
-                            {data.name}
-                            <Badge>
-                                <CrownIcon className="size-3" />
-                            </Badge>
-                        </h1>
-                        <div className="space-y-[30rem]">
-                            {sections.map((section) => (
-                                <GroupSection
-                                    sectionData={{
-                                        label: section.label,
-                                        value: section.value,
-                                    }}
-                                >
-                                    {section.section}
-                                </GroupSection>
-                            ))}
-
-                            {/* <GroupYourTasksToday groupID={groupID} /> */}
-
-                            {/* <InView
-                                // className="bg-green-300"
-                                onChange={(val) =>
-                                    onInView("#other-user-tasks-section", val)
-                                }
+                <main className="flex-1 overflow-y-auto relative">
+                    {/* Shadow thingy so looks like components disappearing into void */}
+                    {/* <div className="w-full h-[5rem] sticky top-0 bg-gradient-to-b  from-background to-transparent"></div> */}
+                    <h1 className="font-bold text-7xl text-center text-muted-foreground mb-32 mt-10">
+                        {data.name}
+                        <Badge className="bg-muted-foreground">
+                            <CrownIcon className="size-3" />
+                        </Badge>
+                    </h1>
+                    <div className="space-y-[30rem]">
+                        {sections.map((section) => (
+                            <GroupSection
+                                sectionData={{
+                                    label: section.label,
+                                    value: section.value,
+                                }}
                             >
-                                <GroupOtherUsersTasks groupID={groupID} />
-                            </InView>
-                            <InView
-                                // className="bg-purple-300"
-                                onChange={(val) =>
-                                    onInView("#group-users-section", val)
-                                }
-                            >
-                                <GroupUsers groupID={groupID} />
-                            </InView>
-                            {isCreator && (
-                                <InView
-                                    // className="bg-yellow-300"
-                                    onChange={(val) =>
-                                        onInView("#invite-section", val)
-                                    }
-                                >
-                                    <InviteSection groupID={groupID} />
-                                </InView>
-                            )}
-
-                            {isCreator && (
-                                <InView
-                                    // className="bg-gray-600"
-                                    onChange={(val) =>
-                                        onInView("#manage-group-section", val)
-                                    }
-                                >
-                                    <GroupManage group={data} />
-                                </InView>
-                            )} */}
-                        </div>
+                                {section.section}
+                            </GroupSection>
+                        ))}
                     </div>
                 </main>
             </div>
         </div>
     );
 }
-
-const Navbar = () => {
-    const [isLoggedIn, setIsLoggedIn] = useState(true); // This would normally come from your auth state
-    const username = "JohnDoe"; // This would normally come from your user state
-
-    return (
-        <nav className="border-b bg-[#0f0f10]">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div className="flex justify-between h-16">
-                    <div className="flex">
-                        <a
-                            href="/"
-                            className="flex-shrink-0 flex items-center border-x justify-center "
-                        >
-                            <span className="h-8 w-8 flex justify-center items-center ">
-                                {TOMATO_EMOJI}
-                            </span>
-                        </a>
-                        <div className="hidden sm:ml-6 sm:flex sm:space-x-8">
-                            <a
-                                href="/groups"
-                                className="inline-flex items-center px-1 pt-1 border-b-2 border-transparent text-sm font-medium text-foreground hover:border-foreground/50 hover:text-foreground/50"
-                            >
-                                Groups
-                            </a>
-                        </div>
-                    </div>
-                    {/* <div className="flex items-center text-muted-foreground font-bold">
-                        <span>some group</span>
-                    </div> */}
-                    <div className="hidden sm:ml-6 sm:flex sm:items-center">
-                        {isLoggedIn ? (
-                            <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                    <Button
-                                        variant="ghost"
-                                        className="ml-3 relative"
-                                    >
-                                        <Avatar className="size-6">
-                                            <AvatarImage
-                                                src="/placeholder.svg?height=32&width=32"
-                                                alt={username}
-                                            />
-                                            <AvatarFallback className="bg-red-400"></AvatarFallback>
-                                        </Avatar>
-                                        <span className="ml-2">
-                                            {"test@test.com"}
-                                        </span>
-                                    </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end">
-                                    <DropdownMenuItem>
-                                        <User className="mr-2 h-4 w-4" />
-                                        <span>Profile</span>
-                                    </DropdownMenuItem>
-                                    <DropdownMenuSeparator />
-                                    <DropdownMenuItem
-                                        onClick={() => setIsLoggedIn(false)}
-                                    >
-                                        <LogOut className="mr-2 h-4 w-4" />
-                                        <span>Log out</span>
-                                    </DropdownMenuItem>
-                                </DropdownMenuContent>
-                            </DropdownMenu>
-                        ) : (
-                            <div>
-                                <Button
-                                    variant="ghost"
-                                    onClick={() => setIsLoggedIn(true)}
-                                >
-                                    Log in
-                                </Button>
-                                <Button className="ml-3">Sign up</Button>
-                            </div>
-                        )}
-                    </div>
-                    <div className="flex items-center sm:hidden">
-                        <Sheet>
-                            <SheetTrigger asChild>
-                                <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    className="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-indigo-500"
-                                >
-                                    <span className="sr-only">
-                                        Open main menu
-                                    </span>
-                                    <Menu
-                                        className="h-6 w-6"
-                                        aria-hidden="true"
-                                    />
-                                </Button>
-                            </SheetTrigger>
-                            <SheetContent side="right">
-                                <div className="pt-5 pb-6 px-5">
-                                    <div className="mt-6">
-                                        <nav className="grid gap-y-8">
-                                            <a
-                                                href="/groups"
-                                                className="-m-3 p-3 flex items-center rounded-md hover:bg-gray-50"
-                                            >
-                                                <span className="ml-3 text-base font-medium text-gray-900">
-                                                    Groups
-                                                </span>
-                                            </a>
-                                        </nav>
-                                    </div>
-                                </div>
-                                <div className="py-6 px-5 space-y-6">
-                                    {isLoggedIn ? (
-                                        <div className="space-y-6">
-                                            <span className="text-base font-medium text-gray-900">
-                                                {username}
-                                            </span>
-                                            <Button
-                                                variant="outline"
-                                                className="w-full"
-                                                asChild
-                                            >
-                                                <a href="/profile">Profile</a>
-                                            </Button>
-                                            <Button
-                                                className="w-full"
-                                                onClick={() =>
-                                                    setIsLoggedIn(false)
-                                                }
-                                            >
-                                                Log out
-                                            </Button>
-                                        </div>
-                                    ) : (
-                                        <div>
-                                            <Button
-                                                className="w-full"
-                                                onClick={() =>
-                                                    setIsLoggedIn(true)
-                                                }
-                                            >
-                                                Log in
-                                            </Button>
-                                            <Button
-                                                variant="outline"
-                                                className="mt-3 w-full"
-                                            >
-                                                Sign up
-                                            </Button>
-                                        </div>
-                                    )}
-                                </div>
-                            </SheetContent>
-                        </Sheet>
-                    </div>
-                </div>
-            </div>
-        </nav>
-    );
-};
