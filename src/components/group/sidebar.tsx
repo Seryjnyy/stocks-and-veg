@@ -126,6 +126,60 @@ const Sidebar = ({
                     </div>
                 </nav>
             </aside>
+
+            <div className="md:hidden">
+                <Drawer open={drawerOpen} onOpenChange={setDrawerOpen}>
+                    <DrawerTrigger asChild>
+                        <Button
+                            variant="outline"
+                            className="p-2 px-3 fixed top-20 left-4 z-50"
+                            onClick={() => setExpanded((curr) => !curr)}
+                        >
+                            <span>
+                                {drawerOpen ? (
+                                    <SidebarClose />
+                                ) : (
+                                    <SidebarOpen />
+                                )}
+                            </span>
+                        </Button>
+                    </DrawerTrigger>
+                    <DrawerContent>
+                        <DrawerHeader>
+                            <DrawerTitle>Group menu</DrawerTitle>
+                            <DrawerDescription className="sr-only">
+                                This is the group menu where you can find group
+                                section links and your info.
+                            </DrawerDescription>
+                        </DrawerHeader>
+                        <div className="border-t flex justify-center">
+                            <div className="mx-auto ">
+                                <ul className="flex-1 px-3 my-12 ">
+                                    <LinkList
+                                        onClickLink={() => {
+                                            setDrawerOpen(false);
+                                        }}
+                                        sections={sections}
+                                        expanded={true}
+                                        currentSection={currentSection}
+                                    />
+                                </ul>
+                            </div>
+                        </div>
+
+                        <TimeRemaining expanded={true} className="border-t" />
+                        <div className="flex justify-center border-t">
+                            {groupUser && (
+                                <GroupUserProfile
+                                    groupUser={groupUser}
+                                    viewMore
+                                    detailSize={"xl"}
+                                />
+                            )}
+                        </div>
+                    </DrawerContent>
+                </Drawer>
+            </div>
         </>
     );
 };

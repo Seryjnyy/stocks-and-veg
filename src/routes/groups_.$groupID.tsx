@@ -1,5 +1,4 @@
 import DataError from "@/components/data-error";
-import GroupUserDialog from "@/components/group/group-user-dialog";
 import Loading from "@/components/loading";
 import {
     AlertDialog,
@@ -30,15 +29,11 @@ import { GearIcon } from "@radix-ui/react-icons";
 
 import GroupOtherUsersTasks from "@/components/group/group-other-users-tasks";
 import GroupTodaysTargets from "@/components/group/group-todays-targets";
-import GroupUserProfile, {
-    GroupUserAvatar,
-    UserDetail,
-} from "@/components/group/group-user-profile";
+import GroupUserProfile from "@/components/group/group-user-profile";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useGetGroupUser } from "@/lib/hooks/queries/use-get-group-user";
 import { Tables } from "@/lib/supabase/database.types";
 import { cn } from "@/lib/utils";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
@@ -48,8 +43,6 @@ import {
     Copy,
     CrownIcon,
     RefreshCw,
-    SidebarClose,
-    SidebarOpen,
     Target,
     Trash2,
     UserPlus,
@@ -57,14 +50,13 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 
-import GroupSection from "@/components/group/group-section";
-import GroupYourTasksToday from "@/components/group/group-your-tasks-today";
-import { currentSectionInGroupPageAtom } from "@/lib/atoms/current-section-group-page";
-import { useAtom } from "jotai";
-import { useDeleteGroup } from "@/lib/hooks/mutations/use-delete-group";
 import BackButton from "@/components/back-button";
-import { useGetUserGroups } from "@/lib/hooks/queries/use-get-user-groups";
-import CountdownTimer from "@/components/countdown-timer";
+
+import GroupYourTasksToday from "@/components/group/group-your-tasks-today";
+import Sidebar from "@/components/group/sidebar";
+import { useDeleteGroup } from "@/lib/hooks/mutations/use-delete-group";
+import { GroupSection as GroupSectionType } from "@/lib/types";
+import GroupSection from "@/components/group/group-section";
 
 export const Route = createFileRoute("/groups/$groupID")({
     component: GroupTwo,
@@ -327,23 +319,11 @@ const GroupManage = ({ group }: { group: Tables<"group"> }) => {
 
 // TODO : is it better to drill stuff like session, or let components use useAuth hook?
 function GroupTwo() {
-    const [expanded, setExpanded] = useState(true);
     const { groupID } = Route.useParams();
     const { session } = useAuth();
     const { data, error, isLoading } = useGetGroup({
         enabled: !!session,
         groupID: groupID,
-    });
-
-    // TODO : well don't need jotai rn, but If at some point sidebar is split it could be useful -\o/-
-    const [currentSection, setCurrentSection] = useAtom(
-        currentSectionInGroupPageAtom
-    );
-
-    const { data: groupUser } = useGetGroupUser({
-        groupID: groupID,
-        userID: session?.user.id,
-        enabled: !!session,
     });
 
     if (error) {
@@ -373,9 +353,7 @@ function GroupTwo() {
         );
     }
 
-    const isCreator = session && data && session.user.id == data.creator_id;
-
-    const sections = [
+    const sections: GroupSectionType[] = [
         {
             icon: Target,
             label: "Todays targets",
@@ -416,163 +394,8 @@ function GroupTwo() {
 
     return (
         <div className="flex flex-col h-[calc(100vh-4.1rem)] overflow-hidden">
-            <div className="flex flex-1 overflow-hidden ">
-                {/* Sidebar */}
-                <aside
-                    className={cn(
-                        " border-r  transition-all z-50 bg-[#0f0f10]",
-                        expanded ? "w-64" : "w-20"
-                    )}
-                >
-                    <nav className="h-full flex flex-col">
-                        <div className="p-4 pb-2 flex justify-between items-center border-b">
-                            <Button
-                                variant="outline"
-                                className="p-2 w-full"
-                                onClick={() => setExpanded((curr) => !curr)}
-                            >
-                                <span>
-                                    {expanded ? (
-                                        <SidebarClose />
-                                    ) : (
-                                        <SidebarOpen />
-                                    )}
-                                </span>
-                            </Button>
-                        </div>
-
-                        {/* <div
-                            className={cn(
-                                "bg-gradient-to-r from-sky-500 to-indigo-500 overflow-hidden transition-all w-full",
-                                expanded ? "h-[120px]" : "h-[50px]"
-                            )}
-                        /> */}
-
-                        <ul className="flex-1 px-3 mt-12">
-                            {sections.map((item, index) => (
-                                <li key={index}>
-                                    <a href={`#${item.value}`}>
-                                        <Button
-                                            variant="ghost"
-                                            className={cn(
-                                                "relative flex items-center py-2 px-3 my-1 font-medium rounded-md cursor-pointer transition-colors group w-full",
-                                                expanded
-                                                    ? "justify-start"
-                                                    : "justify-center"
-                                            )}
-                                        >
-                                            <item.icon
-                                                className={cn(
-                                                    "w-5 h-5",
-                                                    expanded && "mr-2",
-                                                    currentSection ==
-                                                        item.value &&
-                                                        "text-blue-500"
-                                                )}
-                                            />
-                                            <span
-                                                className={cn(
-                                                    expanded
-                                                        ? "opacity-100"
-                                                        : "opacity-0 overflow-hidden w-0",
-                                                    "transition-all"
-                                                )}
-                                            >
-                                                {item.label}
-                                            </span>
-                                            {!expanded && (
-                                                <div
-                                                    className={cn(
-                                                        "absolute left-full rounded-md px-2 py-1 ml-6",
-                                                        "bg-indigo-100 text-indigo-800 text-sm",
-                                                        "invisible opacity-20 -translate-x-3 transition-all",
-                                                        "group-hover:visible group-hover:opacity-100 group-hover:translate-x-0"
-                                                    )}
-                                                >
-                                                    {item.label}
-                                                </div>
-                                            )}
-                                        </Button>
-                                    </a>
-                                </li>
-                            ))}
-                        </ul>
-
-                        <div className="flex flex-col items-center justify-center py-4">
-                            <span
-                                className={cn(
-                                    "text-muted-foreground text-xs transition-all opacity-0 w-0",
-                                    expanded && "opacity-100 w-fit delay-200"
-                                )}
-                            >
-                                {expanded &&
-                                    "Time remaining today to do tasks."}
-                            </span>
-                            <CountdownTimer
-                                className=" text-blue-400 text-xs"
-                                expireDate={Date.parse(
-                                    new Date().toISOString()
-                                )}
-                            />
-                        </div>
-                        <div className="border-t flex p-3  ">
-                            <div
-                                className={cn(
-                                    "flex items-center   w-full",
-                                    expanded
-                                        ? "w-full justify-between cursor-auto"
-                                        : "justify-center cursor-pointer"
-                                )}
-                                onClick={() => {
-                                    !expanded && setExpanded(true);
-                                }}
-                            >
-                                <div
-                                    className={cn(
-                                        "flex items-center ",
-                                        expanded && "gap-3"
-                                    )}
-                                >
-                                    {groupUser && (
-                                        <div className="flex items-center justify-between w-full gap-5 h-full relative">
-                                            <GroupUserAvatar
-                                                groupUser={groupUser}
-                                                creatorBadge
-                                            />
-
-                                            <div
-                                                className={cn(
-                                                    "flex items-center w-full overflow-hidden transition-opacity duration-200 gap-2",
-                                                    expanded
-                                                        ? "w-full opacity-100"
-                                                        : "w-0 absolute  opacity-0"
-                                                )}
-                                            >
-                                                {expanded &&
-                                                    groupUser.profile && (
-                                                        <>
-                                                            <UserDetail
-                                                                user={
-                                                                    groupUser.profile
-                                                                }
-                                                                size={"md"}
-                                                            />
-                                                            <GroupUserDialog
-                                                                groupUser={
-                                                                    groupUser
-                                                                }
-                                                            />
-                                                        </>
-                                                    )}
-                                            </div>
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
-                        </div>
-                    </nav>
-                </aside>
-
+            <div className="flex flex-1 overflow-hidden relative">
+                <Sidebar groupID={groupID} sections={sections} />
                 {/* Main Content */}
                 <main className="flex-1 overflow-y-auto relative">
                     {/* Shadow thingy so looks like components disappearing into void */}
