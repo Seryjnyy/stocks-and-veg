@@ -48,4 +48,17 @@ export function addOrdinalSuffix(num: number): string {
     return num + "th";
 }
 
+const baseXP = 100;
+const growthFactor = 1.5;
+
+export const calculateLevel = (xp: number) => {
+    if (xp < baseXP) return 0;
+
+    return Math.floor(Math.log(xp / baseXP) / Math.log(growthFactor));
+};
+
+export const calculateXPForNextLevel = (currentLevel: number) => {
+    return Math.ceil(baseXP * Math.pow(growthFactor, currentLevel + 1));
+};
+
 export const TOMATO_EMOJI = "🍅";
