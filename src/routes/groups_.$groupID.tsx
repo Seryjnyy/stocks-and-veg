@@ -45,6 +45,7 @@ import {
     RefreshCw,
     Target,
     Trash2,
+    Trophy,
     UserPlus,
     Users,
 } from "lucide-react";
@@ -57,6 +58,7 @@ import Sidebar from "@/components/group/sidebar";
 import { useDeleteGroup } from "@/lib/hooks/mutations/use-delete-group";
 import { GroupSection as GroupSectionType } from "@/lib/types";
 import GroupSection from "@/components/group/group-section";
+import Leaderboard from "@/components/group/leaderboard";
 
 export const Route = createFileRoute("/groups/$groupID")({
     component: GroupTwo,
@@ -72,7 +74,7 @@ const GroupUsersList = ({ users }: { users: GroupUserWithProfile[] }) => {
             creatorBadge
             viewMore
             variant="dashed"
-            detailSize={"2xl"}
+            detailSize={"responsive"}
         />
     ));
 };
@@ -92,7 +94,7 @@ const GroupUsers = ({ groupID }: { groupID: string }) => {
                 {(data || []).length}/{CONFIG.maxGroupUsers}
             </span>
             <div>
-                <ul className="flex  gap-2 flex-wrap">
+                <ul className="flex  gap-2 flex-wrap justify-center">
                     <GroupUsersList users={data || []} />
                 </ul>
             </div>
@@ -360,36 +362,42 @@ function GroupTwo() {
             value: "todays-targets-section",
             section: <GroupTodaysTargets group={data} />,
         },
-        {
-            icon: CheckSquare,
-            label: "Your tasks for today",
-            value: "your-tasks-for-today-section",
-            section: <GroupYourTasksToday groupID={groupID} />,
-        },
-        {
-            icon: CheckCheckIcon,
-            label: "Other user tasks",
-            value: "other-user-tasks-section",
-            section: <GroupOtherUsersTasks groupID={groupID} />,
-        },
-        {
-            icon: Users,
-            label: "Group users",
-            value: "group-users-section",
-            section: <GroupUsers groupID={groupID} />,
-        },
-        {
-            icon: UserPlus,
-            label: "Invite",
-            value: "invite-section",
-            section: <InviteSection groupID={groupID} />,
-        },
-        {
-            icon: GearIcon,
-            label: "Manage group",
-            value: "manage-group-section",
-            section: <GroupManage group={data} />,
-        },
+        // {
+        //     icon: CheckSquare,
+        //     label: "Your tasks for today",
+        //     value: "your-tasks-for-today-section",
+        //     section: <GroupYourTasksToday groupID={groupID} />,
+        // },
+        // {
+        //     icon: CheckCheckIcon,
+        //     label: "Other user tasks",
+        //     value: "other-user-tasks-section",
+        //     section: <GroupOtherUsersTasks groupID={groupID} />,
+        // },
+        // {
+        //     icon: Trophy,
+        //     label: "Leaderboard",
+        //     value: "leaderboard-section",
+        //     section: <Leaderboard groupID={groupID} />,
+        // },
+        // {
+        //     icon: Users,
+        //     label: "Group users",
+        //     value: "group-users-section",
+        //     section: <GroupUsers groupID={groupID} />,
+        // },
+        // {
+        //     icon: UserPlus,
+        //     label: "Invite",
+        //     value: "invite-section",
+        //     section: <InviteSection groupID={groupID} />,
+        // },
+        // {
+        //     icon: GearIcon,
+        //     label: "Manage group",
+        //     value: "manage-group-section",
+        //     section: <GroupManage group={data} />,
+        // },
     ];
 
     return (

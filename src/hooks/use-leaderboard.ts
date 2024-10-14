@@ -6,7 +6,7 @@ export default function useLeaderboard({
     userID,
 }: {
     groupID: string;
-    userID: string;
+    userID?: string;
 }) {
     const { data, isLoading, isError } = useGetGroupUsers({ groupID });
 
