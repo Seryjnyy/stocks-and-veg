@@ -10,6 +10,7 @@ import { cn } from "@/lib/utils";
 import { Avatar, AvatarFallback } from "../ui/avatar";
 import { cva, VariantProps } from "class-variance-authority";
 import { Tables } from "@/lib/supabase/database.types";
+import useLevel from "@/hooks/use-level";
 
 const avatarVariants = cva("overflow-visible relative", {
     variants: {
@@ -175,6 +176,18 @@ interface GroupUserProps
     avatarSize?: VariantProps<typeof avatarVariants>["size"];
 }
 
+const LevelProgress = ({ groupUser }: { groupUser: GroupUserWithProfile }) => {
+    const levelData = useLevel({ xp: groupUser.xp });
+
+    return (
+        <div className="flex items-center text-xs gap-2 text-muted-foreground">
+            <span className="text-[0.6rem]">{levelData.level}</span>
+            <Progress value={levelData.progressToNextLevel} />
+            <span className="text-[0.6rem]">{levelData.level + 1}</span>
+        </div>
+    );
+};
+
 export const GroupUser = ({
     groupUser,
     children,
@@ -204,13 +217,7 @@ export const GroupUser = ({
                     <UserDetail user={groupUser.profile} size={detailSize} />
                 )}
 
-                {progressBar && (
-                    <div className="flex items-center text-xs gap-2 text-muted-foreground">
-                        <span className="text-[0.6rem]">2</span>
-                        <Progress value={3} />
-                        <span className="text-[0.6rem]">3</span>
-                    </div>
-                )}
+                {progressBar && <LevelProgress groupUser={groupUser} />}
             </div>
             {children}
         </div>
