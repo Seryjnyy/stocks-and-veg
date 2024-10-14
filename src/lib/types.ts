@@ -7,6 +7,13 @@ export interface GenericFormProps {
     disabled?: boolean;
 }
 
+export type GroupSection = {
+    icon: React.ElementType;
+    label: string;
+    value: string;
+    section: React.ReactNode;
+};
+
 export interface GenericSupabaseQueryProps {
     onSuccess?: () => void;
     onError?: (error: PostgrestError) => void;
