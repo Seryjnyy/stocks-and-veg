@@ -96,7 +96,10 @@ export default function CreateTaskForm({
                         <FormItem>
                             <FormLabel>Name</FormLabel>
                             <FormControl>
-                                <Input {...field} />
+                                <Input
+                                    {...field}
+                                    disabled={disabled || isPending}
+                                />
                             </FormControl>
                             <FormDescription className="sr-only">
                                 This is will be the task's name.
@@ -113,7 +116,10 @@ export default function CreateTaskForm({
                         <FormItem>
                             <FormLabel>Desc</FormLabel>
                             <FormControl>
-                                <Input {...field} />
+                                <Input
+                                    {...field}
+                                    disabled={disabled || isPending}
+                                />
                             </FormControl>
                             <FormDescription className="sr-only">
                                 Add a description to the task if you need it.
