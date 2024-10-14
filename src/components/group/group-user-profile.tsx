@@ -84,6 +84,8 @@ export const UserAvatar = ({
 const userDetailVariants = cva("", {
     variants: {
         size: {
+            responsive:
+                "max-w-[10rem] min-w-[10rem] md:max-w-[14rem] md:min-w-[14rem]",
             xs: "max-w-[4rem] min-w-[4rem]",
             sm: "max-w-[6rem] min-w-[6rem]",
             md: "max-w-[8rem] min-w-[8rem]",
@@ -224,6 +226,8 @@ export const GroupUser = ({
     );
 };
 
+// TODO : Maybe change all this stuff to have user data optional, then pass in id and fetch data in the component, so error
+// and loading states are handled in this component
 export default function GroupUserProfile({
     groupUser,
     className,

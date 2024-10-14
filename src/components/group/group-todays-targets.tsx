@@ -2,58 +2,43 @@ import DataError from "@/components/data-error";
 import Loading from "@/components/loading";
 import { Button } from "@/components/ui/button";
 import { useGetGroupUser } from "@/lib/hooks/queries/use-get-group-user";
-import { useAuth } from "@/hooks/use-auth";
 
 import { Tables } from "@/lib/supabase/database.types";
 import { useGetGroupTomatoes } from "@/lib/tomatoService";
-import GroupUserProfile from "./group-user-profile";
-import { cn, TOMATO_EMOJI } from "@/lib/utils";
-import { Link } from "@tanstack/react-router";
-import CountdownTimer from "../countdown-timer";
-import { InView } from "react-intersection-observer";
-import { currentSectionInGroupPageAtom } from "@/lib/atoms/current-section-group-page";
-import { useAtom } from "jotai";
 import { ArrowDown } from "lucide-react";
+import CountdownTimer from "../countdown-timer";
+import TomatoGroupUserButton from "../tomato-group-user-button";
+import { Skeleton } from "../ui/skeleton";
+import GroupUserProfile from "./group-user-profile";
+import GroupUserNotFound from "../errors";
 
 const Target = ({ target }: { target: Tables<"tomato_target"> }) => {
-    const { session } = useAuth();
+    // TODO : unhandled error
     const { data, isError, isLoading } = useGetGroupUser({
         groupID: target.group_id,
         userID: target.user_id,
     });
 
-    const isUs = session && session.user.id == target.user_id;
-
-    console.log(session?.user.id, target.user_id);
-
     return (
-        <div className="flex justify-between items-center border p-4">
-            {data && <GroupUserProfile groupUser={data} />}
-            <div className="flex flex-col">
-                <span>Tomatoes received</span>
-                <span>{target.tomatoes_received}</span>
-            </div>
-            {isUs ? (
-                <Link
-                    to="/groups/$groupID/tomato/$userID"
-                    params={{
-                        groupID: target.group_id,
-                        userID: target.user_id,
-                    }}
-                >
-                    <Button>Chuck tomatoes {TOMATO_EMOJI}</Button>
-                </Link>
-            ) : (
-                <Link
-                    to="/groups/$groupID/tomato/$userID"
-                    params={{
-                        groupID: target.group_id,
-                        userID: target.user_id,
-                    }}
-                >
-                    <Button>View yourself</Button>
-                </Link>
+        <div className="flex justify-between items-center border rounded-lg p-4 flex-wrap gap-2">
+            {data && (
+                <GroupUserProfile
+                    groupUser={data}
+                    viewMore
+                    variant={"dashed"}
+                />
             )}
+            {isError || (!data && <GroupUserNotFound />)}
+            {isLoading && <Skeleton className="w-[16rem] h-16" />}
+            <div className="flex flex-row  items-center gap-2  p-2">
+                <span className="text-sm text-muted-foreground">
+                    Tomatoes received so far
+                </span>
+                <span className="text-lg font-bold">
+                    {target.tomatoes_received}
+                </span>
+            </div>
+            <TomatoGroupUserButton target={target} />
         </div>
     );
 };
@@ -81,9 +66,10 @@ export default function GroupTodaysTargets({
 
     return (
         <>
-            <div className="absolute -top-6 right-0">
+            <div className="absolute -top-0 right-0 space-x-2">
+                <span className="text-muted-foreground text-xs">4</span>
                 <CountdownTimer
-                    className="absolute right-0 top-3 text-muted-foreground text-xs"
+                    className=" text-muted-foreground text-xs border-l pl-2"
                     expireDate={Date.parse(new Date().toISOString())}
                 />
             </div>
@@ -91,7 +77,7 @@ export default function GroupTodaysTargets({
                 {isError || (!data && <DataError message="" />)}
 
                 {data?.length == 0 && (
-                    <div className="flex justify-center text-muted-foreground flex-col items-center gap-2">
+                    <div className="flex justify-center text-muted-foreground flex-col items-center gap-2 ">
                         <h3>No targets today. You all did well yesterday.</h3>
                         {/* TODO : can break if section values change */}
                         <a href="#your-tasks-for-today-section">
@@ -107,7 +93,10 @@ export default function GroupTodaysTargets({
                     </div>
                 )}
 
-                <ul>
+                <ul className="space-y-2">
+                    <TargetsList targets={data || []} />
+                    <TargetsList targets={data || []} />
+                    <TargetsList targets={data || []} />
                     <TargetsList targets={data || []} />
                 </ul>
             </div>
