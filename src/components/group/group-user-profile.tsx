@@ -81,11 +81,11 @@ export const UserAvatar = ({
     );
 };
 
-const userDetailVariants = cva("", {
+const userDetailVariants = cva("text-start", {
     variants: {
         size: {
             responsive:
-                "max-w-[10rem] min-w-[10rem] md:max-w-[14rem] md:min-w-[14rem]",
+                "max-w-[8rem] min-w-[8rem] sm:max-w-[10rem] sm:min-w-[10rem] md:max-w-[14rem] md:min-w-[14rem]",
             xs: "max-w-[4rem] min-w-[4rem]",
             sm: "max-w-[6rem] min-w-[6rem]",
             md: "max-w-[8rem] min-w-[8rem]",

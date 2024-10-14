@@ -13,7 +13,6 @@ import GroupUserProfile from "./group-user-profile";
 import GroupUserNotFound from "../errors";
 
 const Target = ({ target }: { target: Tables<"tomato_target"> }) => {
-    // TODO : unhandled error
     const { data, isError, isLoading } = useGetGroupUser({
         groupID: target.group_id,
         userID: target.user_id,
@@ -94,9 +93,6 @@ export default function GroupTodaysTargets({
                 )}
 
                 <ul className="space-y-2">
-                    <TargetsList targets={data || []} />
-                    <TargetsList targets={data || []} />
-                    <TargetsList targets={data || []} />
                     <TargetsList targets={data || []} />
                 </ul>
             </div>

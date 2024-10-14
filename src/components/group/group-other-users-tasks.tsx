@@ -6,6 +6,7 @@ import { TaskWithCompletion } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { CheckIcon } from "@radix-ui/react-icons";
 import GroupUserProfile from "./group-user-profile";
+import Task from "./task/task";
 
 export default function GroupOtherUsersTasks({ groupID }: { groupID: string }) {
     const {
@@ -111,26 +112,17 @@ const Grouped = ({
             >
                 <GroupUserProfile
                     groupUser={user}
-                    className="border-none"
+                    variant={"dashed"}
                     viewMore
                     usBadge
                     creatorBadge
-                    detailSize={"2xl"}
+                    detailSize={"responsive"}
                 />
                 <span className="text-xs text-muted-foreground">
                     {completedTasks.length}/{userTasks.tasks.length}
                 </span>
             </div>
-            <ul className="flex flex-col gap-2 pl-12">
-                {/* {userTasks.tasks
-                    .sort(
-                        (a, b) =>
-                            (a.task_completion.length > 0 ? 1 : -1) -
-                            (b.task_completion.length > 0 ? 1 : -1)
-                    )
-                    .map((task) => (
-                        <GroupTask key={task.id} task={task} />
-                    ))} */}
+            <ul className="flex flex-col gap-2 ml-6 pl-6 mt-1 border-l">
                 <li>
                     {uncompletedTasks.length > 0 && (
                         <span className="text-xs text-muted-foreground">
@@ -139,7 +131,7 @@ const Grouped = ({
                     )}
                     <ul className="flex flex-col gap-2">
                         {uncompletedTasks.map((task) => (
-                            <GroupTask key={task.id} task={task} />
+                            <Task key={task.id} task={task} complete />
                         ))}
                     </ul>
                 </li>
@@ -151,7 +143,7 @@ const Grouped = ({
                     )}
                     <ul className="flex flex-col gap-2">
                         {completedTasks.map((task) => (
-                            <GroupTask key={task.id} task={task} />
+                            <Task key={task.id} task={task} />
                         ))}
                     </ul>
                 </li>
