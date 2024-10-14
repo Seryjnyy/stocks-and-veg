@@ -25,7 +25,7 @@ import {
 import { useGetInviteLink } from "@/lib/hooks/queries/use-get-invite-link";
 import { formatInviteLink } from "@/lib/utils";
 import SpinnerButton from "@/spinner-button";
-import { GearIcon } from "@radix-ui/react-icons";
+import { GearIcon, ReloadIcon } from "@radix-ui/react-icons";
 
 import GroupOtherUsersTasks from "@/components/group/group-other-users-tasks";
 import GroupTodaysTargets from "@/components/group/group-todays-targets";
@@ -59,6 +59,7 @@ import { useDeleteGroup } from "@/lib/hooks/mutations/use-delete-group";
 import { GroupSection as GroupSectionType } from "@/lib/types";
 import GroupSection from "@/components/group/group-section";
 import Leaderboard from "@/components/group/leaderboard";
+import TypeToConfirmAlertDialog from "@/components/type-to-confirm-alert-dialog";
 
 export const Route = createFileRoute("/groups/$groupID")({
     component: GroupTwo,
@@ -103,7 +104,6 @@ const GroupUsers = ({ groupID }: { groupID: string }) => {
 };
 
 // TODO : error unhandled
-
 export default function InviteSection({ groupID }: { groupID: string }) {
     const { data, isError, isLoading } = useGetInviteLink({ groupID: groupID });
     const { mutateAsync: createInviteLink, isPending } = useCreateInviteLink();
@@ -209,24 +209,19 @@ export default function InviteSection({ groupID }: { groupID: string }) {
                         )}
                         <SpinnerButton
                             isPending={isPending}
-                            disabled={isPending || isLoading}
+                            disabled={isPending || isLoading || !data}
                             onClick={handleGenerateLink}
                             className="w-full"
-                            variant={
-                                data && !isInviteLinkExpired
-                                    ? "outline"
-                                    : "default"
-                            }
+                            variant={"outline"}
                         >
                             <RefreshCw className="mr-2 h-4 w-4" />
                             {data ? "Generate New Link" : "Create Invite Link"}
                         </SpinnerButton>
                         <p className="text-sm text-muted-foreground">
                             Get a invite link and share it with your friend.
-                            They can visit the link to join this group. Invite
-                            links are valid for a day.
-                            {isInviteLinkExpired &&
-                                " The current link is expired. Please generate a new one."}
+                            They can visit the link to join this group.
+                            <br />
+                            Invite links are valid for a day.
                         </p>
                     </div>
                 </CardContent>
@@ -241,7 +236,7 @@ const GroupManage = ({ group }: { group: Tables<"group"> }) => {
     const { toast } = useToast();
     const navigate = useNavigate();
 
-    const handleDeleteData = async () => {
+    const handleDeleteGroup = async () => {
         await deleteGroup(
             { id: group.id },
             {
@@ -265,56 +260,49 @@ const GroupManage = ({ group }: { group: Tables<"group"> }) => {
         });
     };
 
-    const [groupName, setGroupName] = useState("");
+    const handleResetTasks = async () => {
+        console.error("Not implemented.");
+    };
 
+    const handleResetStats = async () => {
+        console.error("Not implemented.");
+    };
     return (
-        <div>
-            <AlertDialog>
-                <AlertDialogTrigger asChild>
-                    <Button variant="destructive">Delete group</Button>
-                </AlertDialogTrigger>
-                <AlertDialogContent>
-                    <AlertDialogHeader>
-                        <AlertDialogTitle>
-                            Are you sure you want to delete this group?
-                        </AlertDialogTitle>
-                        <AlertDialogDescription>
-                            This action cannot be undone. This will permanently
-                            delete this group along with all associated data.
-                        </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <div className="mt-12">
-                        <Label
-                            htmlFor="confirm-delete-input"
-                            className="font-normal"
-                        >
-                            Please type{" "}
-                            <span className="font-bold">{group.name}</span> to
-                            confirm.
-                        </Label>
-                        <Input
-                            id="confirm-delete-input"
-                            value={groupName}
-                            onChange={(e) => setGroupName(e.target.value)}
-                        />
-                    </div>
+        <div className="flex flex-col gap-4">
+            <TypeToConfirmAlertDialog
+                title="Are you sure you want to delete this group?"
+                description="This action cannot be undone. This will permanently delete this group along with all associated data."
+                onConfirm={handleDeleteGroup}
+                confirmText={group.name}
+                buttonContent={
+                    <>
+                        <Trash2 className="size-3 mr-2" /> Delete group
+                    </>
+                }
+            />
 
-                    <AlertDialogFooter>
-                        <AlertDialogCancel>Cancel</AlertDialogCancel>
-                        <AlertDialogAction
-                            onClick={handleDeleteData}
-                            disabled={groupName != group.name}
-                            className={buttonVariants({
-                                variant: "destructive",
-                            })}
-                        >
-                            <Trash2 className="size-3 mr-2" /> Delete Data
-                        </AlertDialogAction>
-                    </AlertDialogFooter>
-                </AlertDialogContent>
-            </AlertDialog>
-            <Button>Reset stats (remove stats data) </Button>
-            <Button>Reset tasks (remove tasks)</Button>
+            <TypeToConfirmAlertDialog
+                title="Are you sure you want to reset stats?"
+                description="This action cannot be undone. This will permanently delete all stats. Meaning a fresh start. Tasks will remain."
+                onConfirm={handleResetStats}
+                confirmText={group.name}
+                buttonContent={
+                    <>
+                        <ReloadIcon className="size-3 mr-2" /> Reset all stats
+                    </>
+                }
+            />
+            <TypeToConfirmAlertDialog
+                title="Are you sure you want to reset all tasks?"
+                description="This action cannot be undone. This will permanently delete all tasks. Meaning a fresh start. Stats will remain."
+                onConfirm={handleResetTasks}
+                confirmText={group.name}
+                buttonContent={
+                    <>
+                        <ReloadIcon className="size-3 mr-2" /> Reset all tasks
+                    </>
+                }
+            />
         </div>
     );
 };
@@ -362,42 +350,42 @@ function GroupTwo() {
             value: "todays-targets-section",
             section: <GroupTodaysTargets group={data} />,
         },
-        // {
-        //     icon: CheckSquare,
-        //     label: "Your tasks for today",
-        //     value: "your-tasks-for-today-section",
-        //     section: <GroupYourTasksToday groupID={groupID} />,
-        // },
-        // {
-        //     icon: CheckCheckIcon,
-        //     label: "Other user tasks",
-        //     value: "other-user-tasks-section",
-        //     section: <GroupOtherUsersTasks groupID={groupID} />,
-        // },
-        // {
-        //     icon: Trophy,
-        //     label: "Leaderboard",
-        //     value: "leaderboard-section",
-        //     section: <Leaderboard groupID={groupID} />,
-        // },
-        // {
-        //     icon: Users,
-        //     label: "Group users",
-        //     value: "group-users-section",
-        //     section: <GroupUsers groupID={groupID} />,
-        // },
-        // {
-        //     icon: UserPlus,
-        //     label: "Invite",
-        //     value: "invite-section",
-        //     section: <InviteSection groupID={groupID} />,
-        // },
-        // {
-        //     icon: GearIcon,
-        //     label: "Manage group",
-        //     value: "manage-group-section",
-        //     section: <GroupManage group={data} />,
-        // },
+        {
+            icon: CheckSquare,
+            label: "Your tasks for today",
+            value: "your-tasks-for-today-section",
+            section: <GroupYourTasksToday groupID={groupID} />,
+        },
+        {
+            icon: CheckCheckIcon,
+            label: "Other user tasks",
+            value: "other-user-tasks-section",
+            section: <GroupOtherUsersTasks groupID={groupID} />,
+        },
+        {
+            icon: Trophy,
+            label: "Leaderboard",
+            value: "leaderboard-section",
+            section: <Leaderboard groupID={groupID} />,
+        },
+        {
+            icon: Users,
+            label: "Group users",
+            value: "group-users-section",
+            section: <GroupUsers groupID={groupID} />,
+        },
+        {
+            icon: UserPlus,
+            label: "Invite",
+            value: "invite-section",
+            section: <InviteSection groupID={groupID} />,
+        },
+        {
+            icon: GearIcon,
+            label: "Manage group",
+            value: "manage-group-section",
+            section: <GroupManage group={data} />,
+        },
     ];
 
     return (
