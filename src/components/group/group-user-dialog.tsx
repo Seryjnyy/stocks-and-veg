@@ -1,35 +1,3 @@
-import { Card, CardContent } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
-import {
-    Flame,
-    Target,
-    CheckCircle,
-    XCircle,
-    Star,
-    Trophy,
-    Calendar,
-} from "lucide-react";
-import { Button } from "@/components/ui/button";
-import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
-    DialogTrigger,
-} from "@/components/ui/dialog";
-import { useGetGroup } from "@/lib/hooks/queries/use-get-group";
-import { GroupUserWithProfile } from "@/lib/hooks/queries/use-get-group-users";
-import { useAuth } from "@/hooks/use-auth";
-import SpinnerButton from "@/spinner-button";
-import { ExitIcon, EyeOpenIcon } from "@radix-ui/react-icons";
-import { useNavigate } from "@tanstack/react-router";
-import GroupUserProfile, {
-    GroupUser,
-    GroupUserAvatar,
-    UserDetail,
-} from "./group-user-profile";
 import {
     AlertDialog,
     AlertDialogAction,
@@ -41,8 +9,52 @@ import {
     AlertDialogTitle,
     AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
+} from "@/components/ui/dialog";
+import { Progress } from "@/components/ui/progress";
+import { useAuth } from "@/hooks/use-auth";
+import { useGetGroup } from "@/lib/hooks/queries/use-get-group";
+import { useGetGroupUserTasks } from "@/lib/hooks/queries/use-get-group-user-tasks";
+import {
+    GroupUserWithProfile,
+    useGetGroupUsers,
+} from "@/lib/hooks/queries/use-get-group-users";
+import { Tables } from "@/lib/supabase/database.types";
 import { useGetGroupTomatoes } from "@/lib/tomatoService";
-import { TOMATO_EMOJI } from "@/lib/utils";
+import {
+    addOrdinalSuffix,
+    calculateLevel,
+    calculateXPForNextLevel,
+    cn,
+    timestampSplit,
+    TOMATO_EMOJI,
+} from "@/lib/utils";
+import { ExitIcon, EyeOpenIcon } from "@radix-ui/react-icons";
+import { useNavigate } from "@tanstack/react-router";
+import {
+    Calendar,
+    CheckCircle,
+    CircleX,
+    Flame,
+    Target,
+    Trash2,
+    Trophy,
+} from "lucide-react";
+import { Skeleton } from "../ui/skeleton";
+import GroupUserProfile, { GroupUser } from "./group-user-profile";
+import LeaderboardList from "./leaderboard-list";
+import useLeaderboard from "@/hooks/use-leaderboard";
+import useLevel from "@/hooks/use-level";
+import { ScrollArea } from "../ui/scroll-area";
+import useScreenSize from "@/hooks/use-screen-size";
 
 const LeaveGroupDialog = ({
     handleLeaveGroup,
@@ -86,7 +98,7 @@ const RemoveUserDialog = ({
         <AlertDialog>
             <AlertDialogTrigger asChild>
                 <Button variant={"destructive"} size={"sm"}>
-                    Remove user
+                    <Trash2 className="size-3 mr-2" /> Remove user
                 </Button>
             </AlertDialogTrigger>
             <AlertDialogContent>
@@ -155,7 +167,7 @@ export default function GroupUserDialog({
                     <EyeOpenIcon />
                 </Button>
             </DialogTrigger>
-            <DialogContent className="min-w-[80vw] h-[90vh] px-0 pb-0">
+            <DialogContent className="min-w-[100vw] sm:min-w-[80vw] md:min-w-[75vw] lg:min-w-[70vw] px-0 ">
                 <DialogHeader>
                     <DialogTitle className="sr-only">Group user</DialogTitle>
                     <DialogDescription className="sr-only">
@@ -163,70 +175,72 @@ export default function GroupUserDialog({
                     </DialogDescription>
                 </DialogHeader>
 
-                <div className="overflow-hidden rounded-lg">
-                    <div className="h-full border-t rounded-lg overflow-y-scroll  px-12 py-4">
-                        <div className="border flex flex-col  rounded-xl ">
-                            <div className="flex">
-                                <GroupUser
-                                    groupUser={groupUser}
-                                    avatarSize={"xl"}
-                                    detailSize={"2xl"}
-                                />
+                <ScrollArea className="h-[80vh] ">
+                    <div className="rounded-lg ">
+                        <div className="  rounded-lg   md:px-12 px-2 sm:px-6 space-y-8">
+                            <div className="border flex flex-col gap-4 p-2  rounded-xl ">
+                                <div className="flex flex-col">
+                                    <GroupUser
+                                        groupUser={groupUser}
+                                        avatarSize={"xl"}
+                                        detailSize={"2xl"}
+                                    />
 
-                                <div>joined at {groupUser.created_at}</div>
+                                    <div className="text-sm text-muted-foreground pl-3">
+                                        Joined{" "}
+                                        <span className="font-semibold">
+                                            {data?.name}
+                                        </span>{" "}
+                                        on{" "}
+                                        {
+                                            timestampSplit(groupUser.created_at)
+                                                .date
+                                        }
+                                    </div>
+                                </div>
+                                <div className="flex items-center justify-between px-3">
+                                    {isUserCreator && !isUserUs && (
+                                        <RemoveUserDialog
+                                            handleRemoveUser={handleRemoveUser}
+                                        />
+                                    )}
+                                    {isUserUs && (
+                                        <LeaveGroupDialog
+                                            handleLeaveGroup={handleLeaveGroup}
+                                        />
+                                    )}
+                                    {isAbleToBeTomatoed && (
+                                        <Button size={"sm"} variant={"default"}>
+                                            Chuck tomatoes
+                                            <span className="size-3 ml-2">
+                                                {TOMATO_EMOJI}
+                                            </span>
+                                        </Button>
+                                    )}
+                                    {!isAbleToBeTomatoed && isUserUs && (
+                                        <Button size={"sm"}>
+                                            <EyeOpenIcon className="size-3 mr-2" />{" "}
+                                            View yourself being tomatoed
+                                        </Button>
+                                    )}
+                                </div>
                             </div>
-                            <div className="flex items-center justify-between">
-                                {isUserCreator && !isUserUs && (
-                                    <RemoveUserDialog
-                                        handleRemoveUser={handleRemoveUser}
-                                    />
-                                )}
-                                {isUserUs && (
-                                    <LeaveGroupDialog
-                                        handleLeaveGroup={handleLeaveGroup}
-                                    />
-                                )}
-                                {isAbleToBeTomatoed && (
-                                    <Button size={"sm"} variant={"default"}>
-                                        Chuck tomatoes
-                                        <span className="size-3 ml-2">
-                                            {TOMATO_EMOJI}
-                                        </span>
-                                    </Button>
-                                )}
-                            </div>
+                            <UserStatsVariant2 groupUser={groupUser} />
                         </div>
-                        <UserStatsVariant2 />
                     </div>
-                </div>
+                </ScrollArea>
             </DialogContent>
         </Dialog>
     );
 }
 
-function UserStatsVariant2() {
-    // Random data for demonstration
-    const stats = {
-        totalTasks: 150,
-        completedToday: 8,
-        notCompletedToday: 3,
-        completedOverall: 120,
-        notCompletedOverall: 30,
-        tomatoesCount: 75,
-        level: 7,
-        maxLevel: 10,
-        xp: 3500,
-        daysFullyCompleted: 25,
-        daysPartiallyCompleted: 15,
-        timesTomatoed: 50,
-        tomatoesThrown: 30,
-        biggestTomatoedCount: 10,
-    };
+function UserStatsVariant2({ groupUser }: { groupUser: GroupUserWithProfile }) {
+    const levelData = useLevel({ xp: groupUser.xp });
 
     return (
         <div className="w-full   space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <Card className="col-span-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white">
+            <div className="grid grid-cols-3  gap-2">
+                {/* <Card className="col-span-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white">
                     <CardContent className="flex justify-between items-center p-6">
                         <div>
                             <p className="text-2xl font-semibold">
@@ -240,105 +254,36 @@ function UserStatsVariant2() {
                             <Star className="w-12 h-12" />
                         </div>
                     </CardContent>
-                </Card>
+                </Card> */}
 
-                <Card>
-                    <CardContent className="p-6 flex flex-col items-center">
-                        <Target className="w-10 h-10 text-blue-500 mb-2" />
-                        <p className="text-xl font-semibold">
-                            {stats.totalTasks}
-                        </p>
-                        <p className="text-sm text-muted-foreground">
-                            Total Tasks
-                        </p>
-                    </CardContent>
-                </Card>
+                <div className="col-span-3 text-muted-foreground text-xs">
+                    Current
+                </div>
+                <StatCard cols={1}>
+                    <StatWithIcon value={groupUser.tomatoes} label="Tomatoes">
+                        <TomatoIcon />
+                    </StatWithIcon>
+                </StatCard>
 
-                <Card>
-                    <CardContent className="p-6 flex flex-col items-center">
-                        <CheckCircle className="w-10 h-10 text-green-500 mb-2" />
-                        <p className="text-xl font-semibold">
-                            {stats.completedOverall}
-                        </p>
-                        <p className="text-sm text-muted-foreground">
-                            Tasks Completed
-                        </p>
-                    </CardContent>
-                </Card>
-
-                <Card>
-                    <CardContent className="p-6 flex flex-col items-center">
-                        <span className="w-10 h-10 mb-2">{TOMATO_EMOJI}</span>
-                        <p className="text-xl font-semibold">
-                            {stats.tomatoesCount}
-                        </p>
-                        <p className="text-sm text-muted-foreground">
-                            Tomatoes Collected
-                        </p>
-                    </CardContent>
-                </Card>
-
-                <Card className="col-span-3">
-                    <CardContent className="p-6 space-y-4">
+                <StatCard cols={2}>
+                    <div className="space-y-4 w-full">
                         <h3 className="text-lg font-semibold mb-2">
                             Today's Progress
                         </h3>
-                        <div className="flex justify-between items-center">
-                            <span>Completed: {stats.completedToday}</span>
-                            <span>
-                                Not Completed: {stats.notCompletedToday}
-                            </span>
-                        </div>
-                        <Progress
-                            value={
-                                (stats.completedToday /
-                                    (stats.completedToday +
-                                        stats.notCompletedToday)) *
-                                100
-                            }
-                            className="h-2"
-                        />
-                    </CardContent>
-                </Card>
+                        <TodayProgress groupID={groupUser.group_id} />
+                    </div>
+                </StatCard>
 
-                <Card className="col-span-2">
-                    <CardContent className="p-6 space-y-4">
+                <div className="col-span-3 lg:col-span-2">
+                    <Leaderboard
+                        groupID={groupUser.group_id}
+                        userID={groupUser.user_id}
+                    />
+                </div>
+                <StatCard cols={1} className="md:col-span-3 lg:col-span-1">
+                    <div className="flex flex-col  w-full">
                         <h3 className="text-lg font-semibold mb-2">
-                            Tomato Stats
-                        </h3>
-                        <div className="grid grid-cols-2 gap-4">
-                            <div>
-                                <p className="text-sm text-muted-foreground">
-                                    Times Tomatoed
-                                </p>
-                                <p className="text-xl font-semibold">
-                                    {stats.timesTomatoed}
-                                </p>
-                            </div>
-                            <div>
-                                <p className="text-sm text-muted-foreground">
-                                    Tomatoes Thrown
-                                </p>
-                                <p className="text-xl font-semibold">
-                                    {stats.tomatoesThrown}
-                                </p>
-                            </div>
-                            <div>
-                                <p className="text-sm text-muted-foreground">
-                                    Biggest Tomatoed Count
-                                </p>
-                                <p className="text-xl font-semibold">
-                                    {stats.biggestTomatoedCount}
-                                </p>
-                            </div>
-                        </div>
-                    </CardContent>
-                </Card>
-
-                <Card>
-                    <CardContent className="p-6 space-y-4">
-                        <h3 className="text-lg font-semibold mb-2">
-                            XP Progress
+                            Level {levelData.level}
                         </h3>
                         <div className="flex items-center justify-center">
                             <div className="relative w-32 h-32">
@@ -349,20 +294,22 @@ function UserStatsVariant2() {
                                     <path
                                         d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
                                         fill="none"
+                                        className="stroke-gray-700"
                                         stroke="#E5E7EB"
-                                        strokeWidth="2"
+                                        strokeWidth="3"
                                     />
                                     <path
                                         d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
                                         fill="none"
-                                        stroke="#4F46E5"
+                                        // stroke="#4F46E5"
+                                        className="stroke-purple-600 "
                                         strokeWidth="2"
-                                        strokeDasharray={`${stats.xp / 100}, 100`}
+                                        strokeDasharray={`${levelData.progressToNextLevel}, 100`}
                                     />
                                 </svg>
                                 <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center">
-                                    <p className="text-2xl font-bold">
-                                        {stats.xp}
+                                    <p className="font-bold text-xs max-w-[14ch] truncate">
+                                        {levelData.xp}
                                     </p>
                                     <p className="text-xs text-muted-foreground">
                                         XP
@@ -370,42 +317,276 @@ function UserStatsVariant2() {
                                 </div>
                             </div>
                         </div>
-                    </CardContent>
-                </Card>
+                    </div>
+                </StatCard>
 
-                <Card className="col-span-3">
-                    <CardContent className="p-6 flex justify-between items-center">
-                        <div>
-                            <Trophy className="w-10 h-10 text-yellow-500 mb-2" />
-                            <p className="text-xl font-semibold">
-                                {stats.daysFullyCompleted}
-                            </p>
-                            <p className="text-sm text-muted-foreground">
-                                Fully Completed Days
-                            </p>
-                        </div>
-                        <div>
-                            <Calendar className="w-10 h-10 text-green-500 mb-2" />
-                            <p className="text-xl font-semibold">
-                                {stats.daysPartiallyCompleted}
-                            </p>
-                            <p className="text-sm text-muted-foreground">
-                                Partially Completed Days
-                            </p>
-                        </div>
-                        <div>
-                            <Flame className="w-10 h-10 text-orange-500 mb-2" />
-                            <p className="text-xl font-semibold">
-                                {stats.daysFullyCompleted +
-                                    stats.daysPartiallyCompleted}
-                            </p>
-                            <p className="text-sm text-muted-foreground">
-                                Total Active Days
-                            </p>
-                        </div>
-                    </CardContent>
-                </Card>
+                <div className="col-span-3 text-muted-foreground text-xs">
+                    All time
+                </div>
+                <StatCard cols={3}>
+                    <StatWithIcon
+                        value={groupUser.day_full_completes}
+                        label="Fully Completed Days"
+                    >
+                        <Trophy className="w-10 h-10 text-yellow-500 mb-2" />
+                    </StatWithIcon>
+                    <StatWithIcon
+                        value={groupUser.day_partial_completes}
+                        label="Partially Completed Days"
+                    >
+                        <Calendar className="w-10 h-10 text-green-500 mb-2" />
+                    </StatWithIcon>
+                    <StatWithIcon
+                        value={
+                            groupUser.day_full_completes +
+                            groupUser.day_partial_completes
+                        }
+                        label="Total Active Days"
+                    >
+                        <Flame className="w-10 h-10 text-orange-500 mb-2" />
+                    </StatWithIcon>
+                </StatCard>
+
+                <StatCard cols={2}>
+                    <StatWithIcon
+                        value={groupUser.tasks_completed}
+                        label="Tasks completed"
+                    >
+                        <CheckCircle className="w-10 h-10 text-green-500 mb-2" />
+                    </StatWithIcon>
+                    <StatWithIcon
+                        value={groupUser.tasks_not_completed}
+                        label="Tasks not completed"
+                    >
+                        <CircleX className="w-10 h-10 text-red-500 mb-2" />
+                    </StatWithIcon>
+                </StatCard>
+
+                <StatCard>
+                    <div className="justify-end flex flex-col h-full  mt-6 ">
+                        <p className="text-6xl font-semibold text-muted-foreground ">
+                            {groupUser.tasks_completed +
+                                groupUser.tasks_not_completed}
+                        </p>
+                        <p className="text-sm text-muted-foreground">
+                            Total tasks
+                        </p>
+                    </div>
+                </StatCard>
+
+                <StatCard>
+                    <StatWithIcon
+                        value={groupUser.total_tomatos}
+                        label={
+                            <span className="text-sm text-muted-foreground">
+                                <span>🧺</span>Gathered
+                            </span>
+                        }
+                    >
+                        <TomatoIcon />
+                    </StatWithIcon>
+                </StatCard>
+
+                <StatCard>
+                    <StatWithIcon
+                        value={groupUser.tomatoes_thrown}
+                        label={
+                            <span className="text-sm text-muted-foreground">
+                                <span>🤾</span>Thrown
+                            </span>
+                        }
+                    >
+                        <TomatoIcon />
+                    </StatWithIcon>
+                </StatCard>
+
+                <StatCard>
+                    <StatWithIcon
+                        value={groupUser.tomatoes_received}
+                        label={
+                            <span className="text-sm text-muted-foreground">
+                                <span>🎯</span>Received
+                            </span>
+                        }
+                    >
+                        <TomatoIcon />
+                    </StatWithIcon>
+                </StatCard>
+
+                <StatCard cols={3}>
+                    <StatWithIcon
+                        value={groupUser.times_being_a_target}
+                        label="Times being a target"
+                    >
+                        <Target className="w-10 h-10 text-blue-500" />
+                    </StatWithIcon>
+
+                    <StatWithIcon
+                        value={groupUser.times_tomatoed}
+                        label="Times you got tomatoed"
+                    >
+                        <span className="relative w-fit ">
+                            <Target className="w-10 h-10 text-blue-500 " />
+                            <span className="absolute bottom-0 -left-2 text-2xl">
+                                {TOMATO_EMOJI}
+                            </span>
+                        </span>
+                    </StatWithIcon>
+                </StatCard>
             </div>
         </div>
     );
 }
+
+// TODO : Need to decided what to rank the users by, currently xp
+// But could have leaderboard where user selects by what they want to sort
+// TODO : Refactor out this component
+// TODO : Need to show the value they are ranked by
+const Leaderboard = ({
+    groupID,
+    userID,
+}: {
+    groupID: string;
+    userID: string;
+}) => {
+    const { leaderboardData, isLoading, isError } = useLeaderboard({
+        groupID,
+        userID,
+    });
+
+    if (isLoading) return <Skeleton className="w-full h-10" />;
+
+    if (isError || !leaderboardData) return null;
+
+    // Ugly but it works for now, changes the size of user detail so it fits properly on all screen sizes
+    const screenSize = useScreenSize();
+    let userDetailSize: "xs" | "sm" | "md" | "lg" | "xl" | "2xl" = "2xl";
+    switch (screenSize) {
+        case "xs":
+            userDetailSize = "xs";
+            break;
+        case "sm":
+            userDetailSize = "2xl";
+            break;
+        case "md":
+            userDetailSize = "xl";
+            break;
+        case "lg":
+            userDetailSize = "lg";
+            break;
+        case "xl":
+            userDetailSize = "2xl";
+            break;
+    }
+
+    return (
+        <div className="flex  justify-between border rounded-lg p-4 relative">
+            <div className="flex flex-col gap-1">
+                <p className="text-xl font-semibold">
+                    {leaderboardData.userPosition
+                        ? addOrdinalSuffix(leaderboardData.userPosition)
+                        : "??"}
+                </p>
+                <p className="text-sm text-muted-foreground">Leaderboard</p>
+            </div>
+            <div>
+                <LeaderboardList
+                    groupID={groupID}
+                    userID={userID}
+                    userDetailSize={userDetailSize}
+                />
+            </div>
+        </div>
+    );
+};
+
+const TodayProgress = ({ groupID }: { groupID: string }) => {
+    const { session } = useAuth();
+    const { data: groupUserTasks, isLoading } = useGetGroupUserTasks({
+        groupID,
+        userID: session?.user.id ?? "",
+        enabled: !!session,
+    });
+
+    const completed =
+        groupUserTasks?.filter((task) => task.task_completion.length > 0) || [];
+
+    if (isLoading) return <Skeleton className="w-full h-10" />;
+
+    const completedLength = completed?.length ?? 0;
+    const totalTasks = groupUserTasks?.length ?? 0;
+
+    return (
+        <div>
+            <div className="text-3xl font-bold text-purple-600 dark:text-purple-400">
+                {completedLength}/{totalTasks}
+            </div>
+            <div className="py-4">
+                <Progress value={(completedLength / totalTasks) * 100} />
+            </div>
+        </div>
+    );
+};
+
+const TomatoIcon = () => {
+    return (
+        <span className="w-10 h-10 flex justify-center items-center text-3xl">
+            <span>{TOMATO_EMOJI}</span>
+        </span>
+    );
+};
+
+const StatCard = ({
+    children,
+    className,
+    cols = 1,
+}: {
+    children: React.ReactNode;
+    className?: string;
+    cols?: number;
+}) => {
+    // TODO : Very strange ik, but I don't think tailwind will generate stuff for the util if not full string
+    // test it later
+    return (
+        <Card
+            className={cn(
+                "col-span-3",
+                cols == 1 && "md:col-span-1",
+                cols == 2 && "md:col-span-2",
+                cols == 3 && "md:col-span-3",
+                className
+            )}
+        >
+            <CardContent
+                className={cn(
+                    "p-6 flex  items-center",
+                    cols == 1 ? "justify-center" : "justify-between"
+                )}
+            >
+                {children}
+            </CardContent>
+        </Card>
+    );
+};
+
+const StatWithIcon = ({
+    children,
+    value,
+    label,
+}: {
+    children?: React.ReactNode;
+    value: number;
+    label: React.ReactNode;
+}) => {
+    return (
+        <div className="flex flex-col items-center">
+            <div className="mb-2">{children}</div>
+            <p className="text-xl font-semibold">{value}</p>
+            <p className="text-sm text-muted-foreground">{label}</p>
+        </div>
+    );
+};
+
+// const CenteredText = () => {
+//     return()
+// }

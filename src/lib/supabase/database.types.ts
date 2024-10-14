@@ -62,12 +62,14 @@ export type Database = {
           id: string
           tasks_completed: number
           tasks_not_completed: number
+          times_being_a_target: number
           times_tomatoed: number
           tomatoes: number
           tomatoes_received: number
           tomatoes_thrown: number
+          total_tomatos: number
           user_id: string
-          xp: number | null
+          xp: number
           get_group_user_profile: unknown | null
         }
         Insert: {
@@ -78,12 +80,14 @@ export type Database = {
           id?: string
           tasks_completed?: number
           tasks_not_completed?: number
+          times_being_a_target?: number
           times_tomatoed?: number
           tomatoes?: number
           tomatoes_received?: number
           tomatoes_thrown?: number
+          total_tomatos?: number
           user_id: string
-          xp?: number | null
+          xp?: number
         }
         Update: {
           created_at?: string
@@ -93,12 +97,14 @@ export type Database = {
           id?: string
           tasks_completed?: number
           tasks_not_completed?: number
+          times_being_a_target?: number
           times_tomatoed?: number
           tomatoes?: number
           tomatoes_received?: number
           tomatoes_thrown?: number
+          total_tomatos?: number
           user_id?: string
-          xp?: number | null
+          xp?: number
         }
         Relationships: [
           {
@@ -271,6 +277,24 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      test_realtime: {
+        Row: {
+          created_at: string
+          id: number
+          idk: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: number
+          idk?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: number
+          idk?: string | null
+        }
+        Relationships: []
       }
       tomato_target: {
         Row: {
