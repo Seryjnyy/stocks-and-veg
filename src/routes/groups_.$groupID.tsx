@@ -78,7 +78,9 @@ const GroupUsersList = ({ users }: { users: GroupUserWithProfile[] }) => {
             progressBar={true}
             usBadge
             creatorBadge
+            viewMore
             variant="dashed"
+            detailSize={"2xl"}
         />
     ));
 };

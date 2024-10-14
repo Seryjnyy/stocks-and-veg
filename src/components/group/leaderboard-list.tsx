@@ -2,13 +2,16 @@ import useLeaderboard from "@/hooks/use-leaderboard";
 import { addOrdinalSuffix, cn } from "@/lib/utils";
 import { Skeleton } from "../ui/skeleton";
 import GroupUserProfile from "./group-user-profile";
+import useScreenSize from "@/hooks/use-screen-size";
 
 export default function LeaderboardList({
     groupID,
     userID,
+    userDetailSize = "2xl",
 }: {
     groupID: string;
     userID: string;
+    userDetailSize?: "xs" | "sm" | "md" | "lg" | "xl" | "2xl";
 }) {
     const { leaderboardData, isLoading, isError } = useLeaderboard({
         groupID,
@@ -39,7 +42,7 @@ export default function LeaderboardList({
                         <GroupUserProfile
                             groupUser={user.user}
                             avatarSize={"md"}
-                            detailSize={"xl"}
+                            detailSize={userDetailSize}
                         />
                     </div>
                 ))}

@@ -150,7 +150,7 @@ export const GroupUserAvatar = ({
     );
 };
 
-const groupUserVariants = cva("", {
+const groupUserVariants = cva("h-fit", {
     variants: {
         variant: {
             default: "",
@@ -226,12 +226,14 @@ export default function GroupUserProfile({
     detailSize,
     avatarSize,
     variant,
+    viewMore = false,
 }: {
     groupUser: GroupUserWithProfile;
     className?: string;
     usBadge?: boolean;
     creatorBadge?: boolean;
     progressBar?: boolean;
+    viewMore?: boolean;
     detailSize?: VariantProps<typeof userDetailVariants>["size"];
     avatarSize?: VariantProps<typeof avatarVariants>["size"];
     variant?: VariantProps<typeof groupUserVariants>["variant"];
@@ -247,9 +249,11 @@ export default function GroupUserProfile({
             variant={variant}
             progressBar={progressBar}
         >
-            <div className="border-l pl-2">
-                <GroupUserDialog groupUser={groupUser} />
-            </div>
+            {viewMore ? (
+                <div className="border-l pl-2">
+                    <GroupUserDialog groupUser={groupUser} />
+                </div>
+            ) : null}
         </GroupUser>
     );
 }

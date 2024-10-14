@@ -109,7 +109,14 @@ const Grouped = ({
                 className="flex justify-between items-center"
                 id={`${userTasks.userID}-tasks`}
             >
-                <GroupUserProfile groupUser={user} className="border-none" />
+                <GroupUserProfile
+                    groupUser={user}
+                    className="border-none"
+                    viewMore
+                    usBadge
+                    creatorBadge
+                    detailSize={"2xl"}
+                />
                 <span className="text-xs text-muted-foreground">
                     {completedTasks.length}/{userTasks.tasks.length}
                 </span>
