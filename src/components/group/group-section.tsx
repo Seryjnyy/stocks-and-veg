@@ -26,8 +26,8 @@ export default function GroupSection({
             <InView
                 as="h3"
                 className={cn(
-                    "text-5xl font-semibold text-center ",
-                    currentSection == sectionData.value && "text-blue-300"
+                    "text-5xl font-semibold text-center text-foreground transition-all duration-500 delay-100",
+                    currentSection == sectionData.value && "text-blue-300 "
                 )}
                 onChange={(val) => val && setCurrentSection(sectionData.value)}
             >

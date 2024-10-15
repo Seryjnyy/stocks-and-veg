@@ -101,7 +101,7 @@ const Sidebar = ({
 
                                         <div
                                             className={cn(
-                                                "flex items-center w-full overflow-hidden transition-opacity duration-200 gap-2",
+                                                "flex items-center w-full overflow-hidden transition-opacity duration-200 gap-2 pr-1",
                                                 expanded
                                                     ? "w-full opacity-100"
                                                     : "w-0 absolute  opacity-0"

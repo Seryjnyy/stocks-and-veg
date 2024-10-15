@@ -55,6 +55,7 @@ import useLeaderboard from "@/hooks/use-leaderboard";
 import useLevel from "@/hooks/use-level";
 import { ScrollArea } from "../ui/scroll-area";
 import useScreenSize from "@/hooks/use-screen-size";
+import TomatoGroupUserButton from "../tomato-group-user-button";
 
 const LeaveGroupDialog = ({
     handleLeaveGroup,
@@ -155,10 +156,12 @@ export default function GroupUserDialog({
     };
 
     // TODO : Check if can be tomated, check if not us
-    const isAbleToBeTomatoed =
-        isUserUs &&
-        tomatoes &&
-        !tomatoes.find((t) => t.user_id == groupUser.user_id);
+    // const isAbleToBeTomatoed =
+    //     isUserUs &&
+    //     tomatoes &&
+    //     !tomatoes.find((t) => t.user_id == groupUser.user_id);
+
+    const target = tomatoes?.find((t) => t.user_id == groupUser.user_id);
 
     return (
         <Dialog>
@@ -209,22 +212,15 @@ export default function GroupUserDialog({
                                             handleLeaveGroup={handleLeaveGroup}
                                         />
                                     )}
-                                    {isAbleToBeTomatoed && (
-                                        <Button size={"sm"} variant={"default"}>
-                                            Chuck tomatoes
-                                            <span className="size-3 ml-2">
-                                                {TOMATO_EMOJI}
-                                            </span>
-                                        </Button>
-                                    )}
-                                    {!isAbleToBeTomatoed && isUserUs && (
-                                        <Button size={"sm"}>
-                                            <EyeOpenIcon className="size-3 mr-2" />{" "}
-                                            View yourself being tomatoed
-                                        </Button>
+                                    {target && (
+                                        <TomatoGroupUserButton
+                                            size={"sm"}
+                                            target={target}
+                                        />
                                     )}
                                 </div>
                             </div>
+
                             <UserStatsVariant2 groupUser={groupUser} />
                         </div>
                     </div>

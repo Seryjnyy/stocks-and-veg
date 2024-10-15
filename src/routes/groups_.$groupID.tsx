@@ -168,7 +168,7 @@ export default function InviteSection({ groupID }: { groupID: string }) {
                 </Badge>
             )}
             <Card className="w-full border-none">
-                <CardContent>
+                <CardContent className="px-0">
                     <div className="space-y-4">
                         {data ? (
                             <div className="flex items-center space-x-2">
@@ -402,7 +402,7 @@ function GroupTwo() {
                             <CrownIcon className="size-3" />
                         </Badge>
                     </h1>
-                    <div className="space-y-[30rem]">
+                    <div className="space-y-[30rem] xl:mx-48 lg:mx-32 md:mx-6 sm:mx-20 mx-2 pb-12">
                         {sections.map((section) => (
                             <GroupSection
                                 sectionData={{

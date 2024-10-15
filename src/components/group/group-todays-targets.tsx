@@ -27,7 +27,7 @@ const Target = ({ target }: { target: Tables<"tomato_target"> }) => {
                     variant={"dashed"}
                 />
             )}
-            {isError || (!data && <GroupUserNotFound />)}
+            {/* {isError || (!data && <GroupUserNotFound />)} */}
             {isLoading && <Skeleton className="w-[16rem] h-16" />}
             <div className="flex flex-row  items-center gap-2  p-2">
                 <span className="text-sm text-muted-foreground">
@@ -66,14 +66,17 @@ export default function GroupTodaysTargets({
     return (
         <>
             <div className="absolute -top-0 right-0 space-x-2">
-                <span className="text-muted-foreground text-xs">4</span>
+                <span className="text-muted-foreground text-xs">
+                    {data?.length ?? 0}
+                </span>
                 <CountdownTimer
                     className=" text-muted-foreground text-xs border-l pl-2"
                     expireDate={Date.parse(new Date().toISOString())}
                 />
             </div>
             <div>
-                {isError || (!data && <DataError message="" />)}
+                {isError ||
+                    (!data && <DataError message="Couldn't fetch targets." />)}
 
                 {data?.length == 0 && (
                     <div className="flex justify-center text-muted-foreground flex-col items-center gap-2 ">
