@@ -2,11 +2,12 @@ import { useAuth } from "@/hooks/use-auth";
 import { useCreateTaskCompletion } from "@/lib/hooks/mutations/use-create-task-completion";
 import { useDeleteTaskCompletion } from "@/lib/hooks/mutations/use-delete-task-completion";
 import { TaskWithCompletion } from "@/lib/types";
-import { timestampSplit } from "@/lib/utils";
+import { cn, timestampSplit } from "@/lib/utils";
 import SpinnerButton from "@/spinner-button";
 import { CheckIcon } from "@radix-ui/react-icons";
 import { useQueryClient } from "@tanstack/react-query";
 import { Undo2 } from "lucide-react";
+import { useState } from "react";
 
 const TaskCompletion = ({
     task,
@@ -22,6 +23,7 @@ const TaskCompletion = ({
     const { session } = useAuth();
     const queryClient = useQueryClient();
     const { mutateAsync, isPending } = useCreateTaskCompletion();
+    const [animKey, setAnimKey] = useState(0);
 
     const { mutateAsync: deleteTaskCompletion, isPending: isDeletePending } =
         useDeleteTaskCompletion();
@@ -30,6 +32,7 @@ const TaskCompletion = ({
     const onCompleteTask = async () => {
         if (!isOurTask) return;
 
+        setAnimKey((prev) => prev + 1);
         await mutateAsync(
             [
                 {
@@ -100,15 +103,25 @@ const TaskCompletion = ({
 
     if (complete) {
         return (
-            <SpinnerButton
-                disabled={isPending}
-                isPending={isPending}
-                variant={"outline"}
-                onClick={onCompleteTask}
-                size={"sm"}
-            >
-                Complete
-            </SpinnerButton>
+            <div className="relative">
+                <SpinnerButton
+                    disabled={isPending}
+                    isPending={isPending}
+                    variant={"outline"}
+                    onClick={onCompleteTask}
+                    size={"sm"}
+                >
+                    Complete
+                </SpinnerButton>
+                <div
+                    key={animKey}
+                    className={cn(
+                        "h-[10rem] w-[10rem]   rounded-full absolute -z-10 -bottom-[3rem] left-0 opacity-80",
+                        animKey > 0 &&
+                            "animate-explosion bg-gradient-to-r from-purple-500 to-indigo-600"
+                    )}
+                ></div>
+            </div>
         );
     }
     return null;
