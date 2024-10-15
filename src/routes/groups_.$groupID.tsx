@@ -388,10 +388,25 @@ function GroupTwo() {
         },
     ];
 
+    const isUserCreator =
+        (data && session && session?.user.id == data.creator_id) ?? false;
+
+    const filteredSection = isUserCreator
+        ? sections
+        : sections.filter((section) => {
+              if (
+                  section.value == "invite-section" ||
+                  section.value == "manage-group-section"
+              )
+                  return undefined;
+
+              return section;
+          });
+
     return (
         <div className="flex flex-col h-[calc(100vh-4.1rem)] overflow-hidden">
             <div className="flex flex-1 overflow-hidden relative">
-                <Sidebar groupID={groupID} sections={sections} />
+                <Sidebar groupID={groupID} sections={filteredSection} />
                 {/* Main Content */}
                 <main className="flex-1 overflow-y-auto relative">
                     {/* Shadow thingy so looks like components disappearing into void */}
@@ -402,8 +417,8 @@ function GroupTwo() {
                             <CrownIcon className="size-3" />
                         </Badge>
                     </h1>
-                    <div className="space-y-[30rem] xl:mx-48 lg:mx-32 md:mx-6 sm:mx-20 mx-2 pb-12">
-                        {sections.map((section) => (
+                    <div className="space-y-[30rem] xl:mx-48 lg:mx-32 md:mx-6 sm:mx-20 mx-2 pb-28">
+                        {filteredSection.map((section) => (
                             <GroupSection
                                 sectionData={{
                                     label: section.label,
