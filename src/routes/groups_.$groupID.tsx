@@ -133,6 +133,7 @@ export default function InviteSection({ groupID }: { groupID: string }) {
                     group_id: groupID,
                     token: "",
                     expires_at: new Date().toISOString(),
+                    used: false,
                 },
             ],
             {
@@ -157,14 +158,24 @@ export default function InviteSection({ groupID }: { groupID: string }) {
         ? new Date() > new Date(data.expires_at)
         : false;
 
+    const isInviteLinkUsed = data?.used ?? false;
+
     return (
         <>
             {data && (
                 <Badge
                     className="absolute -top-8 right-0"
-                    variant={isInviteLinkExpired ? "destructive" : "secondary"}
+                    variant={
+                        isInviteLinkExpired || isInviteLinkUsed
+                            ? "destructive"
+                            : "secondary"
+                    }
                 >
-                    {isInviteLinkExpired ? "Expired" : "Active"}
+                    {isInviteLinkExpired
+                        ? "Expired"
+                        : isInviteLinkUsed
+                          ? "Used"
+                          : "Active"}
                 </Badge>
             )}
             <Card className="w-full border-none">
@@ -177,7 +188,8 @@ export default function InviteSection({ groupID }: { groupID: string }) {
                                         "flex-1 p-2 bg-muted rounded text-sm break-all",
                                         {
                                             "select-none text-muted-foreground/50":
-                                                isInviteLinkExpired,
+                                                isInviteLinkExpired ||
+                                                isInviteLinkUsed,
                                         }
                                     )}
                                 >
@@ -195,6 +207,7 @@ export default function InviteSection({ groupID }: { groupID: string }) {
                                     disabled={
                                         data == null ||
                                         isInviteLinkExpired ||
+                                        isInviteLinkUsed ||
                                         isLoading ||
                                         isPending
                                     }
