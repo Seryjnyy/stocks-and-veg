@@ -1,10 +1,17 @@
+import {
+    Collapsible,
+    CollapsibleContent,
+    CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 import CountdownTimer from "@/components/countdown-timer";
 import {
+    avatarVariants,
     GroupUserAvatar,
     UserAvatar,
 } from "@/components/group/group-user-profile";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import useScreenSize from "@/hooks/use-screen-size";
 import { useToast } from "@/hooks/use-toast";
 import { useGetGroupUser } from "@/lib/hooks/queries/use-get-group-user";
@@ -12,8 +19,14 @@ import { GroupUserWithProfile } from "@/lib/hooks/queries/use-get-group-users";
 import { useGetUserProfile } from "@/lib/hooks/queries/use-get-profile";
 import supabase from "@/lib/supabase/supabaseClient";
 import { useGetGroupUserTomato } from "@/lib/tomatoService";
-import { getExpiryDateUnixFromDate, TOMATO_EMOJI } from "@/lib/utils";
-import { ArrowLeftIcon } from "@radix-ui/react-icons";
+import { cn, getExpiryDateUnixFromDate, TOMATO_EMOJI } from "@/lib/utils";
+import {
+    ArrowLeftIcon,
+    CaretDownIcon,
+    CaretUpIcon,
+    EnterIcon,
+    ExitIcon,
+} from "@radix-ui/react-icons";
 import { RealtimeChannel } from "@supabase/supabase-js";
 import { useQueryClient } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
@@ -341,6 +354,7 @@ export function TomatoLiveRoom({ targetUser, currentUser }: TestProps) {
                     </ul>
                 </div>
             </div>
+
             <Footer currentUser={currentUser} />
             <div className="w-full bg-secondary px-12 fixed top-0">
                 <div className="flex items-center gap-2">
@@ -352,6 +366,112 @@ export function TomatoLiveRoom({ targetUser, currentUser }: TestProps) {
     );
 }
 
+const ChatPresenceMsg = ({
+    groupUser,
+    event,
+}: {
+    groupUser: GroupUserWithProfile;
+    event: "joined" | "left";
+}) => {
+    if (!groupUser.profile) return null;
+
+    return (
+        <div className="w-full border p-2">
+            <div className="flex gap-2 text-sm">
+                <UserAvatar user={groupUser.profile} size={"xs"}>
+                    <div className="backdrop-brightness-50 w-full h-full flex justify-center items-center">
+                        {event == "joined" ? <EnterIcon /> : <ExitIcon />}
+                    </div>
+                </UserAvatar>
+
+                <span className="text-muted-foreground max-w-[15rem] md:max-w-[20rem] break-words">
+                    {groupUser.profile.username}
+                </span>
+                <span>{event}</span>
+            </div>
+        </div>
+    );
+};
+
+const ChatMsg = ({
+    testUser,
+    message,
+}: {
+    testUser: GroupUserWithProfile;
+    message: string;
+}) => {
+    return (
+        <div className="w-full p-2">
+            <div className="flex gap-2">
+                <div>
+                    {testUser.profile ? (
+                        <UserAvatar user={testUser.profile} size={"xs"} />
+                    ) : (
+                        <div
+                            className={cn(
+                                avatarVariants({ size: "xs" }),
+                                "bg-gray-700 rounded-lg"
+                            )}
+                        ></div>
+                    )}
+                </div>
+                <div className="flex flex-col leading-none">
+                    <span className="text-sm text-muted-foreground max-w-[10rem] truncate">
+                        {testUser.profile?.username}
+                    </span>
+                    <span className="max-w-[15rem] md:max-w-[20rem] break-words">
+                        {message}
+                    </span>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+const Chat = ({ testUser }: { testUser: GroupUserWithProfile }) => {
+    const [isOpen, setIsOpen] = useState(false);
+
+    return (
+        <Collapsible open={isOpen} onOpenChange={setIsOpen}>
+            <CollapsibleTrigger asChild className="mx-2 my-2">
+                <Button variant={"outline"} size={"sm"}>
+                    {isOpen ? <CaretDownIcon /> : <CaretUpIcon />}
+                </Button>
+            </CollapsibleTrigger>
+            <CollapsibleContent>
+                <section className="w-full   h-[16rem] flex flex-col relative">
+                    <div className="absolute top-0 left-0 right-0 h-16 bg-gradient-to-b from-background to-transparent pointer-events-none z-10"></div>
+                    <ScrollArea className="flex-1 max-h-full">
+                        <ChatMsg testUser={testUser} message={"fdsfsd"} />
+                        <ChatMsg testUser={testUser} message={"fdsfsd"} />
+                        <ChatMsg testUser={testUser} message={"fdsfsd"} />
+                        <ChatMsg testUser={testUser} message={"fdsfsd"} />
+                        <ChatMsg testUser={testUser} message={"fdsfsd"} />
+                        <ChatMsg testUser={testUser} message={"fdsfsd"} />
+                        <ChatMsg testUser={testUser} message={"fdsfsd"} />
+                        <ChatMsg testUser={testUser} message={"fdsfsd"} />
+                        <ChatMsg testUser={testUser} message={"fdsfsd"} />
+                        <ChatMsg testUser={testUser} message={"fdsfsd"} />
+                        <ChatMsg testUser={testUser} message={"fdsfsd"} />
+                        <ChatMsg testUser={testUser} message={"fdsfsd"} />
+                    </ScrollArea>
+                    <footer className="">
+                        <ChatPresenceMsg groupUser={testUser} event="joined" />
+                    </footer>
+                </section>
+            </CollapsibleContent>
+        </Collapsible>
+    );
+};
+
+const Reactions = () => {
+    return (
+        <div className="absolute bottom-0 right-12  h-[15rem] text-xl">
+            <div>🤣</div>
+        </div>
+    );
+};
+
 const Footer = ({ currentUser }: { currentUser: GroupUserWithProfile }) => {
     const screenSize = useScreenSize();
     let emojis = ["🤣", "😂", "🙂", "😊", "😇", "🥰", "😍", "🤩", "😘", "😗"];
@@ -359,6 +479,10 @@ const Footer = ({ currentUser }: { currentUser: GroupUserWithProfile }) => {
 
     return (
         <footer className="fixed bottom-0 w-full ">
+            <div className="relative">
+                <Chat testUser={currentUser} />
+                <Reactions />
+            </div>
             <div className="w-full bg-secondary/30 p-4">
                 <div className="flex justify-center gap-3">
                     {emojis.map((emoji, index) => (
