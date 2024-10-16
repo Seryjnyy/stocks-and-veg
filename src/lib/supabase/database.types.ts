@@ -9,21 +9,6 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      countries: {
-        Row: {
-          id: number
-          name: string
-        }
-        Insert: {
-          id?: never
-          name: string
-        }
-        Update: {
-          id?: never
-          name?: string
-        }
-        Relationships: []
-      }
       group: {
         Row: {
           created_at: string
@@ -43,15 +28,7 @@ export type Database = {
           id?: string
           name?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "group_creator_id_fkey"
-            columns: ["creator_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       group_user: {
         Row: {
@@ -114,13 +91,6 @@ export type Database = {
             referencedRelation: "group"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "group_user_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
         ]
       }
       invite_link: {
@@ -177,15 +147,7 @@ export type Database = {
           user_id?: string
           username?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "profile_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: true
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       task: {
         Row: {
@@ -218,13 +180,6 @@ export type Database = {
             columns: ["group_id"]
             isOneToOne: false
             referencedRelation: "group"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "task_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "users"
             referencedColumns: ["id"]
           },
         ]
@@ -269,13 +224,6 @@ export type Database = {
             referencedRelation: "task"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "task_completion_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
         ]
       }
       test_realtime: {
@@ -300,6 +248,7 @@ export type Database = {
         Row: {
           created_at: string
           group_id: string
+          group_user_id: string | null
           id: string
           tomatoes_received: number
           user_id: string
@@ -307,6 +256,7 @@ export type Database = {
         Insert: {
           created_at?: string
           group_id: string
+          group_user_id?: string | null
           id?: string
           tomatoes_received?: number
           user_id: string
@@ -314,23 +264,24 @@ export type Database = {
         Update: {
           created_at?: string
           group_id?: string
+          group_user_id?: string | null
           id?: string
           tomatoes_received?: number
           user_id?: string
         }
         Relationships: [
           {
+            foreignKeyName: "tomato_target_group_user_id_fkey"
+            columns: ["group_user_id"]
+            isOneToOne: false
+            referencedRelation: "group_user"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "tomatoe_target_group_id_fkey"
             columns: ["group_id"]
             isOneToOne: false
             referencedRelation: "group"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "tomatoe_target_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "users"
             referencedColumns: ["id"]
           },
         ]
@@ -340,6 +291,20 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      check_user_group_creator: {
+        Args: {
+          p_user_id: string
+          p_group_id: string
+        }
+        Returns: boolean
+      }
+      check_user_group_membership: {
+        Args: {
+          p_user_id: string
+          p_group_id: string
+        }
+        Returns: boolean
+      }
       get_group_user_profile: {
         Args: {
           "": unknown
@@ -351,10 +316,31 @@ export type Database = {
           username: string
         }[]
       }
+      get_invite: {
+        Args: {
+          p_token: string
+        }
+        Returns: {
+          created_at: string
+          expires_at: string
+          group_id: string
+          id: string
+          token: string
+          used: boolean
+        }[]
+      }
       increment_tomatoes_received: {
         Args: {
           tomatoe_target_id: string
           amount: number
+        }
+        Returns: undefined
+      }
+      join_group: {
+        Args: {
+          p_user_id: string
+          p_group_id: string
+          p_token: string
         }
         Returns: undefined
       }
@@ -456,4 +442,19 @@ export type Enums<
   ? Database[PublicEnumNameOrOptions["schema"]]["Enums"][EnumName]
   : PublicEnumNameOrOptions extends keyof PublicSchema["Enums"]
     ? PublicSchema["Enums"][PublicEnumNameOrOptions]
+    : never
+
+export type CompositeTypes<
+  PublicCompositeTypeNameOrOptions extends
+    | keyof PublicSchema["CompositeTypes"]
+    | { schema: keyof Database },
+  CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
+    schema: keyof Database
+  }
+    ? keyof Database[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
+    : never = never,
+> = PublicCompositeTypeNameOrOptions extends { schema: keyof Database }
+  ? Database[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
+  : PublicCompositeTypeNameOrOptions extends keyof PublicSchema["CompositeTypes"]
+    ? PublicSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
     : never
