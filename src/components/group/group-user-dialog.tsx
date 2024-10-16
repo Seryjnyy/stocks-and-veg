@@ -305,7 +305,10 @@ function UserStatsVariant2({ groupUser }: { groupUser: GroupUserWithProfile }) {
                         <h3 className="text-lg font-semibold mb-2">
                             Today's Progress
                         </h3>
-                        <TodayProgress groupID={groupUser.group_id} />
+                        <TodayProgress
+                            groupID={groupUser.group_id}
+                            userID={groupUser.user_id}
+                        />
                     </div>
                 </StatCard>
 
@@ -535,11 +538,17 @@ const Leaderboard = ({
     );
 };
 
-const TodayProgress = ({ groupID }: { groupID: string }) => {
+const TodayProgress = ({
+    groupID,
+    userID,
+}: {
+    groupID: string;
+    userID: string;
+}) => {
     const { session } = useAuth();
     const { data: groupUserTasks, isLoading } = useGetGroupUserTasks({
         groupID,
-        userID: session?.user.id ?? "",
+        userID: userID,
         enabled: !!session,
     });
 
