@@ -36,6 +36,7 @@ import debounce from "lodash/debounce";
 import { ArrowUp, Loader2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/use-auth";
+import { Timeout } from "node_modules/@tanstack/react-router/dist/esm/utils";
 
 const OnlineMark = () => {
     return <div className="size-2 rounded-full bg-green-500 "></div>;
@@ -51,6 +52,8 @@ const User = ({ userID, groupID }: { userID: string; groupID: string }) => {
 
     // TODO : handel
     if (isError || isGroupUserError) return null;
+
+    // TODO : Loading
 
     return (
         <div className="flex-col items-center justify-center flex w-full sm:w-[10rem] md:w-[16rem] border p-2 relative rounded-md">
@@ -134,6 +137,12 @@ export function TomatoLiveRoom({ targetUser, currentUser }: TestProps) {
                     return;
                 }
 
+                channel?.send({
+                    type: "broadcast",
+                    event: "tomato_thrown",
+                    payload: { userID: currentUser.user_id },
+                });
+
                 // refetch target data
 
                 refetch();
@@ -154,12 +163,6 @@ export function TomatoLiveRoom({ targetUser, currentUser }: TestProps) {
                     },
                 });
             });
-
-        channel?.send({
-            type: "broadcast",
-            event: "tomato_thrown",
-            payload: { userID: currentUser.user_id },
-        });
     };
 
     useEffect(() => {
@@ -212,7 +215,6 @@ export function TomatoLiveRoom({ targetUser, currentUser }: TestProps) {
             .on("broadcast", { event: "tomato_thrown" }, () => {
                 setOtherAnimKey((prev) => prev + 1);
             })
-
             .subscribe(async (status) => {
                 if (status === "SUBSCRIBED") {
                     await tempChannel.track({
@@ -259,7 +261,7 @@ export function TomatoLiveRoom({ targetUser, currentUser }: TestProps) {
 
     return (
         <div className="flex flex-col min-h-[calc(100vh-4rem)] ">
-            {/* <div className="fixed bottom-16 right-6 flex flex-col z-50">
+            <div className="fixed bottom-48  right-6 flex flex-col z-50">
                 <span className="text-xs text-center select-none flex pl-3 items-center pb-1">
                     {currentUser.tomatoes} {TOMATO_EMOJI}
                     {threwTomato && <Loader2 className="animate-spin size-3" />}
@@ -268,15 +270,14 @@ export function TomatoLiveRoom({ targetUser, currentUser }: TestProps) {
                     className="size-16 text-3xl bg-red-950 select-none "
                     onClick={handleClick}
                     disabled={
-                        !channel ||
-                        currentUser.tomatoes <= 0 ||
-                        targetUser.user_id == currentUser.user_id ||
-                        isOutOfTime
+                        !channel || currentUser.tomatoes <= 0
+                        // || targetUser.user_id == currentUser.user_id
+                        // || isOutOfTime
                     }
                 >
                     {TOMATO_EMOJI}
                 </Button>
-            </div> */}
+            </div>
             <div className=" h-full flex flex-col justify-between   grid-cols-1 ">
                 <div className="flex justify-between items-center px-2">
                     <Link
@@ -372,29 +373,57 @@ export function TomatoLiveRoom({ targetUser, currentUser }: TestProps) {
     );
 }
 
-const ChatPresenceMsg = ({
-    groupUser,
+const ChatUserPresenceMsg = ({
+    userID,
     event,
 }: {
-    groupUser: GroupUserWithProfile;
+    userID: string;
     event: "joined" | "left";
 }) => {
-    if (!groupUser.profile) return null;
+    const {
+        data: user,
+        isLoading,
+        isError,
+    } = useGetUserProfile({ user_id: userID });
+
+    if (!user || isLoading || isError) return null;
 
     return (
-        <div className="w-full border p-2">
-            <div className="flex gap-2 text-sm">
-                <UserAvatar user={groupUser.profile} size={"xs"}>
-                    <div className="backdrop-brightness-50 w-full h-full flex justify-center items-center">
-                        {event == "joined" ? <EnterIcon /> : <ExitIcon />}
-                    </div>
-                </UserAvatar>
+        <div className="flex gap-2 text-sm">
+            <UserAvatar user={user} size={"xs"}>
+                <div className="backdrop-brightness-50 w-full h-full flex justify-center items-center">
+                    {event == "joined" ? <EnterIcon /> : <ExitIcon />}
+                </div>
+            </UserAvatar>
 
-                <span className="text-muted-foreground max-w-[15rem] md:max-w-[20rem] break-words">
-                    {groupUser.profile.username}
-                </span>
-                <span>{event}</span>
-            </div>
+            <span className="text-muted-foreground max-w-[15rem] md:max-w-[20rem] break-words">
+                {user.username}
+            </span>
+            <span>{event}</span>
+        </div>
+    );
+};
+
+const ChatTomatoMsg = ({ userID }: { userID: string }) => {
+    const {
+        data: user,
+        isLoading,
+        isError,
+    } = useGetUserProfile({ user_id: userID });
+
+    if (!user || isLoading || isError) return null;
+
+    return (
+        <div className="flex gap-2 text-sm">
+            <UserAvatar user={user} size={"xs"}>
+                <div className="backdrop-brightness-60 w-full h-full flex justify-center items-center">
+                    {TOMATO_EMOJI}
+                </div>
+            </UserAvatar>
+            <span className="text-muted-foreground max-w-[8rem] md:max-w-[15rem] truncate">
+                {user.username}{" "}
+            </span>
+            <span>threw a tomato</span>
         </div>
     );
 };
@@ -407,7 +436,7 @@ const ChatMsg = ({
     message: string;
 }) => {
     return (
-        <div className="w-full p-2">
+        <div className="w-full p-2 select-none">
             <div className="flex gap-2">
                 <div>
                     {testUser.profile ? (
@@ -434,7 +463,79 @@ const ChatMsg = ({
     );
 };
 
-const Chat = ({ testUser }: { testUser: GroupUserWithProfile }) => {
+// TODO : If I want to have indicators for presence updates when chat is closed, I will have to lift the state up cause this doesn't run if collapsed
+// TODO : this is really strange, it doesn't show up sometimes initially, like at all, not even rendered
+const ChatPresence = ({ channel }: { channel?: RealtimeChannel }) => {
+    const [event, setEvent] = useState<{
+        id: number;
+        event: string;
+        userID: string;
+    } | null>(null);
+
+    useEffect(() => {
+        let timeoutID: Timeout | null = null;
+
+        const handlePresenceEvent = (eventType: string, presences: any[]) => {
+            if (presences && presences.length > 0) {
+                if (timeoutID != null) {
+                    clearTimeout(timeoutID);
+                }
+
+                setEvent({
+                    id: Date.now(),
+                    event: eventType,
+                    userID: presences[0].user_id,
+                });
+
+                timeoutID = setTimeout(() => {
+                    setEvent(null);
+                }, 3000);
+            }
+        };
+
+        channel
+            ?.on("broadcast", { event: "tomato_thrown" }, (payload) => {
+                console.log("TOMATO THROWN EVENT");
+                const res = payload.payload;
+
+                if (!res || !res.userID) {
+                    return;
+                }
+
+                handlePresenceEvent("tomato", [
+                    { user_id: payload.payload.userID },
+                ]);
+            })
+            .on("presence", { event: "join" }, ({ key, newPresences }) => {
+                handlePresenceEvent("joined", newPresences);
+            })
+            .on("presence", { event: "leave" }, ({ key, leftPresences }) => {
+                handlePresenceEvent("left", leftPresences);
+            });
+    }, [channel]);
+
+    return (
+        <div className="w-full border p-2 select-none pointer-events-none  min-h-11 ">
+            {event && (event.event == "joined" || event.event == "left") && (
+                <ChatUserPresenceMsg
+                    userID={event.userID}
+                    event={event.event as "joined" | "left"}
+                />
+            )}
+            {event && event.event == "tomato" && (
+                <ChatTomatoMsg userID={event.userID} />
+            )}
+        </div>
+    );
+};
+
+const Chat = ({
+    testUser,
+    channel,
+}: {
+    testUser: GroupUserWithProfile;
+    channel?: RealtimeChannel;
+}) => {
     const [isOpen, setIsOpen] = useState(false);
 
     return (
@@ -450,8 +551,8 @@ const Chat = ({ testUser }: { testUser: GroupUserWithProfile }) => {
                 </Button>
             </CollapsibleTrigger>
             <CollapsibleContent>
-                <section className="w-full   h-[16rem] flex flex-col relative">
-                    <div className="absolute -top-1 left-0 right-0 h-[50%] bg-gradient-to-b from-background to-transparent pointer-events-none z-10 "></div>
+                <section className="w-full   h-[16rem] flex flex-col relative backdrop-blur-sm ">
+                    <div className="absolute -top-1 left-0 right-0 h-[70%] bg-gradient-to-b from-background to-transparent pointer-events-none z-10 "></div>
                     <ScrollArea className="flex-1 max-h-full">
                         <ChatMsg testUser={testUser} message={"fdsfsd"} />
                         <ChatMsg testUser={testUser} message={"fdsfsd"} />
@@ -467,7 +568,7 @@ const Chat = ({ testUser }: { testUser: GroupUserWithProfile }) => {
                         <ChatMsg testUser={testUser} message={"fdsfsd"} />
                     </ScrollArea>
                     <footer className="">
-                        <ChatPresenceMsg groupUser={testUser} event="joined" />
+                        <ChatPresence channel={channel} />
                     </footer>
                 </section>
             </CollapsibleContent>
@@ -573,7 +674,7 @@ const Footer = ({
     return (
         <footer className="fixed bottom-0 w-full ">
             <div className="relative">
-                <Chat testUser={currentUser} />
+                <Chat testUser={currentUser} channel={channel} />
             </div>
             <div className="w-full bg-secondary/30 p-4">
                 <Reactions channel={channel} />
