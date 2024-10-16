@@ -222,7 +222,7 @@ export default function InviteSection({ groupID }: { groupID: string }) {
                         )}
                         <SpinnerButton
                             isPending={isPending}
-                            disabled={isPending || isLoading || !data}
+                            disabled={isPending || isLoading}
                             onClick={handleGenerateLink}
                             className="w-full"
                             variant={"outline"}

@@ -15,7 +15,7 @@ const Task = ({
                 {task.name}
             </h3>
 
-            <div className="flex items-center justify-end ">
+            <div className="flex items-center justify-end gap-1">
                 <TaskCompletion task={task} complete={complete} />
                 <TaskDetailDialog task={task} />
             </div>

@@ -245,17 +245,19 @@ export default function GroupUserDialog({
                                             isPending={isDeleteGroupUserPending}
                                         />
                                     )}
-                                    {isUserUs && (
+                                    {isUserUs && !isUserCreator && (
                                         <LeaveGroupDialog
                                             handleLeaveGroup={handleLeaveGroup}
                                             isPending={isDeleteGroupUserPending}
                                         />
                                     )}
                                     {target && (
-                                        <TomatoGroupUserButton
-                                            size={"sm"}
-                                            target={target}
-                                        />
+                                        <div className="ml-auto">
+                                            <TomatoGroupUserButton
+                                                size={"sm"}
+                                                target={target}
+                                            />
+                                        </div>
                                     )}
                                 </div>
                             </div>

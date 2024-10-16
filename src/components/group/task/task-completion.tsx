@@ -92,7 +92,8 @@ const TaskCompletion = ({
                         {
                             timestampSplit(task.task_completion[0].completed_at)
                                 .time
-                        }
+                        }{" "}
+                        (UTC)
                     </span>
                 )}
             </div>
