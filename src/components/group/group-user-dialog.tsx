@@ -56,18 +56,28 @@ import useLevel from "@/hooks/use-level";
 import { ScrollArea } from "../ui/scroll-area";
 import useScreenSize from "@/hooks/use-screen-size";
 import TomatoGroupUserButton from "../tomato-group-user-button";
+import { useDeleteGroupUser } from "@/lib/hooks/mutations/use-delete-group-user";
+import SpinnerButton from "@/spinner-button";
+import { useGetGroupUser } from "@/lib/hooks/queries/use-get-group-user";
 
 const LeaveGroupDialog = ({
     handleLeaveGroup,
+    isPending,
 }: {
     handleLeaveGroup: () => void;
+    isPending: boolean;
 }) => {
     return (
         <AlertDialog>
             <AlertDialogTrigger asChild>
-                <Button variant={"destructive"} size={"sm"}>
+                <SpinnerButton
+                    variant={"destructive"}
+                    size={"sm"}
+                    disabled={isPending}
+                    isPending={isPending}
+                >
                     <ExitIcon className="size-3 mr-2" /> Leave group
-                </Button>
+                </SpinnerButton>
             </AlertDialogTrigger>
             <AlertDialogContent>
                 <AlertDialogHeader>
@@ -81,8 +91,13 @@ const LeaveGroupDialog = ({
                 </AlertDialogHeader>
                 <AlertDialogFooter>
                     <AlertDialogCancel>Cancel</AlertDialogCancel>
-                    <AlertDialogAction onClick={handleLeaveGroup}>
-                        Continue
+                    <AlertDialogAction>
+                        <SpinnerButton
+                            isPending={isPending}
+                            onClick={handleLeaveGroup}
+                        >
+                            Leave
+                        </SpinnerButton>
                     </AlertDialogAction>
                 </AlertDialogFooter>
             </AlertDialogContent>
@@ -92,15 +107,22 @@ const LeaveGroupDialog = ({
 
 const RemoveUserDialog = ({
     handleRemoveUser,
+    isPending,
 }: {
     handleRemoveUser: () => void;
+    isPending: boolean;
 }) => {
     return (
         <AlertDialog>
             <AlertDialogTrigger asChild>
-                <Button variant={"destructive"} size={"sm"}>
+                <SpinnerButton
+                    variant={"destructive"}
+                    size={"sm"}
+                    disabled={isPending}
+                    isPending={isPending}
+                >
                     <Trash2 className="size-3 mr-2" /> Remove user
-                </Button>
+                </SpinnerButton>
             </AlertDialogTrigger>
             <AlertDialogContent>
                 <AlertDialogHeader>
@@ -114,8 +136,13 @@ const RemoveUserDialog = ({
                 </AlertDialogHeader>
                 <AlertDialogFooter>
                     <AlertDialogCancel>Cancel</AlertDialogCancel>
-                    <AlertDialogAction onClick={handleRemoveUser}>
-                        Remove
+                    <AlertDialogAction asChild>
+                        <SpinnerButton
+                            isPending={isPending}
+                            onClick={handleRemoveUser}
+                        >
+                            Remove
+                        </SpinnerButton>
                     </AlertDialogAction>
                 </AlertDialogFooter>
             </AlertDialogContent>
@@ -138,6 +165,17 @@ export default function GroupUserDialog({
         enabled: !!session,
     });
 
+    const {
+        mutateAsync: deleteGroupUser,
+        isPending: isDeleteGroupUserPending,
+    } = useDeleteGroupUser();
+
+    const { refetch } = useGetGroupUser({
+        groupID: groupUser.group_id,
+        userID: groupUser.user_id,
+        enabled: !!session,
+    });
+
     const navigate = useNavigate();
 
     const isUserCreator = session
@@ -146,20 +184,19 @@ export default function GroupUserDialog({
 
     const isUserUs = session ? session?.user.id == groupUser.user_id : false;
 
-    const handleRemoveUser = () => {
-        // might have to have set dialog state here
-        console.error("Not implemented");
+    const handleRemoveUser = async () => {
+        if (!isUserCreator) return;
+
+        await deleteGroupUser({ id: groupUser.id });
+        // TODO : bit hacky but works
+        refetch();
     };
 
-    const handleLeaveGroup = () => {
-        console.error("Not implemented");
+    const handleLeaveGroup = async () => {
+        if (!isUserUs) return;
+        await deleteGroupUser({ id: groupUser.id });
+        navigate({ to: "/groups", replace: true });
     };
-
-    // TODO : Check if can be tomated, check if not us
-    // const isAbleToBeTomatoed =
-    //     isUserUs &&
-    //     tomatoes &&
-    //     !tomatoes.find((t) => t.user_id == groupUser.user_id);
 
     const target = tomatoes?.find((t) => t.user_id == groupUser.user_id);
 
@@ -205,11 +242,13 @@ export default function GroupUserDialog({
                                     {isUserCreator && !isUserUs && (
                                         <RemoveUserDialog
                                             handleRemoveUser={handleRemoveUser}
+                                            isPending={isDeleteGroupUserPending}
                                         />
                                     )}
                                     {isUserUs && (
                                         <LeaveGroupDialog
                                             handleLeaveGroup={handleLeaveGroup}
+                                            isPending={isDeleteGroupUserPending}
                                         />
                                     )}
                                     {target && (
