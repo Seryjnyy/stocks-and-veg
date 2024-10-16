@@ -1,26 +1,26 @@
+import CountdownTimer from "@/components/countdown-timer";
 import {
     GroupUserAvatar,
     UserAvatar,
 } from "@/components/group/group-user-profile";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import useScreenSize from "@/hooks/use-screen-size";
+import { useToast } from "@/hooks/use-toast";
 import { useGetGroupUser } from "@/lib/hooks/queries/use-get-group-user";
 import { GroupUserWithProfile } from "@/lib/hooks/queries/use-get-group-users";
 import { useGetUserProfile } from "@/lib/hooks/queries/use-get-profile";
 import supabase from "@/lib/supabase/supabaseClient";
 import { useGetGroupUserTomato } from "@/lib/tomatoService";
 import { getExpiryDateUnixFromDate, TOMATO_EMOJI } from "@/lib/utils";
+import { ArrowLeftIcon } from "@radix-ui/react-icons";
+import { RealtimeChannel } from "@supabase/supabase-js";
 import { useQueryClient } from "@tanstack/react-query";
-import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { Link } from "@tanstack/react-router";
+import { differenceInMilliseconds } from "date-fns";
 import debounce from "lodash/debounce";
 import { ArrowUp, Loader2 } from "lucide-react";
-import { RealtimeChannel } from "@supabase/supabase-js";
-import { useToast } from "@/hooks/use-toast";
-import { title } from "process";
-import { ArrowLeftIcon } from "@radix-ui/react-icons";
-import CountdownTimer from "@/components/countdown-timer";
-import { differenceInMilliseconds } from "date-fns";
-import { Input } from "@/components/ui/input";
+import { useEffect, useState } from "react";
 
 const OnlineMark = () => {
     return <div className="size-2 rounded-full bg-green-500 "></div>;
@@ -353,19 +353,38 @@ export function TomatoLiveRoom({ targetUser, currentUser }: TestProps) {
 }
 
 const Footer = ({ currentUser }: { currentUser: GroupUserWithProfile }) => {
+    const screenSize = useScreenSize();
+    let emojis = ["🤣", "😂", "🙂", "😊", "😇", "🥰", "😍", "🤩", "😘", "😗"];
+    emojis = screenSize == "xs" ? emojis.slice(0, 7) : emojis;
+
     return (
-        <footer className="fixed bottom-0 bg-secondary/50 w-full p-4 ">
-            <div className="flex gap-3 items-center mx-auto w-fit">
-                {currentUser.profile && (
-                    <UserAvatar user={currentUser.profile} size={"sm"} />
-                )}
-                <Input
-                    className="max-w-[15rem] md:max-w-[28rem] min-w-[15rem] md:min-w-[28rem] border"
-                    placeholder="Add comment..."
-                />
-                <Button className="px-3">
-                    <ArrowUp className="size-4 " />
-                </Button>
+        <footer className="fixed bottom-0 w-full ">
+            <div className="w-full bg-secondary/30 p-4">
+                <div className="flex justify-center gap-3">
+                    {emojis.map((emoji, index) => (
+                        <Button
+                            key={index}
+                            variant={"ghost"}
+                            className="text-xl px-2 "
+                        >
+                            {emoji}
+                        </Button>
+                    ))}
+                </div>
+            </div>
+            <div className=" bg-secondary/50 w-full p-4">
+                <div className="flex gap-3 items-center mx-auto w-fit">
+                    {currentUser.profile && (
+                        <UserAvatar user={currentUser.profile} size={"sm"} />
+                    )}
+                    <Input
+                        className="max-w-[15rem] md:max-w-[28rem] min-w-[15rem] md:min-w-[28rem] border"
+                        placeholder="Add comment..."
+                    />
+                    <Button className="px-3">
+                        <ArrowUp className="size-4 " />
+                    </Button>
+                </div>
             </div>
         </footer>
     );
