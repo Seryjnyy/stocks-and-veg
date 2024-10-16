@@ -30,7 +30,7 @@ export default function GroupYourTasksToday({ groupID }: { groupID: string }) {
 
     return (
         <>
-            <span className="absolute top-9 right-1 text-xs text-muted-foreground">
+            <span className="absolute top-8 right-1 text-xs text-muted-foreground">
                 {completedTasks.length}/{userTasks.length}
             </span>
             <div>

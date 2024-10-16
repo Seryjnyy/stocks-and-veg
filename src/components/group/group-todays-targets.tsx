@@ -19,12 +19,14 @@ const Target = ({ target }: { target: Tables<"tomato_target"> }) => {
     });
 
     return (
-        <div className="flex justify-between items-center border rounded-lg p-4 flex-wrap gap-2">
+        <div className="flex justify-between items-center border rounded-lg  px-4 py-1 flex-wrap gap-2">
             {data && (
                 <GroupUserProfile
                     groupUser={data}
                     viewMore
-                    variant={"dashed"}
+                    // variant={"dashed"}
+                    usBadge
+                    creatorBadge
                 />
             )}
             {/* {isError || (!data && <GroupUserNotFound />)} */}

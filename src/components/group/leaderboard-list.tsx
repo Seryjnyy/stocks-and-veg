@@ -42,6 +42,8 @@ export default function LeaderboardList({
                         groupUser={user.user}
                         avatarSize={"md"}
                         detailSize={userDetailSize}
+                        creatorBadge
+                        usBadge
                     />
                 </div>
             ))}
