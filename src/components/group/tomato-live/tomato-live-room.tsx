@@ -24,6 +24,7 @@ import {
     ArrowLeftIcon,
     CaretDownIcon,
     CaretUpIcon,
+    ChatBubbleIcon,
     EnterIcon,
     ExitIcon,
 } from "@radix-ui/react-icons";
@@ -34,6 +35,7 @@ import { differenceInMilliseconds } from "date-fns";
 import debounce from "lodash/debounce";
 import { ArrowUp, Loader2 } from "lucide-react";
 import { useEffect, useState } from "react";
+import { useAuth } from "@/hooks/use-auth";
 
 const OnlineMark = () => {
     return <div className="size-2 rounded-full bg-green-500 "></div>;
@@ -139,6 +141,7 @@ export function TomatoLiveRoom({ targetUser, currentUser }: TestProps) {
                 // TODO : Idk how to invalidate supabase cache helper
                 // This works for now but its invalidating all group_user queries
                 // TODO : Added the extra settings and filter key, fixes above, but will break if query is changed
+                // TODO : I think I can wrap rpc in a query, and then revalidate tables, relations there
                 queryClient.refetchQueries({
                     predicate: (query) => {
                         const queryKey = query.queryKey as string[];
@@ -189,7 +192,9 @@ export function TomatoLiveRoom({ targetUser, currentUser }: TestProps) {
             console.log(dateNow > dateCreated ? "true" : "false");
         }
 
-        const tempChannel = supabase.channel("room1");
+        const tempChannel = supabase.channel("room1", {
+            config: { broadcast: { self: true } },
+        });
         tempChannel
             .on("presence", { event: "sync" }, () => {
                 console.log(
@@ -207,6 +212,7 @@ export function TomatoLiveRoom({ targetUser, currentUser }: TestProps) {
             .on("broadcast", { event: "tomato_thrown" }, () => {
                 setOtherAnimKey((prev) => prev + 1);
             })
+
             .subscribe(async (status) => {
                 if (status === "SUBSCRIBED") {
                     await tempChannel.track({
@@ -253,7 +259,7 @@ export function TomatoLiveRoom({ targetUser, currentUser }: TestProps) {
 
     return (
         <div className="flex flex-col min-h-[calc(100vh-4rem)] ">
-            <div className="fixed bottom-16 right-6 flex flex-col z-50">
+            {/* <div className="fixed bottom-16 right-6 flex flex-col z-50">
                 <span className="text-xs text-center select-none flex pl-3 items-center pb-1">
                     {currentUser.tomatoes} {TOMATO_EMOJI}
                     {threwTomato && <Loader2 className="animate-spin size-3" />}
@@ -270,7 +276,7 @@ export function TomatoLiveRoom({ targetUser, currentUser }: TestProps) {
                 >
                     {TOMATO_EMOJI}
                 </Button>
-            </div>
+            </div> */}
             <div className=" h-full flex flex-col justify-between   grid-cols-1 ">
                 <div className="flex justify-between items-center px-2">
                     <Link
@@ -355,7 +361,7 @@ export function TomatoLiveRoom({ targetUser, currentUser }: TestProps) {
                 </div>
             </div>
 
-            <Footer currentUser={currentUser} />
+            <Footer currentUser={currentUser} channel={channel ?? undefined} />
             <div className="w-full bg-secondary px-12 fixed top-0">
                 <div className="flex items-center gap-2">
                     <OnlineMark />
@@ -434,13 +440,18 @@ const Chat = ({ testUser }: { testUser: GroupUserWithProfile }) => {
     return (
         <Collapsible open={isOpen} onOpenChange={setIsOpen}>
             <CollapsibleTrigger asChild className="mx-2 my-2">
-                <Button variant={"outline"} size={"sm"}>
+                <Button
+                    variant={"outline"}
+                    size={"sm"}
+                    className="flex gap-1 z-50"
+                >
+                    <ChatBubbleIcon />
                     {isOpen ? <CaretDownIcon /> : <CaretUpIcon />}
                 </Button>
             </CollapsibleTrigger>
             <CollapsibleContent>
                 <section className="w-full   h-[16rem] flex flex-col relative">
-                    <div className="absolute top-0 left-0 right-0 h-16 bg-gradient-to-b from-background to-transparent pointer-events-none z-10"></div>
+                    <div className="absolute -top-1 left-0 right-0 h-[50%] bg-gradient-to-b from-background to-transparent pointer-events-none z-10 "></div>
                     <ScrollArea className="flex-1 max-h-full">
                         <ChatMsg testUser={testUser} message={"fdsfsd"} />
                         <ChatMsg testUser={testUser} message={"fdsfsd"} />
@@ -464,37 +475,108 @@ const Chat = ({ testUser }: { testUser: GroupUserWithProfile }) => {
     );
 };
 
-const Reactions = () => {
-    return (
-        <div className="absolute bottom-0 right-12  h-[15rem] text-xl">
-            <div>🤣</div>
-        </div>
-    );
-};
+const Reactions = ({ channel }: { channel?: RealtimeChannel }) => {
+    const { session } = useAuth();
+    const [reactions, setReactions] = useState<
+        { id: number; reaction: string; timestamp: number }[]
+    >([]);
 
-const Footer = ({ currentUser }: { currentUser: GroupUserWithProfile }) => {
     const screenSize = useScreenSize();
     let emojis = ["🤣", "😂", "🙂", "😊", "😇", "🥰", "😍", "🤩", "😘", "😗"];
     emojis = screenSize == "xs" ? emojis.slice(0, 7) : emojis;
 
+    // TODO : maybe have some delay between each press
+    const handleReaction = (emoji: string) => {
+        if (!session || !channel) return;
+
+        channel.send({
+            type: "broadcast",
+            event: "reaction",
+            payload: { emoji: emoji, userID: session.user.id },
+        });
+
+        setReactions((prev) => [
+            ...prev,
+            { id: Date.now(), reaction: emoji, timestamp: Date.now() },
+        ]);
+    };
+
+    useEffect(() => {
+        channel?.on("broadcast", { event: "reaction" }, (payload) => {
+            const res = payload.payload;
+
+            if (!res || !res.emoji || !res.userID) return;
+
+            // TODO : for now its sending us the broadcast too, not sure if I need to do that yet, so for now I will just leave it
+            // and add some checks for it, but if turns out not needed then remove these, there will be one in throw tomatoes too
+            if (res.userID == session?.user.id) return;
+
+            setReactions((prev) => [
+                ...prev,
+                { id: Date.now(), reaction: res.emoji, timestamp: Date.now() },
+            ]);
+        });
+    }, [channel]);
+
+    useEffect(() => {
+        // TODO : idk if having this interval is bad, it runs every 5 seconds
+        // TODO : also every time it clears up it removes all emojis on the screen which can be a bit jarring
+        // thats why the time is set to 10seconds so it happens less, but if you do too much time will it be a problem?
+        // TODO: yh I don't like how it just cuts off suddenly because of the clean up
+        const cleanup = setInterval(() => {
+            setReactions((prev) =>
+                prev.filter(
+                    (reaction) => Date.now() - reaction.timestamp < 10000
+                )
+            );
+        }, 10000);
+
+        return () => {
+            clearInterval(cleanup);
+        };
+    }, []);
+
+    return (
+        <div className="flex justify-center gap-2 ">
+            {emojis.map((emoji, index) => (
+                <Button
+                    key={index}
+                    variant={"ghost"}
+                    className="text-xl px-3 select-none "
+                    onClick={() => handleReaction(emoji)}
+                    disabled={!channel}
+                >
+                    {emoji}
+                </Button>
+            ))}
+            <div className="fixed bottom-36 md:right-20 sm:right-10 right-5  p-3 flex justify-center">
+                {reactions.map((reaction, index) => (
+                    <div
+                        key={index}
+                        className="text-4xl px-2 absolute  top-0 animate-reaction select-none"
+                    >
+                        {reaction.reaction}
+                    </div>
+                ))}
+            </div>
+        </div>
+    );
+};
+
+const Footer = ({
+    currentUser,
+    channel,
+}: {
+    currentUser: GroupUserWithProfile;
+    channel?: RealtimeChannel;
+}) => {
     return (
         <footer className="fixed bottom-0 w-full ">
             <div className="relative">
                 <Chat testUser={currentUser} />
-                <Reactions />
             </div>
             <div className="w-full bg-secondary/30 p-4">
-                <div className="flex justify-center gap-3">
-                    {emojis.map((emoji, index) => (
-                        <Button
-                            key={index}
-                            variant={"ghost"}
-                            className="text-xl px-2 "
-                        >
-                            {emoji}
-                        </Button>
-                    ))}
-                </div>
+                <Reactions channel={channel} />
             </div>
             <div className=" bg-secondary/50 w-full p-4">
                 <div className="flex gap-3 items-center mx-auto w-fit">
