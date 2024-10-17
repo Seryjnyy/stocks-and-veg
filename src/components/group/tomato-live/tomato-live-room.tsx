@@ -1,4 +1,13 @@
 import {
+    Form,
+    FormControl,
+    FormDescription,
+    FormField,
+    FormItem,
+    FormLabel,
+    FormMessage,
+} from "@/components/ui/form";
+import {
     Collapsible,
     CollapsibleContent,
     CollapsibleTrigger,
@@ -13,7 +22,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import useScreenSize from "@/hooks/use-screen-size";
-import { useToast } from "@/hooks/use-toast";
+import { toast, useToast } from "@/hooks/use-toast";
 import { useGetGroupUser } from "@/lib/hooks/queries/use-get-group-user";
 import { GroupUserWithProfile } from "@/lib/hooks/queries/use-get-group-users";
 import { useGetUserProfile } from "@/lib/hooks/queries/use-get-profile";
@@ -37,6 +46,14 @@ import { ArrowUp, Loader2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { Timeout } from "node_modules/@tanstack/react-router/dist/esm/utils";
+import { useChatSubscription } from "./use-chat-subscription";
+import { useCreateChatMsg } from "./use-create-chat-msg";
+import { Tables } from "@/lib/supabase/database.types";
+import { useGetTomatoTargetChatMsgs } from "./use-get-tomato-target-chat-msgs";
+import SpinnerButton from "@/spinner-button";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
 
 const OnlineMark = () => {
     return <div className="size-2 rounded-full bg-green-500 "></div>;
@@ -362,7 +379,11 @@ export function TomatoLiveRoom({ targetUser, currentUser }: TestProps) {
                 </div>
             </div>
 
-            <Footer currentUser={currentUser} channel={channel ?? undefined} />
+            <Footer
+                currentUser={currentUser}
+                channel={channel ?? undefined}
+                tomatoTarget={targetUserTomato ?? undefined}
+            />
             <div className="w-full bg-secondary px-12 fixed top-0">
                 <div className="flex items-center gap-2">
                     <OnlineMark />
@@ -428,19 +449,22 @@ const ChatTomatoMsg = ({ userID }: { userID: string }) => {
     );
 };
 
-const ChatMsg = ({
-    testUser,
-    message,
-}: {
-    testUser: GroupUserWithProfile;
-    message: string;
-}) => {
+const ChatMsg = ({ userID, message }: { userID: string; message: string }) => {
+    const {
+        data: user,
+        isLoading,
+        isError,
+    } = useGetUserProfile({ user_id: userID });
+
+    // TODO : do better here
+    if (!user || isLoading || isError) return null;
+
     return (
         <div className="w-full p-2 select-none">
             <div className="flex gap-2">
                 <div>
-                    {testUser.profile ? (
-                        <UserAvatar user={testUser.profile} size={"xs"} />
+                    {user ? (
+                        <UserAvatar user={user} size={"xs"} />
                     ) : (
                         <div
                             className={cn(
@@ -452,7 +476,7 @@ const ChatMsg = ({
                 </div>
                 <div className="flex flex-col leading-none">
                     <span className="text-sm text-muted-foreground max-w-[10rem] truncate">
-                        {testUser.profile?.username}
+                        {user.username}
                     </span>
                     <span className="max-w-[15rem] md:max-w-[20rem] break-words">
                         {message}
@@ -529,12 +553,42 @@ const ChatPresence = ({ channel }: { channel?: RealtimeChannel }) => {
     );
 };
 
-const Chat = ({
+const Chat = ({ tomatoTarget }: { tomatoTarget?: Tables<"tomato_target"> }) => {
+    const { data: chatMsgs } = useGetTomatoTargetChatMsgs({
+        tomatoTargetID: tomatoTarget?.id ?? "",
+    });
+
+    const { status } = useChatSubscription({
+        channelName: "room1",
+        tomatoTargetID: tomatoTarget?.id ?? "",
+        callback: (payload) => {
+            console.log(payload);
+        },
+    });
+
+    console.log(chatMsgs);
+
+    // TODO : loading and error
+    // if(isLoading || isError || !data) return null
+
+    // group id should come from tamato target
+    return (
+        <ul className=" h-full flex-col flex justify-end">
+            {chatMsgs?.map((msg) => (
+                <ChatMsg userID={msg.user_id} message={msg.message} />
+            ))}
+        </ul>
+    );
+};
+
+const ChatSection = ({
     testUser,
     channel,
+    tomatoTarget,
 }: {
     testUser: GroupUserWithProfile;
     channel?: RealtimeChannel;
+    tomatoTarget?: Tables<"tomato_target">;
 }) => {
     const [isOpen, setIsOpen] = useState(false);
 
@@ -554,18 +608,7 @@ const Chat = ({
                 <section className="w-full   h-[16rem] flex flex-col relative backdrop-blur-sm ">
                     <div className="absolute -top-1 left-0 right-0 h-[70%] bg-gradient-to-b from-background to-transparent pointer-events-none z-10 "></div>
                     <ScrollArea className="flex-1 max-h-full">
-                        <ChatMsg testUser={testUser} message={"fdsfsd"} />
-                        <ChatMsg testUser={testUser} message={"fdsfsd"} />
-                        <ChatMsg testUser={testUser} message={"fdsfsd"} />
-                        <ChatMsg testUser={testUser} message={"fdsfsd"} />
-                        <ChatMsg testUser={testUser} message={"fdsfsd"} />
-                        <ChatMsg testUser={testUser} message={"fdsfsd"} />
-                        <ChatMsg testUser={testUser} message={"fdsfsd"} />
-                        <ChatMsg testUser={testUser} message={"fdsfsd"} />
-                        <ChatMsg testUser={testUser} message={"fdsfsd"} />
-                        <ChatMsg testUser={testUser} message={"fdsfsd"} />
-                        <ChatMsg testUser={testUser} message={"fdsfsd"} />
-                        <ChatMsg testUser={testUser} message={"fdsfsd"} />
+                        <Chat tomatoTarget={tomatoTarget} />
                     </ScrollArea>
                     <footer className="">
                         <ChatPresence channel={channel} />
@@ -664,34 +707,138 @@ const Reactions = ({ channel }: { channel?: RealtimeChannel }) => {
     );
 };
 
+const chatInputSchema = z.object({
+    message: z.string().min(1).max(200),
+});
+
+type chatInputSchemaType = z.infer<typeof chatInputSchema>;
+
+const ChatInput = ({
+    currentUser,
+    tomatoTarget,
+}: {
+    currentUser: GroupUserWithProfile;
+    tomatoTarget: Tables<"tomato_target"> | undefined;
+}) => {
+    const {
+        mutate,
+        isPending: isSending,
+        isError: isSendingError,
+    } = useCreateChatMsg();
+
+    const { toast } = useToast();
+
+    const form = useForm<chatInputSchemaType>({
+        resolver: zodResolver(chatInputSchema),
+        defaultValues: {
+            message: "",
+        },
+    });
+
+    const onSubmit = (values: chatInputSchemaType) => {
+        const msg = values.message.trim();
+        form.reset();
+
+        // Check if msg is only whitespace
+        if (msg.length == 0) {
+            return;
+        }
+
+        handleSend(msg);
+    };
+
+    const handleSend = (message: string) => {
+        if (!tomatoTarget || !currentUser) return;
+
+        mutate(
+            [
+                {
+                    message: message,
+                    group_user_id: currentUser.id,
+                    group_id: tomatoTarget.group_id,
+                    tomato_target_id: tomatoTarget.id,
+                },
+            ],
+            {
+                onError: (error) => {
+                    toast({
+                        title: "Error sending message",
+                        description: error.message,
+                        variant: "destructive",
+                    });
+                },
+            }
+        );
+    };
+
+    return (
+        <div className="flex gap-3 items-center mx-auto w-fit">
+            {currentUser.profile && (
+                <UserAvatar user={currentUser.profile} size={"sm"} />
+            )}
+            <Form {...form}>
+                <form
+                    onSubmit={form.handleSubmit(onSubmit)}
+                    className="flex gap-3 items-center"
+                >
+                    <FormField
+                        control={form.control}
+                        name="message"
+                        render={({ field }) => (
+                            <FormItem className="p-0 m-0 h-fit  relative space-y-0">
+                                <FormLabel className="sr-only">
+                                    Message
+                                </FormLabel>
+                                <FormControl>
+                                    <Input
+                                        className="max-w-[15rem] md:max-w-[28rem] min-w-[15rem] md:min-w-[28rem] border"
+                                        placeholder="Add comment..."
+                                        {...field}
+                                    />
+                                </FormControl>
+                                <FormMessage className="absolute text-xs" />
+                            </FormItem>
+                        )}
+                    />
+                    <SpinnerButton
+                        className="px-3"
+                        disabled={!tomatoTarget || isSending || isSendingError}
+                        isPending={isSending}
+                    >
+                        <ArrowUp className="size-4 " />
+                    </SpinnerButton>
+                </form>
+            </Form>
+        </div>
+    );
+};
+
 const Footer = ({
     currentUser,
     channel,
+    tomatoTarget,
 }: {
     currentUser: GroupUserWithProfile;
     channel?: RealtimeChannel;
+    tomatoTarget?: Tables<"tomato_target">;
 }) => {
     return (
         <footer className="fixed bottom-0 w-full ">
             <div className="relative">
-                <Chat testUser={currentUser} channel={channel} />
+                <ChatSection
+                    testUser={currentUser}
+                    channel={channel}
+                    tomatoTarget={tomatoTarget ?? undefined}
+                />
             </div>
             <div className="w-full bg-secondary/30 p-4">
                 <Reactions channel={channel} />
             </div>
             <div className=" bg-secondary/50 w-full p-4">
-                <div className="flex gap-3 items-center mx-auto w-fit">
-                    {currentUser.profile && (
-                        <UserAvatar user={currentUser.profile} size={"sm"} />
-                    )}
-                    <Input
-                        className="max-w-[15rem] md:max-w-[28rem] min-w-[15rem] md:min-w-[28rem] border"
-                        placeholder="Add comment..."
-                    />
-                    <Button className="px-3">
-                        <ArrowUp className="size-4 " />
-                    </Button>
-                </div>
+                <ChatInput
+                    currentUser={currentUser}
+                    tomatoTarget={tomatoTarget}
+                />
             </div>
         </footer>
     );
