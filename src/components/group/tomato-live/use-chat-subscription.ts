@@ -10,7 +10,7 @@ export const useChatSubscription = ({
 }: {
     channelName: string;
     tomatoTargetID: string;
-    callback: (payload: RealtimePostgresChangesPayload<GenericTable>) => void;
+    callback?: (payload: RealtimePostgresChangesPayload<GenericTable>) => void;
 }) => {
     return useSubscription(
         supabase,

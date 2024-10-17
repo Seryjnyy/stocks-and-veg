@@ -154,6 +154,7 @@ export type Database = {
           created_at: string
           desc: string
           group_id: string
+          group_user_id: string
           id: string
           name: string
           user_id: string
@@ -162,6 +163,7 @@ export type Database = {
           created_at?: string
           desc: string
           group_id: string
+          group_user_id: string
           id?: string
           name: string
           user_id: string
@@ -170,6 +172,7 @@ export type Database = {
           created_at?: string
           desc?: string
           group_id?: string
+          group_user_id?: string
           id?: string
           name?: string
           user_id?: string
@@ -180,6 +183,13 @@ export type Database = {
             columns: ["group_id"]
             isOneToOne: false
             referencedRelation: "group"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "task_group_user_id_fkey"
+            columns: ["group_user_id"]
+            isOneToOne: false
+            referencedRelation: "group_user"
             referencedColumns: ["id"]
           },
         ]
@@ -229,20 +239,54 @@ export type Database = {
       test_realtime: {
         Row: {
           created_at: string
-          id: number
-          idk: string | null
+          group_id: string
+          group_user_id: string
+          id: string
+          message: string
+          tomato_target_id: string
+          user_id: string
         }
         Insert: {
           created_at?: string
-          id?: number
-          idk?: string | null
+          group_id: string
+          group_user_id: string
+          id?: string
+          message: string
+          tomato_target_id: string
+          user_id?: string
         }
         Update: {
           created_at?: string
-          id?: number
-          idk?: string | null
+          group_id?: string
+          group_user_id?: string
+          id?: string
+          message?: string
+          tomato_target_id?: string
+          user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "test_realtime_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "group"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "test_realtime_group_user_id_fkey"
+            columns: ["group_user_id"]
+            isOneToOne: false
+            referencedRelation: "group_user"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "test_realtime_tomato_target_id_fkey"
+            columns: ["tomato_target_id"]
+            isOneToOne: false
+            referencedRelation: "tomato_target"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       tomato_target: {
         Row: {

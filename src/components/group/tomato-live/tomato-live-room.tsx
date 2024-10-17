@@ -42,8 +42,8 @@ import { useQueryClient } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import { differenceInMilliseconds } from "date-fns";
 import debounce from "lodash/debounce";
-import { ArrowUp, Loader2 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { ArrowDownIcon, ArrowUp, Loader2 } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { Timeout } from "node_modules/@tanstack/react-router/dist/esm/utils";
 import { useChatSubscription } from "./use-chat-subscription";
@@ -54,6 +54,7 @@ import SpinnerButton from "@/spinner-button";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
+import { useInView } from "react-intersection-observer";
 
 const OnlineMark = () => {
     return <div className="size-2 rounded-full bg-green-500 "></div>;
@@ -102,6 +103,7 @@ interface TestProps {
 // TODO : when user joins, updated state, then need to fetch their groupUser and profile data using user_id
 // Then also need to refetch their group data whenever they send a message that they threw stuff
 // TODO : in parent component make sure user can't get here if not authorised
+
 export function TomatoLiveRoom({ targetUser, currentUser }: TestProps) {
     const [onlineUsers, setOnlineUsers] = useState<string[]>([]);
     const queryClient = useQueryClient();
@@ -124,62 +126,26 @@ export function TomatoLiveRoom({ targetUser, currentUser }: TestProps) {
         groupID: targetUser.group_id,
     });
 
+    // TODO : idk if better to have this here or directly in chat
+    const { status } = useChatSubscription({
+        channelName: `${targetUserTomato?.id}-db`,
+        tomatoTargetID: targetUserTomato?.id ?? "",
+    });
+
     const handleThrowTomato = async () => {
-        console.log(targetUserTomato);
+        // console.log(targetUserTomato);
+        console.log("chuckding tomato");
         if (!targetUserTomato) {
             // TODO : probably should handle that
             console.error("Tomato target data is missing.");
             return;
         }
 
-        setThrewTomato(true);
-        supabase
-            .rpc("throw_tomatoes", {
-                amount_to_throw: 1,
-                throwing_user_id: currentUser.user_id ?? "",
-                tomato_target_id: targetUserTomato.id,
-            })
-            .then((res) => {
-                const { data, error } = res;
-
-                setThrewTomato(false);
-
-                if (error) {
-                    console.error(error.message);
-                    toast({
-                        title: "Something went wrong",
-                        description: error.message,
-                        variant: "destructive",
-                    });
-                    return;
-                }
-
-                channel?.send({
-                    type: "broadcast",
-                    event: "tomato_thrown",
-                    payload: { userID: currentUser.user_id },
-                });
-
-                // refetch target data
-
-                refetch();
-
-                // TODO : Idk how to invalidate supabase cache helper
-                // This works for now but its invalidating all group_user queries
-                // TODO : Added the extra settings and filter key, fixes above, but will break if query is changed
-                // TODO : I think I can wrap rpc in a query, and then revalidate tables, relations there
-                queryClient.refetchQueries({
-                    predicate: (query) => {
-                        const queryKey = query.queryKey as string[];
-                        return (
-                            queryKey[0] === "postgrest" &&
-                            queryKey[3] === "group_user" &&
-                            queryKey[4] ===
-                                `group_id=eq.${currentUser.group_id}&limit=1&select=*%2Cprofile%3Aget_group_user_profile%28*%29&user_id=eq.${currentUser.user_id}`
-                        );
-                    },
-                });
-            });
+        channel?.send({
+            type: "broadcast",
+            event: "tomato_thrown",
+            payload: { userID: currentUser.user_id },
+        });
     };
 
     useEffect(() => {
@@ -230,7 +196,8 @@ export function TomatoLiveRoom({ targetUser, currentUser }: TestProps) {
                 setOnlineUsers(Array.from(userIDs));
             })
             .on("broadcast", { event: "tomato_thrown" }, () => {
-                setOtherAnimKey((prev) => prev + 1);
+                setOtherAnimKey(Math.random() * 100);
+                console.log("TOMATO THROWN");
             })
             .subscribe(async (status) => {
                 if (status === "SUBSCRIBED") {
@@ -247,7 +214,7 @@ export function TomatoLiveRoom({ targetUser, currentUser }: TestProps) {
             const cleanUp = async () => {
                 await tempChannel.unsubscribe();
             };
-            setChannel(null);
+            // setChannel(null);
 
             tempChannel && supabase.removeChannel(tempChannel);
             // supabase.removeAllChannels()
@@ -256,10 +223,10 @@ export function TomatoLiveRoom({ targetUser, currentUser }: TestProps) {
     }, []);
 
     // TODO : debounce not working, making multiple calls regardless
-    const intermediate = debounce(() => {
-        handleThrowTomato();
-        // setTomatoesThrownCount(0);
-    }, 1000);
+    // const intermediate = debounce(() => {
+    //     handleThrowTomato();
+    //     // setTomatoesThrownCount(0);
+    // }, 1000);
 
     const handleClick = () => {
         if (currentUser.tomatoes <= 0) {
@@ -272,8 +239,9 @@ export function TomatoLiveRoom({ targetUser, currentUser }: TestProps) {
 
         // setTomatoesThrownCount((prev) => prev + 1);
 
-        setAnimKey((prev) => prev + 1);
-        intermediate();
+        // setAnimKey((prev) => prev + 1);
+        // intermediate();
+        handleThrowTomato();
     };
 
     return (
@@ -425,7 +393,7 @@ const ChatUserPresenceMsg = ({
     );
 };
 
-const ChatTomatoMsg = ({ userID }: { userID: string }) => {
+const ChatTomatoMsg = ({ userID, id }: { userID: string; id: number }) => {
     const {
         data: user,
         isLoading,
@@ -435,7 +403,10 @@ const ChatTomatoMsg = ({ userID }: { userID: string }) => {
     if (!user || isLoading || isError) return null;
 
     return (
-        <div className="flex gap-2 text-sm">
+        <div
+            className={`flex gap-2 text-sm animate-in fade-in-0 slide-in-from-left-14 duration-300`}
+            key={id}
+        >
             <UserAvatar user={user} size={"xs"}>
                 <div className="backdrop-brightness-60 w-full h-full flex justify-center items-center">
                     {TOMATO_EMOJI}
@@ -518,7 +489,13 @@ const ChatPresence = ({ channel }: { channel?: RealtimeChannel }) => {
         };
 
         channel
-            ?.on("broadcast", { event: "tomato_thrown" }, (payload) => {
+            ?.on("presence", { event: "join" }, ({ key, newPresences }) => {
+                handlePresenceEvent("joined", newPresences);
+            })
+            .on("presence", { event: "leave" }, ({ key, leftPresences }) => {
+                handlePresenceEvent("left", leftPresences);
+            })
+            .on("broadcast", { event: "tomato_thrown" }, (payload) => {
                 console.log("TOMATO THROWN EVENT");
                 const res = payload.payload;
 
@@ -529,12 +506,6 @@ const ChatPresence = ({ channel }: { channel?: RealtimeChannel }) => {
                 handlePresenceEvent("tomato", [
                     { user_id: payload.payload.userID },
                 ]);
-            })
-            .on("presence", { event: "join" }, ({ key, newPresences }) => {
-                handlePresenceEvent("joined", newPresences);
-            })
-            .on("presence", { event: "leave" }, ({ key, leftPresences }) => {
-                handlePresenceEvent("left", leftPresences);
             });
     }, [channel]);
 
@@ -547,37 +518,101 @@ const ChatPresence = ({ channel }: { channel?: RealtimeChannel }) => {
                 />
             )}
             {event && event.event == "tomato" && (
-                <ChatTomatoMsg userID={event.userID} />
+                <ChatTomatoMsg userID={event.userID} id={event.id} />
             )}
         </div>
     );
 };
 
-const Chat = ({ tomatoTarget }: { tomatoTarget?: Tables<"tomato_target"> }) => {
-    const { data: chatMsgs } = useGetTomatoTargetChatMsgs({
+// TODO : sending a message should scroll to the most recent message
+// TODO : indicator for new messages user hasn't seen, would have to move out of collapsible content
+const Chat = ({
+    tomatoTarget,
+    isOpen,
+}: {
+    tomatoTarget?: Tables<"tomato_target">;
+    isOpen: boolean;
+}) => {
+    const {
+        data: chatMsgs,
+        isLoading: isMsgsLoading,
+        isError: isMsgError,
+    } = useGetTomatoTargetChatMsgs({
         tomatoTargetID: tomatoTarget?.id ?? "",
     });
 
-    const { status } = useChatSubscription({
-        channelName: "room1",
-        tomatoTargetID: tomatoTarget?.id ?? "",
-        callback: (payload) => {
-            console.log(payload);
-        },
-    });
+    console.log(status);
 
-    console.log(chatMsgs);
+    const { ref, inView } = useInView();
+    const [initialRender, setInitialRender] = useState(true);
+    const newestMsgRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        if (inView) {
+            handleScrollToRecent();
+        } else if (initialRender && newestMsgRef.current && isOpen) {
+            // On initial render when we finally have the ref to the newest chat message scroll to it
+            handleScrollToRecent("instant");
+
+            // This is done so that the button doesn't flash on when chat is open
+            // it flashes because it starts at the top and scrolls to to bottom of chat causing the button to be visible for that second before it gets to the bottom
+            setTimeout(() => {
+                setInitialRender(false);
+            }, 500);
+        }
+        console.log("initial render", initialRender, newestMsgRef.current);
+    }, [chatMsgs, inView, newestMsgRef, isOpen]);
+
+    const handleScrollToRecent = (
+        behavior: "smooth" | "auto" | "instant" = "smooth"
+    ) => {
+        if (newestMsgRef.current) {
+            newestMsgRef.current.scrollIntoView({ behavior: behavior });
+        } else {
+            console.log("doesn't exist");
+        }
+    };
 
     // TODO : loading and error
-    // if(isLoading || isError || !data) return null
+    if (isMsgsLoading || isMsgError || !chatMsgs) return null;
 
-    // group id should come from tamato target
     return (
-        <ul className=" h-full flex-col flex justify-end">
-            {chatMsgs?.map((msg) => (
-                <ChatMsg userID={msg.user_id} message={msg.message} />
-            ))}
-        </ul>
+        <div className="relative">
+            {!initialRender && (
+                <Button
+                    variant={"secondary"}
+                    className={cn(
+                        "fixed -bottom-12 left-2 transition-all opacity-0 duration-0 delay-0",
+                        {
+                            "opacity-100 duration-500": !inView,
+                        }
+                    )}
+                    onClick={() => handleScrollToRecent()}
+                >
+                    <ArrowDownIcon className="size-3 animate-bounce" />
+                    <ChatBubbleIcon className="size-3 absolute top-0 right-0 text-blue-400" />
+                </Button>
+            )}
+
+            <ul className=" h-full flex-col flex justify-end pt-12">
+                {chatMsgs?.map((msg, index) => (
+                    <div ref={ref} key={msg.id}>
+                        <div
+                            ref={
+                                index == chatMsgs.length - 1
+                                    ? newestMsgRef
+                                    : undefined
+                            }
+                        >
+                            <ChatMsg
+                                userID={msg.user_id}
+                                message={msg.message}
+                            />
+                        </div>
+                    </div>
+                ))}
+            </ul>
+        </div>
     );
 };
 
@@ -604,11 +639,17 @@ const ChatSection = ({
                     {isOpen ? <CaretDownIcon /> : <CaretUpIcon />}
                 </Button>
             </CollapsibleTrigger>
-            <CollapsibleContent>
-                <section className="w-full   h-[16rem] flex flex-col relative backdrop-blur-sm ">
+            <CollapsibleContent
+                className={cn(
+                    "animate-in fade-in-0 duration-300 hidden  ",
+                    isOpen && "block"
+                )}
+                forceMount
+            >
+                <section className="w-full   h-[16rem] flex flex-col relative backdrop-blur-sm animate-in slide-in-from-bottom-14 duration-300">
                     <div className="absolute -top-1 left-0 right-0 h-[70%] bg-gradient-to-b from-background to-transparent pointer-events-none z-10 "></div>
-                    <ScrollArea className="flex-1 max-h-full">
-                        <Chat tomatoTarget={tomatoTarget} />
+                    <ScrollArea className="flex-1 max-h-full  ">
+                        <Chat tomatoTarget={tomatoTarget} isOpen={isOpen} />
                     </ScrollArea>
                     <footer className="">
                         <ChatPresence channel={channel} />
@@ -802,7 +843,12 @@ const ChatInput = ({
                     />
                     <SpinnerButton
                         className="px-3"
-                        disabled={!tomatoTarget || isSending || isSendingError}
+                        disabled={
+                            !tomatoTarget ||
+                            isSending ||
+                            isSendingError ||
+                            form.getValues().message.length == 0
+                        }
                         isPending={isSending}
                     >
                         <ArrowUp className="size-4 " />
