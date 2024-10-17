@@ -42,7 +42,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import { differenceInMilliseconds } from "date-fns";
 import debounce from "lodash/debounce";
-import { ArrowDownIcon, ArrowUp, Loader2 } from "lucide-react";
+import { ArrowDownIcon, ArrowUp, Loader2, Users, Users2 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { Timeout } from "node_modules/@tanstack/react-router/dist/esm/utils";
@@ -55,6 +55,9 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { useInView } from "react-intersection-observer";
+import { Provider, useStore } from "jotai";
+import BackButton from "@/components/back-button";
+import { atom, createStore, useAtom } from "jotai";
 
 const OnlineMark = () => {
     return <div className="size-2 rounded-full bg-green-500 "></div>;
@@ -104,7 +107,24 @@ interface TestProps {
 // Then also need to refetch their group data whenever they send a message that they threw stuff
 // TODO : in parent component make sure user can't get here if not authorised
 
+const sessionErrorAtom = atom("");
+const isSessionValidAtom = atom(false);
+
 export function TomatoLiveRoom({ targetUser, currentUser }: TestProps) {
+    return (
+        <Provider>
+            <TomatoLiveRoomComponent
+                targetUser={targetUser}
+                currentUser={currentUser}
+            />
+        </Provider>
+    );
+}
+
+export function TomatoLiveRoomComponent({
+    targetUser,
+    currentUser,
+}: TestProps) {
     const [onlineUsers, setOnlineUsers] = useState<string[]>([]);
     const queryClient = useQueryClient();
     const [threwTomato, setThrewTomato] = useState(false);
@@ -112,7 +132,7 @@ export function TomatoLiveRoom({ targetUser, currentUser }: TestProps) {
     const [animKey, setAnimKey] = useState(0);
 
     const [otherAnimKey, setOtherAnimKey] = useState(0);
-    const [isOutOfTime, setIsOutOfTime] = useState(false);
+    // const [isOutOfTime, setIsOutOfTime] = useState(false);
     const [channel, setChannel] = useState<RealtimeChannel | null>(null);
     const { toast } = useToast();
 
@@ -125,6 +145,8 @@ export function TomatoLiveRoom({ targetUser, currentUser }: TestProps) {
         userID: targetUser.user_id,
         groupID: targetUser.group_id,
     });
+    const [sessionError, setSessionError] = useAtom(sessionErrorAtom);
+    const [isSessionValid, setIsSessionValid] = useAtom(isSessionValidAtom);
 
     // TODO : idk if better to have this here or directly in chat
     const { status } = useChatSubscription({
@@ -171,7 +193,11 @@ export function TomatoLiveRoom({ targetUser, currentUser }: TestProps) {
                     )
             ) {
                 console.log("CHECKED EXPIRED!");
-                setIsOutOfTime(dateNow > dateCreated);
+                // setIsOutOfTime(dateNow > dateCreated);
+                if (dateNow > dateCreated) {
+                    setSessionError("Session has ended.");
+                    setIsSessionValid(false);
+                }
             } else {
                 console.log("CHECKED FINE");
             }
@@ -244,44 +270,55 @@ export function TomatoLiveRoom({ targetUser, currentUser }: TestProps) {
         handleThrowTomato();
     };
 
+    const isAbleToThrowTomato =
+        channel &&
+        currentUser.tomatoes > 0 &&
+        isSessionValid &&
+        targetUser.user_id != currentUser.user_id;
+
     return (
         <div className="flex flex-col min-h-[calc(100vh-4rem)] ">
             <div className="fixed bottom-48  right-6 flex flex-col z-50">
-                <span className="text-xs text-center select-none flex pl-3 items-center pb-1">
+                <span
+                    className={cn(
+                        "text-xs text-center select-none flex pl-3 items-center pb-1",
+                        !isAbleToThrowTomato && "opacity-60"
+                    )}
+                >
                     {currentUser.tomatoes} {TOMATO_EMOJI}
                     {threwTomato && <Loader2 className="animate-spin size-3" />}
                 </span>
                 <Button
                     className="size-16 text-3xl bg-red-950 select-none "
                     onClick={handleClick}
-                    disabled={
-                        !channel || currentUser.tomatoes <= 0
-                        // || targetUser.user_id == currentUser.user_id
-                        // || isOutOfTime
-                    }
+                    disabled={!isAbleToThrowTomato}
                 >
                     {TOMATO_EMOJI}
                 </Button>
             </div>
             <div className=" h-full flex flex-col justify-between   grid-cols-1 ">
-                <div className="flex justify-between items-center px-2">
+                <div className="flex justify-between items-center px-2 pt-1">
                     <Link
                         to="/groups/$groupID"
                         params={{ groupID: currentUser.group_id }}
                     >
-                        <Button variant={"ghost"}>
-                            <ArrowLeftIcon /> Exit
-                        </Button>
+                        <BackButton />
                     </Link>
-                    <div className="text-muted-foreground text-xs space-x-2">
-                        {isOutOfTime && <span>Session has ended 00:00:00</span>}
-                        {targetUserTomato && (
-                            <CountdownTimer
-                                expireDate={Date.parse(
-                                    targetUserTomato.created_at
-                                )}
-                            />
-                        )}
+                    <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                            <Users2 className="size-3" />
+                            {onlineUsers.length} users
+                        </div>
+                        <div className="text-muted-foreground text-xs space-x-2 border-l pl-2">
+                            {sessionError && <span>Session has ended</span>}
+                            {targetUserTomato && (
+                                <CountdownTimer
+                                    expireDate={Date.parse(
+                                        targetUserTomato.created_at
+                                    )}
+                                />
+                            )}
+                        </div>
                     </div>
                 </div>
                 <div className="flex justify-center  w-full items-start">
@@ -352,12 +389,6 @@ export function TomatoLiveRoom({ targetUser, currentUser }: TestProps) {
                 channel={channel ?? undefined}
                 tomatoTarget={targetUserTomato ?? undefined}
             />
-            <div className="w-full bg-secondary px-12 fixed top-0">
-                <div className="flex items-center gap-2">
-                    <OnlineMark />
-                    {onlineUsers.length} users
-                </div>
-            </div>
         </div>
     );
 }
@@ -666,13 +697,14 @@ const Reactions = ({ channel }: { channel?: RealtimeChannel }) => {
         { id: number; reaction: string; timestamp: number }[]
     >([]);
 
+    const [isSessionValid] = useAtom(isSessionValidAtom);
     const screenSize = useScreenSize();
     let emojis = ["🤣", "😂", "🙂", "😊", "😇", "🥰", "😍", "🤩", "😘", "😗"];
     emojis = screenSize == "xs" ? emojis.slice(0, 7) : emojis;
 
     // TODO : maybe have some delay between each press
     const handleReaction = (emoji: string) => {
-        if (!session || !channel) return;
+        if (!session || !channel || !isSessionValid) return;
 
         channel.send({
             type: "broadcast",
@@ -729,7 +761,7 @@ const Reactions = ({ channel }: { channel?: RealtimeChannel }) => {
                     variant={"ghost"}
                     className="text-xl px-3 select-none "
                     onClick={() => handleReaction(emoji)}
-                    disabled={!channel}
+                    disabled={!channel || !isSessionValid}
                 >
                     {emoji}
                 </Button>
@@ -761,6 +793,8 @@ const ChatInput = ({
     currentUser: GroupUserWithProfile;
     tomatoTarget: Tables<"tomato_target"> | undefined;
 }) => {
+    const [isSessionValid] = useAtom(isSessionValidAtom);
+
     const {
         mutate,
         isPending: isSending,
@@ -777,6 +811,8 @@ const ChatInput = ({
     });
 
     const onSubmit = (values: chatInputSchemaType) => {
+        if (!isSessionValid) return;
+
         const msg = values.message.trim();
         form.reset();
 
@@ -789,7 +825,7 @@ const ChatInput = ({
     };
 
     const handleSend = (message: string) => {
-        if (!tomatoTarget || !currentUser) return;
+        if (!tomatoTarget || !currentUser || !isSessionValid) return;
 
         mutate(
             [
@@ -835,6 +871,7 @@ const ChatInput = ({
                                         className="max-w-[15rem] md:max-w-[28rem] min-w-[15rem] md:min-w-[28rem] border"
                                         placeholder="Add comment..."
                                         {...field}
+                                        disabled={!isSessionValid}
                                     />
                                 </FormControl>
                                 <FormMessage className="absolute text-xs" />
@@ -847,7 +884,8 @@ const ChatInput = ({
                             !tomatoTarget ||
                             isSending ||
                             isSendingError ||
-                            form.getValues().message.length == 0
+                            form.getValues().message.length == 0 ||
+                            !isSessionValid
                         }
                         isPending={isSending}
                     >
