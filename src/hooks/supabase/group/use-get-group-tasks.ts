@@ -1,6 +1,5 @@
 import supabase from "@/lib/supabase/supabaseClient";
 import { useQuery } from "@supabase-cache-helpers/postgrest-react-query";
-import { QueryData, Session } from "@supabase/supabase-js";
 
 export const useGetGroupTasks = ({
     groupID,
