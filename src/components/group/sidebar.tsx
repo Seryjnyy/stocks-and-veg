@@ -23,6 +23,7 @@ import CountdownTimer from "@/components/countdown-timer";
 import { currentSectionInGroupPageAtom } from "@/lib/atoms/atoms";
 import { useAtom } from "jotai";
 import { GroupSection } from "@/lib/types";
+import useWorkStatus from "@/hooks/use-work-status";
 
 const Sidebar = ({
     sections,
@@ -34,6 +35,7 @@ const Sidebar = ({
     const { session } = useAuth();
     const [expanded, setExpanded] = useState(true);
     const [drawerOpen, setDrawerOpen] = useState(false);
+    const isWorkEnabled = useWorkStatus();
 
     // TODO : well don't need jotai rn, but If at some point sidebar is split it could be useful -\o/-
     const [currentSection, _] = useAtom(currentSectionInGroupPageAtom);
@@ -132,7 +134,10 @@ const Sidebar = ({
                     <DrawerTrigger asChild>
                         <Button
                             variant="outline"
-                            className="p-2 px-3 fixed top-20 left-4 z-50"
+                            className={cn(
+                                "p-2 px-3 fixed top-20 left-4 z-50",
+                                !isWorkEnabled && "top-28"
+                            )}
                             onClick={() => setExpanded((curr) => !curr)}
                         >
                             <span>
