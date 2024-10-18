@@ -1,4 +1,4 @@
-import { useGetUserProfile } from "@/lib/hooks/queries/use-get-profile";
+import { useGetUserProfile } from "@/hooks/supabase/profile/use-get-profile";
 import { UserAvatar } from "@/components/group/group-user-profile";
 import { TOMATO_EMOJI } from "@/lib/utils";
 

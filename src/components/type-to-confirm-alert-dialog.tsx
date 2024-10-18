@@ -1,5 +1,5 @@
 import useWorkStatus from "@/hooks/use-work-status";
-import SpinnerButton from "@/spinner-button";
+import SpinnerButton from "@/components/spinner-button";
 import { ReactNode } from "@tanstack/react-router";
 import { useState } from "react";
 import {

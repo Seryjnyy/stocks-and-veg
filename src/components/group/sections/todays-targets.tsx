@@ -1,7 +1,7 @@
 import DataError from "@/components/data-error";
 import Loading from "@/components/loading";
 import { Button } from "@/components/ui/button";
-import { useGetGroupUser } from "@/lib/hooks/queries/use-get-group-user";
+import { useGetGroupUser } from "@/hooks/supabase/group/use-get-group-user";
 
 import { Tables } from "@/lib/supabase/database.types";
 import { useGetGroupTomatoes } from "@/lib/tomatoService";

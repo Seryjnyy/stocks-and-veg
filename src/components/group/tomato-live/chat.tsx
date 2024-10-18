@@ -5,7 +5,7 @@ import {
     CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { GroupUserWithProfile } from "@/lib/hooks/queries/use-get-group-users";
+import { GroupUserWithProfile } from "@/hooks/supabase/group/use-get-group-users";
 import { Tables } from "@/lib/supabase/database.types";
 import { cn } from "@/lib/utils";
 import {

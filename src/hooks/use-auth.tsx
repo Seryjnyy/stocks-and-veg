@@ -11,7 +11,7 @@ import supabase from "@/lib/supabase/supabaseClient";
 import { useNavigate } from "@tanstack/react-router";
 import { TabletSmartphone } from "lucide-react";
 import { Tables } from "../lib/supabase/database.types";
-import { useGetUserProfile } from "../lib/hooks/queries/use-get-profile";
+import { useGetUserProfile } from "./supabase/profile/use-get-profile";
 
 interface AuthProps {
     children?: ReactNode;

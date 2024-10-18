@@ -3,7 +3,7 @@ import { CONFIG } from "@/lib/config";
 import {
     GroupUserWithProfile,
     useGetGroupUsers,
-} from "@/lib/hooks/queries/use-get-group-users";
+} from "@/hooks/supabase/group/use-get-group-users";
 import GroupUserProfile from "../group-user-profile";
 
 export default function Users({ groupID }: { groupID: string }) {

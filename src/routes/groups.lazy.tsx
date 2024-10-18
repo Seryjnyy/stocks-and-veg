@@ -16,10 +16,10 @@ import {
 } from "@/components/ui/tooltip";
 import { useAuth } from "@/hooks/use-auth";
 import { CONFIG } from "@/lib/config";
-import { useGetGroupUserTasks } from "@/lib/hooks/queries/use-get-group-user-tasks";
-import { useGetGroupUsers } from "@/lib/hooks/queries/use-get-group-users";
-import { useGetUserProfile } from "@/lib/hooks/queries/use-get-profile";
-import { useGetUserGroups } from "@/lib/hooks/queries/use-get-user-groups";
+import { useGetGroupUserTasks } from "@/hooks/supabase/group/use-get-group-user-tasks";
+import { useGetGroupUsers } from "@/hooks/supabase/group/use-get-group-users";
+import { useGetUserProfile } from "@/hooks/supabase/profile/use-get-profile";
+import { useGetUserGroups } from "@/hooks/supabase/groups/use-get-user-groups";
 import { Tables } from "@/lib/supabase/database.types";
 import { useGetGroupTomatoes } from "@/lib/tomatoService";
 import { timestampSplit } from "@/lib/utils";

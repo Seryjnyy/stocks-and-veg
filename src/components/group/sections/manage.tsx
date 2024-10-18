@@ -7,7 +7,7 @@ import { Trash2 } from "lucide-react";
 
 import TypeToConfirmAlertDialog from "@/components/type-to-confirm-alert-dialog";
 import useWorkStatus from "@/hooks/use-work-status";
-import { useDeleteGroup } from "@/lib/hooks/mutations/use-delete-group";
+import { useDeleteGroup } from "@/hooks/supabase/groups/use-delete-group";
 
 export default function Manage({ group }: { group: Tables<"group"> }) {
     const isWorkEnabled = useWorkStatus();

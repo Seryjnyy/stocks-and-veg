@@ -2,7 +2,7 @@ import {
     avatarVariants,
     UserAvatar,
 } from "@/components/group/group-user-profile";
-import { useGetUserProfile } from "@/lib/hooks/queries/use-get-profile";
+import { useGetUserProfile } from "@/hooks/supabase/profile/use-get-profile";
 import { cn } from "@/lib/utils";
 
 interface ChatMessageProps {

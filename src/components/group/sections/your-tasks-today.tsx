@@ -1,5 +1,5 @@
 import { useAuth } from "@/hooks/use-auth";
-import { useGetGroupTasks } from "@/lib/hooks/queries/use-get-group-tasks";
+import { useGetGroupTasks } from "@/hooks/supabase/group/use-get-group-tasks";
 import { TaskWithCompletion } from "@/lib/types";
 import { Plus } from "lucide-react";
 import DataError from "../../data-error";
@@ -7,7 +7,7 @@ import { Button } from "../../ui/button";
 import { Skeleton } from "../../ui/skeleton";
 import GroupCreateTaskDialog from "../task/create-task-dialog";
 import Task from "../task/task";
-import { useGetGroupUser } from "@/lib/hooks/queries/use-get-group-user";
+import { useGetGroupUser } from "@/hooks/supabase/group/use-get-group-user";
 
 export default function YourTasksToday({ groupID }: { groupID: string }) {
     const { session } = useAuth();

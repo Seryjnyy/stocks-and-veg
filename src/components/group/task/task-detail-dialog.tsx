@@ -7,12 +7,12 @@ import {
     DialogTrigger,
 } from "@/components/ui/dialog";
 import { useAuth } from "@/hooks/use-auth";
-import { useDeleteTask } from "@/lib/hooks/mutations/use-delete-task";
-import { useGetGroup } from "@/lib/hooks/queries/use-get-group";
-import { useGetGroupUser } from "@/lib/hooks/queries/use-get-group-user";
+import { useDeleteTask } from "@/hooks/supabase/group/use-delete-task";
+import { useGetGroup } from "@/hooks/supabase/group/use-get-group";
+import { useGetGroupUser } from "@/hooks/supabase/group/use-get-group-user";
 import { TaskWithCompletion } from "@/lib/types";
 import { timestampSplit } from "@/lib/utils";
-import SpinnerButton from "@/spinner-button";
+import SpinnerButton from "@/components/spinner-button";
 import { EyeOpenIcon } from "@radix-ui/react-icons";
 import { Link } from "@tanstack/react-router";
 import { ArrowRight, Calendar, Trash2 } from "lucide-react";

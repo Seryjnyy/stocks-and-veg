@@ -1,7 +1,7 @@
 import React, { ReactNode, useState } from "react";
 import GroupCreateForm from "./group-create-form";
 
-import { useGetUserGroups } from "@/lib/hooks/queries/use-get-user-groups";
+import { useGetUserGroups } from "@/hooks/supabase/groups/use-get-user-groups";
 import { useAuth } from "@/hooks/use-auth";
 import {
     Dialog,

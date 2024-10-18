@@ -1,7 +1,7 @@
 import DataError from "@/components/data-error";
 import Loading from "@/components/loading";
-import { useGetGroupTasks } from "@/lib/hooks/queries/use-get-group-tasks";
-import { useGetGroupUsers } from "@/lib/hooks/queries/use-get-group-users";
+import { useGetGroupTasks } from "@/hooks/supabase/group/use-get-group-tasks";
+import { useGetGroupUsers } from "@/hooks/supabase/group/use-get-group-users";
 import { TaskWithCompletion } from "@/lib/types";
 import GroupUserProfile from "../group-user-profile";
 import Task from "../task/task";

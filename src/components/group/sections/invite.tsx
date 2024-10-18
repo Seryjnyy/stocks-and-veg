@@ -1,10 +1,10 @@
 import { Button } from "@/components/ui/button";
 import { useCopyToClipboard } from "@/hooks/use-copy-to-clipboard";
 import { useToast } from "@/hooks/use-toast";
-import { useCreateInviteLink } from "@/lib/hooks/mutations/use-create-invite-link";
-import { useGetInviteLink } from "@/lib/hooks/queries/use-get-invite-link";
+import { useCreateInviteLink } from "@/hooks/supabase/invite/use-create-invite-link";
+import { useGetInviteLink } from "@/hooks/supabase/invite/use-get-invite-link";
 import { formatInviteLink } from "@/lib/utils";
-import SpinnerButton from "@/spinner-button";
+import SpinnerButton from "@/components/spinner-button";
 
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";

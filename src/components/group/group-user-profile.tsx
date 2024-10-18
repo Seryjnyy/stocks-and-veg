@@ -1,5 +1,5 @@
-import { useGetGroup } from "@/lib/hooks/queries/use-get-group";
-import { GroupUserWithProfile } from "@/lib/hooks/queries/use-get-group-users";
+import { useGetGroup } from "@/hooks/supabase/group/use-get-group";
+import { GroupUserWithProfile } from "@/hooks/supabase/group/use-get-group-users";
 import { useAuth } from "@/hooks/use-auth";
 import { CrownIcon, User2 } from "lucide-react";
 import { Badge } from "../ui/badge";

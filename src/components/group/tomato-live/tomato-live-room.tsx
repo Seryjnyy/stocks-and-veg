@@ -5,12 +5,12 @@ import { Button } from "@/components/ui/button";
 import { ToastAction } from "@/components/ui/toast";
 import { useToast } from "@/hooks/use-toast";
 import useWorkStatus from "@/hooks/use-work-status";
-import { useGetGroupUser } from "@/lib/hooks/queries/use-get-group-user";
-import { GroupUserWithProfile } from "@/lib/hooks/queries/use-get-group-users";
-import { useGetUserProfile } from "@/lib/hooks/queries/use-get-profile";
+import { useGetGroupUser } from "@/hooks/supabase/group/use-get-group-user";
+import { GroupUserWithProfile } from "@/hooks/supabase/group/use-get-group-users";
+import { useGetUserProfile } from "@/hooks/supabase/profile/use-get-profile";
 import { Tables } from "@/lib/supabase/database.types";
 import supabase from "@/lib/supabase/supabaseClient";
-import { useGetGroupUserTomato } from "@/lib/tomatoService";
+import { useGetGroupTomatoUser } from "@/hooks/supabase/group/use-get-group-tomato-user";
 import { cn, getExpiryDateUnixFromDate, TOMATO_EMOJI } from "@/lib/utils";
 import { RealtimeChannel } from "@supabase/supabase-js";
 import { useQueryClient } from "@tanstack/react-query";
@@ -22,45 +22,6 @@ import { useEffect, useState } from "react";
 import Chat from "./chat";
 import ChatInput from "./chat-input";
 import ChatReactions from "./chat-reactions";
-
-const OnlineMark = () => {
-    return <div className="size-2 rounded-full bg-green-500 "></div>;
-};
-
-const User = ({ userID, groupID }: { userID: string; groupID: string }) => {
-    const { data, isError, isLoading } = useGetUserProfile({ user_id: userID });
-    const {
-        data: groupUser,
-        isError: isGroupUserError,
-        isLoading: isGroupUserLoading,
-    } = useGetGroupUser({ userID: userID, groupID: groupID });
-
-    // TODO : handel
-    if (isError || isGroupUserError) return null;
-
-    // TODO : Loading
-
-    return (
-        <div className="flex-col items-center justify-center flex w-full sm:w-[10rem] md:w-[16rem] border p-2 relative rounded-md">
-            <div className="absolute top-1 right-1">
-                <OnlineMark />
-            </div>
-            {groupUser ? (
-                <GroupUserAvatar groupUser={groupUser} usBadge />
-            ) : (
-                <div className="size-12 rounded-lg bg-blue-300"></div>
-            )}
-            <div>{data?.username}</div>
-            <div className="flex flex-col">
-                <span className="text-sm"> Tomatoes {TOMATO_EMOJI}</span>
-                <div className="flex flex-col pl-2 text-xs">
-                    <span>Thrown : not yet</span>
-                    <span>Available : {groupUser?.tomatoes}</span>
-                </div>
-            </div>
-        </div>
-    );
-};
 
 interface TomatoLiveRoomProps {
     targetUser: GroupUserWithProfile;
@@ -101,7 +62,7 @@ export function Room({ targetUser, currentUser }: TomatoLiveRoomProps) {
         isError,
         isLoading,
         refetch,
-    } = useGetGroupUserTomato({
+    } = useGetGroupTomatoUser({
         userID: targetUser.user_id,
         groupID: targetUser.group_id,
     });
@@ -412,5 +373,44 @@ const Footer = ({
                 />
             </div>
         </footer>
+    );
+};
+
+const OnlineMark = () => {
+    return <div className="size-2 rounded-full bg-green-500 "></div>;
+};
+
+const User = ({ userID, groupID }: { userID: string; groupID: string }) => {
+    const { data, isError, isLoading } = useGetUserProfile({ user_id: userID });
+    const {
+        data: groupUser,
+        isError: isGroupUserError,
+        isLoading: isGroupUserLoading,
+    } = useGetGroupUser({ userID: userID, groupID: groupID });
+
+    // TODO : handel
+    if (isError || isGroupUserError) return null;
+
+    // TODO : Loading
+
+    return (
+        <div className="flex-col items-center justify-center flex w-full sm:w-[10rem] md:w-[16rem] border p-2 relative rounded-md">
+            <div className="absolute top-1 right-1">
+                <OnlineMark />
+            </div>
+            {groupUser ? (
+                <GroupUserAvatar groupUser={groupUser} usBadge />
+            ) : (
+                <div className="size-12 rounded-lg bg-blue-300"></div>
+            )}
+            <div>{data?.username}</div>
+            <div className="flex flex-col">
+                <span className="text-sm"> Tomatoes {TOMATO_EMOJI}</span>
+                <div className="flex flex-col pl-2 text-xs">
+                    <span>Thrown : not yet</span>
+                    <span>Available : {groupUser?.tomatoes}</span>
+                </div>
+            </div>
+        </div>
     );
 };

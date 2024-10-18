@@ -20,19 +20,19 @@ import {
     DialogTrigger,
 } from "@/components/ui/dialog";
 import { Progress } from "@/components/ui/progress";
+import { useGetGroup } from "@/hooks/supabase/group/use-get-group";
+import { useGetGroupUserTasks } from "@/hooks/supabase/group/use-get-group-user-tasks";
+import { GroupUserWithProfile } from "@/hooks/supabase/group/use-get-group-users";
 import { useAuth } from "@/hooks/use-auth";
-import { useGetGroup } from "@/lib/hooks/queries/use-get-group";
-import { useGetGroupUserTasks } from "@/lib/hooks/queries/use-get-group-user-tasks";
-import {
-    GroupUserWithProfile,
-    useGetGroupUsers,
-} from "@/lib/hooks/queries/use-get-group-users";
-import { Tables } from "@/lib/supabase/database.types";
-import { useGetGroupTomatoes } from "@/lib/tomatoService";
+
+import SpinnerButton from "@/components/spinner-button";
+import { useDeleteGroupUser } from "@/hooks/supabase/group/use-delete-group-user";
+import { useGetGroupUser } from "@/hooks/supabase/group/use-get-group-user";
+import useLeaderboard from "@/hooks/use-leaderboard";
+import useLevel from "@/hooks/use-level";
+import useScreenSize from "@/hooks/use-screen-size";
 import {
     addOrdinalSuffix,
-    calculateLevel,
-    calculateXPForNextLevel,
     cn,
     timestampSplit,
     TOMATO_EMOJI,
@@ -48,17 +48,12 @@ import {
     Trash2,
     Trophy,
 } from "lucide-react";
-import { Skeleton } from "../ui/skeleton";
-import GroupUserProfile, { GroupUser } from "./group-user-profile";
-import LeaderboardList from "./leaderboard-list";
-import useLeaderboard from "@/hooks/use-leaderboard";
-import useLevel from "@/hooks/use-level";
 import { ScrollArea } from "../ui/scroll-area";
-import useScreenSize from "@/hooks/use-screen-size";
+import { Skeleton } from "../ui/skeleton";
+import { GroupUser } from "./group-user-profile";
+import LeaderboardList from "./leaderboard-list";
 import TomatoGroupUserButton from "./tomato-group-user-button";
-import { useDeleteGroupUser } from "@/lib/hooks/mutations/use-delete-group-user";
-import SpinnerButton from "@/spinner-button";
-import { useGetGroupUser } from "@/lib/hooks/queries/use-get-group-user";
+import { useGetGroupTomatoTargets } from "@/hooks/supabase/group/use-get-group-tomato-targets";
 
 const LeaveGroupDialog = ({
     handleLeaveGroup,
@@ -164,7 +159,7 @@ export default function GroupUserDialog({
         groupID: groupUser.group_id,
         enabled: !!session,
     });
-    const { data: tomatoes } = useGetGroupTomatoes({
+    const { data: tomatoTargets } = useGetGroupTomatoTargets({
         groupID: groupUser.group_id,
         enabled: !!session,
     });
@@ -202,7 +197,7 @@ export default function GroupUserDialog({
         navigate({ to: "/groups", replace: true });
     };
 
-    const target = tomatoes?.find((t) => t.user_id == groupUser.user_id);
+    const target = tomatoTargets?.find((t) => t.user_id == groupUser.user_id);
 
     return (
         <Dialog>

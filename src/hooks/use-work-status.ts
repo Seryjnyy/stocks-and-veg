@@ -1,4 +1,4 @@
-import { isWorkEnabledAtom } from "@/lib/atoms/atoms";
+import { isWorkEnabledAtom } from "@/atoms/atoms";
 import { useGetWorkStatus } from "@/lib/hooks/queries/use-get-work-status";
 import { useAtom } from "jotai";
 import React, { useEffect } from "react";

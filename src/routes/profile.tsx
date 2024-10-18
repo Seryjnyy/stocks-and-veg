@@ -30,8 +30,8 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { useToast } from "@/hooks/use-toast";
-import { useUpdateUsername } from "@/lib/hooks/mutations/use-update-username";
-import SpinnerButton from "@/spinner-button";
+import { useUpdateUsername } from "@/hooks/supabase/profile/use-update-username";
+import SpinnerButton from "@/components/spinner-button";
 import { LogOut, Save } from "lucide-react";
 import { timestampSplit } from "@/lib/utils";
 

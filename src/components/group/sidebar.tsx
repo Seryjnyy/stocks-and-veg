@@ -14,13 +14,13 @@ import GroupUserProfile, {
     GroupUserAvatar,
     UserDetail,
 } from "@/components/group/group-user-profile";
-import { useGetGroupUser } from "@/lib/hooks/queries/use-get-group-user";
+import { useGetGroupUser } from "@/hooks/supabase/group/use-get-group-user";
 import { cn } from "@/lib/utils";
 import { SidebarClose, SidebarOpen } from "lucide-react";
 import { useState } from "react";
 
 import CountdownTimer from "@/components/countdown-timer";
-import { currentSectionInGroupPageAtom } from "@/lib/atoms/atoms";
+import { currentSectionInGroupPageAtom } from "@/atoms/atoms";
 import { useAtom } from "jotai";
 import { GroupSection } from "@/lib/types";
 import useWorkStatus from "@/hooks/use-work-status";

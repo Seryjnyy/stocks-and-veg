@@ -9,9 +9,9 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
-import { useCreateGroup } from "@/lib/hooks/mutations/use-create-group";
+import { useCreateGroup } from "@/hooks/supabase/groups/use-create-group";
 import { GenericFormProps } from "@/lib/types";
-import SpinnerButton from "@/spinner-button";
+import SpinnerButton from "@/components/spinner-button";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Plus } from "lucide-react";
 import { useForm } from "react-hook-form";

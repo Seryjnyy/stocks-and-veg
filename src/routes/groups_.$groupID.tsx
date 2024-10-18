@@ -7,7 +7,7 @@ import {
     CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import { useAuth } from "@/hooks/use-auth";
-import { useGetGroup } from "@/lib/hooks/queries/use-get-group";
+import { useGetGroup } from "@/hooks/supabase/group/use-get-group";
 import { CaretDownIcon, CaretUpIcon, GearIcon } from "@radix-ui/react-icons";
 
 import OtherUsersTasks from "@/components/group/sections/other-users-tasks";

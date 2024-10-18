@@ -1,5 +1,5 @@
 import { useAuth } from "@/hooks/use-auth";
-import { useGetGroupUser } from "@/lib/hooks/queries/use-get-group-user";
+import { useGetGroupUser } from "@/hooks/supabase/group/use-get-group-user";
 import { createFileRoute } from "@tanstack/react-router";
 import { TomatoLiveRoom } from "../components/group/tomato-live/tomato-live-room";
 import DataError from "@/components/data-error";

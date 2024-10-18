@@ -1,5 +1,3 @@
-import { Button } from "@/components/ui/button";
-import { useUploadAvatar } from "@/lib/hooks/mutations/use-upload-avatar";
 import { useAuth } from "@/hooks/use-auth";
 import { createLazyFileRoute, Link } from "@tanstack/react-router";
 

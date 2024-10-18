@@ -8,7 +8,7 @@ import {
     DialogTrigger,
 } from "@/components/ui/dialog";
 import { CONFIG } from "@/lib/config";
-import { GroupUserWithProfile } from "@/lib/hooks/queries/use-get-group-users";
+import { GroupUserWithProfile } from "@/hooks/supabase/group/use-get-group-users";
 import { AlertTriangle } from "lucide-react";
 import React from "react";
 import CreateTaskForm from "./create-task-form";

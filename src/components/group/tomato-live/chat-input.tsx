@@ -10,9 +10,9 @@ import {
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import useWorkStatus from "@/hooks/use-work-status";
-import { GroupUserWithProfile } from "@/lib/hooks/queries/use-get-group-users";
+import { GroupUserWithProfile } from "@/hooks/supabase/group/use-get-group-users";
 import { Tables } from "@/lib/supabase/database.types";
-import SpinnerButton from "@/spinner-button";
+import SpinnerButton from "@/components/spinner-button";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useAtom } from "jotai";
 import { ArrowUp } from "lucide-react";

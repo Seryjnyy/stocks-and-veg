@@ -1,11 +1,11 @@
 import { useAuth } from "@/hooks/use-auth";
 import useWorkStatus from "@/hooks/use-work-status";
-import { useCreateTaskCompletion } from "@/lib/hooks/mutations/use-create-task-completion";
-import { useDeleteTaskCompletion } from "@/lib/hooks/mutations/use-delete-task-completion";
+import { useCreateTaskCompletion } from "@/hooks/supabase/group/use-create-task-completion";
+import { useDeleteTaskCompletion } from "@/hooks/supabase/group/use-delete-task-completion";
 import { TaskWithCompletion } from "@/lib/types";
 import { cn, timestampSplit } from "@/lib/utils";
 
-import SpinnerButton from "@/spinner-button";
+import SpinnerButton from "@/components/spinner-button";
 import { CheckIcon } from "@radix-ui/react-icons";
 import { useQueryClient } from "@tanstack/react-query";
 import { Undo2 } from "lucide-react";

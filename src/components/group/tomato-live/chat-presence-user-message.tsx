@@ -1,5 +1,5 @@
 import { UserAvatar } from "@/components/group/group-user-profile";
-import { useGetUserProfile } from "@/lib/hooks/queries/use-get-profile";
+import { useGetUserProfile } from "@/hooks/supabase/profile/use-get-profile";
 import { EnterIcon, ExitIcon } from "@radix-ui/react-icons";
 
 interface ChatPresenceUserMessageProps {

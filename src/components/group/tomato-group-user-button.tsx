@@ -6,7 +6,7 @@ import { buttonVariants } from "@/components/ui/button";
 import { EyeIcon } from "lucide-react";
 import { VariantProps } from "class-variance-authority";
 import useWorkStatus from "@/hooks/use-work-status";
-import SpinnerButton from "@/spinner-button";
+import SpinnerButton from "@/components/spinner-button";
 
 const TomatoButton = ({
     isUs,

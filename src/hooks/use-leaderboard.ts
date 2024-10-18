@@ -1,4 +1,4 @@
-import { useGetGroupUsers } from "@/lib/hooks/queries/use-get-group-users";
+import { useGetGroupUsers } from "@/hooks/supabase/group/use-get-group-users";
 import { useMemo } from "react";
 
 export default function useLeaderboard({
