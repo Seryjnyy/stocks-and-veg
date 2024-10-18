@@ -62,11 +62,7 @@ function Group() {
     }
 
     if (isLoading) {
-        return (
-            <div className="flex justify-center items-center px-12  py-12">
-                <Loading />
-            </div>
-        );
+        return <Loading variant={"page"} />;
     }
 
     if (data == null) {

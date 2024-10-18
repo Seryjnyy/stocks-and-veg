@@ -298,11 +298,7 @@ function InviteLink() {
     }
 
     if (isLoading) {
-        return (
-            <div className="flex flex-col items-center justify-center h-[50vh] gap-4">
-                <Loading />
-            </div>
-        );
+        return <Loading variant={"page"} />;
     }
 
     if (!inviteLinkData) {
