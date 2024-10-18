@@ -1,5 +1,5 @@
 import React from "react";
-import LeaderboardList from "./leaderboard-list";
+import LeaderboardList from "../leaderboard-list";
 import { useAuth } from "@/hooks/use-auth";
 
 export default function Leaderboard({ groupID }: { groupID: string }) {

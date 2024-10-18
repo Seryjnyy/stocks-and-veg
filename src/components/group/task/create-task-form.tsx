@@ -11,7 +11,6 @@ import { Input } from "@/components/ui/input";
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
 import useWorkStatus from "@/hooks/use-work-status";
-import { CONFIG } from "@/lib/config";
 import { useCreateTask } from "@/lib/hooks/mutations/use-create-task";
 import { GroupUserWithProfile } from "@/lib/hooks/queries/use-get-group-users";
 import { GenericFormProps } from "@/lib/types";

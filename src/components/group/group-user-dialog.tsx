@@ -55,7 +55,7 @@ import useLeaderboard from "@/hooks/use-leaderboard";
 import useLevel from "@/hooks/use-level";
 import { ScrollArea } from "../ui/scroll-area";
 import useScreenSize from "@/hooks/use-screen-size";
-import TomatoGroupUserButton from "../tomato-group-user-button";
+import TomatoGroupUserButton from "./tomato-group-user-button";
 import { useDeleteGroupUser } from "@/lib/hooks/mutations/use-delete-group-user";
 import SpinnerButton from "@/spinner-button";
 import { useGetGroupUser } from "@/lib/hooks/queries/use-get-group-user";

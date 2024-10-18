@@ -1,4 +1,4 @@
-import React from "react";
+import { Alert } from "@/components/ui/alert";
 import {
     Dialog,
     DialogContent,
@@ -7,14 +7,13 @@ import {
     DialogTitle,
     DialogTrigger,
 } from "@/components/ui/dialog";
-import { Button } from "../ui/button";
-import CreateTaskForm from "./create-task-form";
 import { CONFIG } from "@/lib/config";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { AlertTriangle } from "lucide-react";
 import { GroupUserWithProfile } from "@/lib/hooks/queries/use-get-group-users";
+import { AlertTriangle } from "lucide-react";
+import React from "react";
+import CreateTaskForm from "./create-task-form";
 
-export default function GroupCreateTaskModal({
+export default function GroupCreateTaskDialog({
     userTasksCount,
     children,
     groupUser,

@@ -276,6 +276,12 @@ export function TomatoLiveRoomComponent({
         }
     }, [targetUserTomato]);
 
+    useEffect(() => {
+        if (!isWorkEnabled) {
+            setIsSessionValid(false);
+        }
+    }, [isWorkEnabled]);
+
     // TODO : debounce not working, making multiple calls regardless
     // const intermediate = debounce(() => {
     //     handleThrowTomato();

@@ -3,12 +3,10 @@ import Loading from "@/components/loading";
 import { useGetGroupTasks } from "@/lib/hooks/queries/use-get-group-tasks";
 import { useGetGroupUsers } from "@/lib/hooks/queries/use-get-group-users";
 import { TaskWithCompletion } from "@/lib/types";
-import { cn } from "@/lib/utils";
-import { CheckIcon } from "@radix-ui/react-icons";
-import GroupUserProfile from "./group-user-profile";
-import Task from "./task/task";
+import GroupUserProfile from "../group-user-profile";
+import Task from "../task/task";
 
-export default function GroupOtherUsersTasks({ groupID }: { groupID: string }) {
+export default function OtherUsersTasks({ groupID }: { groupID: string }) {
     const {
         data: tasks,
         isError,
@@ -30,46 +28,31 @@ export default function GroupOtherUsersTasks({ groupID }: { groupID: string }) {
     return (
         <div>
             <ul className="space-y-16">
-                <GroupTasksList tasks={tasks || []} />
+                <GroupedTasksList tasks={tasks || []} />
             </ul>
         </div>
     );
 }
 
-const GroupTask = ({ task }: { task: TaskWithCompletion }) => {
-    // const { data, isError, isLoading } = useGetUserProfile({
-    //     user_id: task.user_id,
-    // });
+const GroupedTasksList = ({ tasks }: { tasks: TaskWithCompletion[] }) => {
+    const groupedByUserID = tasks.reduce(
+        (grouped, task) => {
+            const { user_id } = task;
+            if (!grouped[user_id]) {
+                grouped[user_id] = [];
+            }
 
-    // TODO : Idk if this is a good approach, the group page should get group_users with profile data, and use that everywhere
-    const { data, isError, isLoading } = useGetGroupUsers({
-        groupID: task.group_id,
-    });
-
-    if (isLoading) return null;
-
-    if (isError) return null;
-
-    const user = data?.find((groupUser) => groupUser.user_id == task.user_id);
-
-    if (!user) return null;
-
-    // const className = "bg-purple-950/30";
-    const className = "";
-
-    return (
-        <li
-            className={cn(
-                "p-2 border flex justify-between px-8 rounded-lg w-full",
-                className
-            )}
-        >
-            <span className="text-xl ">{task.name}</span>
-            <div className="flex items-center">
-                {task.task_completion.length > 0 && <CheckIcon />}
-            </div>
-        </li>
+            grouped[user_id].push(task);
+            return grouped;
+        },
+        {} as Record<string, TaskWithCompletion[]>
     );
+
+    return Object.entries(groupedByUserID)
+        .map(([userID, tasks]) => ({ userID: userID, tasks: tasks }))
+        .map((userTasks, index) => (
+            <Grouped key={index} userTasks={userTasks} />
+        ));
 };
 
 const Grouped = ({
@@ -130,9 +113,7 @@ const Grouped = ({
                         </span>
                     )}
                     <ul className="flex flex-col gap-2">
-                        {uncompletedTasks.map((task) => (
-                            <Task key={task.id} task={task} complete />
-                        ))}
+                        <TaskList tasks={uncompletedTasks} />
                     </ul>
                 </li>
                 <li>
@@ -142,9 +123,7 @@ const Grouped = ({
                         </span>
                     )}
                     <ul className="flex flex-col gap-2">
-                        {completedTasks.map((task) => (
-                            <Task key={task.id} task={task} />
-                        ))}
+                        <TaskList tasks={completedTasks} />
                     </ul>
                 </li>
             </ul>
@@ -153,23 +132,6 @@ const Grouped = ({
     );
 };
 
-const GroupTasksList = ({ tasks }: { tasks: TaskWithCompletion[] }) => {
-    const groupedByUserID = tasks.reduce(
-        (grouped, task) => {
-            const { user_id } = task;
-            if (!grouped[user_id]) {
-                grouped[user_id] = [];
-            }
-
-            grouped[user_id].push(task);
-            return grouped;
-        },
-        {} as Record<string, TaskWithCompletion[]>
-    );
-
-    return Object.entries(groupedByUserID)
-        .map(([userID, tasks]) => ({ userID: userID, tasks: tasks }))
-        .map((userTasks, index) => (
-            <Grouped key={index} userTasks={userTasks} />
-        ));
+const TaskList = ({ tasks }: { tasks: TaskWithCompletion[] }) => {
+    return tasks.map((task) => <Task key={task.id} task={task} />);
 };

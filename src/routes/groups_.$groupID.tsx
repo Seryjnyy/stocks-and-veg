@@ -1,356 +1,57 @@
+import DataError from "@/components/data-error";
+import Loading from "@/components/loading";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import {
     Collapsible,
     CollapsibleContent,
     CollapsibleTrigger,
 } from "@/components/ui/collapsible";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import DataError from "@/components/data-error";
-import Loading from "@/components/loading";
-import {
-    AlertDialog,
-    AlertDialogAction,
-    AlertDialogCancel,
-    AlertDialogContent,
-    AlertDialogDescription,
-    AlertDialogFooter,
-    AlertDialogHeader,
-    AlertDialogTitle,
-    AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
-import { Button, buttonVariants } from "@/components/ui/button";
 import { useAuth } from "@/hooks/use-auth";
-import { useCopyToClipboard } from "@/hooks/use-copy-to-clipboard";
-import { useToast } from "@/hooks/use-toast";
-import { CONFIG } from "@/lib/config";
-import { useCreateInviteLink } from "@/lib/hooks/mutations/use-create-invite-link";
 import { useGetGroup } from "@/lib/hooks/queries/use-get-group";
-import {
-    GroupUserWithProfile,
-    useGetGroupUsers,
-} from "@/lib/hooks/queries/use-get-group-users";
-import { useGetInviteLink } from "@/lib/hooks/queries/use-get-invite-link";
-import { formatInviteLink, TOMATO_EMOJI } from "@/lib/utils";
-import SpinnerButton from "@/spinner-button";
-import {
-    CaretDownIcon,
-    CaretUpIcon,
-    Cross1Icon,
-    GearIcon,
-    ReloadIcon,
-} from "@radix-ui/react-icons";
+import { CaretDownIcon, CaretUpIcon, GearIcon } from "@radix-ui/react-icons";
 
-import GroupOtherUsersTasks from "@/components/group/group-other-users-tasks";
-import GroupTodaysTargets from "@/components/group/group-todays-targets";
-import GroupUserProfile from "@/components/group/group-user-profile";
+import OtherUsersTasks from "@/components/group/sections/other-users-tasks";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Tables } from "@/lib/supabase/database.types";
-import { cn } from "@/lib/utils";
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import {
     AlertCircleIcon,
     AlertTriangle,
     CheckCheckIcon,
     CheckSquare,
-    Copy,
-    Cross,
     CrownIcon,
     Info,
-    RefreshCw,
     Target,
-    Trash2,
     Trophy,
     UserPlus,
-    Users,
+    Users as UsersIcon,
 } from "lucide-react";
 import { useState } from "react";
-
 import BackButton from "@/components/back-button";
-
-import GroupYourTasksToday from "@/components/group/group-your-tasks-today";
+import GroupSection from "@/components/group/sections/group-section";
+import Invite from "@/components/group/sections/invite";
+import Leaderboard from "@/components/group/sections/leaderboard";
+import Manage from "@/components/group/sections/manage";
+import TodaysTargets from "@/components/group/sections/todays-targets";
+import Users from "@/components/group/sections/users";
+import YourTasksToday from "@/components/group/sections/your-tasks-today";
 import Sidebar from "@/components/group/sidebar";
-import { useDeleteGroup } from "@/lib/hooks/mutations/use-delete-group";
-import { GroupSection as GroupSectionType } from "@/lib/types";
-import GroupSection from "@/components/group/group-section";
-import Leaderboard from "@/components/group/leaderboard";
-import TypeToConfirmAlertDialog from "@/components/type-to-confirm-alert-dialog";
 import useWorkStatus from "@/hooks/use-work-status";
+import { GroupSection as GroupSectionType } from "@/lib/types";
+import WorkOverBanner from "@/components/group/work-over-banner";
 
 export const Route = createFileRoute("/groups/$groupID")({
-    component: GroupTwo,
+    component: Group,
 });
 
-const GroupUsersList = ({ users }: { users: GroupUserWithProfile[] }) => {
-    return users.map((user) => (
-        <GroupUserProfile
-            groupUser={user}
-            key={user.id}
-            progressBar={true}
-            usBadge
-            creatorBadge
-            viewMore
-            variant="dashed"
-            detailSize={"responsive"}
-        />
-    ));
-};
-
-const GroupUsers = ({ groupID }: { groupID: string }) => {
-    const { data, error } = useGetGroupUsers({
-        groupID: groupID,
-    });
-
-    if (error) {
-        return <div>error</div>;
-    }
-
-    return (
-        <>
-            <span className="absolute -top-6 right-0 text-xs text-muted-foreground">
-                {(data || []).length}/{CONFIG.maxGroupUsers}
-            </span>
-            <div>
-                <ul className="flex  gap-2 flex-wrap justify-center">
-                    <GroupUsersList users={data || []} />
-                </ul>
-            </div>
-        </>
-    );
-};
-
-// TODO : error unhandled
-export default function InviteSection({ groupID }: { groupID: string }) {
-    const { data, isError, isLoading } = useGetInviteLink({ groupID: groupID });
-    const { mutateAsync: createInviteLink, isPending } = useCreateInviteLink();
-    const { toast } = useToast();
-    const [copiedText, copy] = useCopyToClipboard();
-
-    const handleCopy = (text: string) => {
-        copy(text)
-            .then(() => {
-                toast({
-                    title: "Successfully copied invite link.",
-                });
-            })
-            .catch((error) => {
-                toast({
-                    title: "Failed to copy invite link.",
-                    variant: "destructive",
-                });
-            });
-    };
-
-    const handleGenerateLink = () => {
-        createInviteLink(
-            [
-                {
-                    id: data?.id ?? undefined,
-                    group_id: groupID,
-                    token: "",
-                    expires_at: new Date().toISOString(),
-                    used: false,
-                },
-            ],
-            {
-                onSuccess: () => {
-                    toast({
-                        title: "Successfully generated invite link.",
-                        description:
-                            "Invite link was copied to your clipboard.",
-                    });
-                },
-                onError: () => {
-                    toast({
-                        title: "Failed to generate invite link.",
-                        variant: "destructive",
-                    });
-                },
-            }
-        );
-    };
-
-    const isInviteLinkExpired = data
-        ? new Date() > new Date(data.expires_at)
-        : false;
-
-    const isInviteLinkUsed = data?.used ?? false;
-
-    return (
-        <>
-            {data && (
-                <Badge
-                    className="absolute -top-8 right-0"
-                    variant={
-                        isInviteLinkExpired || isInviteLinkUsed
-                            ? "destructive"
-                            : "secondary"
-                    }
-                >
-                    {isInviteLinkExpired
-                        ? "Expired"
-                        : isInviteLinkUsed
-                          ? "Used"
-                          : "Active"}
-                </Badge>
-            )}
-            <Card className="w-full border-none">
-                <CardContent className="px-0">
-                    <div className="space-y-4">
-                        {data ? (
-                            <div className="flex items-center space-x-2">
-                                <code
-                                    className={cn(
-                                        "flex-1 p-2 bg-muted rounded text-sm break-all",
-                                        {
-                                            "select-none text-muted-foreground/50":
-                                                isInviteLinkExpired ||
-                                                isInviteLinkUsed,
-                                        }
-                                    )}
-                                >
-                                    {formatInviteLink(data?.token)}
-                                </code>
-                                <Button
-                                    size="icon"
-                                    onClick={() => {
-                                        if (data) {
-                                            handleCopy(
-                                                formatInviteLink(data?.token)
-                                            );
-                                        }
-                                    }}
-                                    disabled={
-                                        data == null ||
-                                        isInviteLinkExpired ||
-                                        isInviteLinkUsed ||
-                                        isLoading ||
-                                        isPending
-                                    }
-                                >
-                                    <Copy className="h-4 w-4" />
-                                </Button>
-                            </div>
-                        ) : (
-                            <p className="text-center text-muted-foreground">
-                                No active invite link
-                            </p>
-                        )}
-                        <SpinnerButton
-                            isPending={isPending}
-                            disabled={isPending || isLoading}
-                            disableWorkCheck
-                            onClick={handleGenerateLink}
-                            className="w-full"
-                            variant={"outline"}
-                        >
-                            <RefreshCw className="mr-2 h-4 w-4" />
-                            {data ? "Generate New Link" : "Create Invite Link"}
-                        </SpinnerButton>
-                        <p className="text-sm text-muted-foreground">
-                            Get a invite link and share it with your friend.
-                            They can visit the link to join this group.
-                            <br />
-                            Invite links are valid for a day.
-                        </p>
-                    </div>
-                </CardContent>
-            </Card>
-        </>
-    );
-}
-
-const GroupManage = ({ group }: { group: Tables<"group"> }) => {
-    const isWorkEnabled = useWorkStatus();
-    const { mutateAsync: deleteGroup } = useDeleteGroup();
-
-    const { toast } = useToast();
-    const navigate = useNavigate();
-
-    const handleDeleteGroup = async () => {
-        await deleteGroup(
-            { id: group.id },
-            {
-                onSuccess: () => {
-                    // TODO : both of these don't work
-                    toast({
-                        title: "Successfully deleted group.",
-                    });
-                },
-                onError: () => {
-                    toast({
-                        title: "Failed to delete group.",
-                        variant: "destructive",
-                    });
-                },
-            }
-        );
-
-        navigate({
-            to: "/groups",
-        });
-    };
-
-    const handleResetTasks = async () => {
-        if (!isWorkEnabled) return;
-
-        console.error("Not implemented.");
-    };
-
-    const handleResetStats = async () => {
-        if (!isWorkEnabled) return;
-
-        console.error("Not implemented.");
-    };
-    return (
-        <div className="flex flex-col gap-4">
-            <TypeToConfirmAlertDialog
-                title="Are you sure you want to delete this group?"
-                description="This action cannot be undone. This will permanently delete this group along with all associated data."
-                onConfirm={handleDeleteGroup}
-                confirmText={group.name}
-                buttonContent={
-                    <>
-                        <Trash2 className="size-3 mr-2" /> Delete group
-                    </>
-                }
-            />
-
-            <TypeToConfirmAlertDialog
-                title="Are you sure you want to reset stats?"
-                description="This action cannot be undone. This will permanently delete all stats. Meaning a fresh start. Tasks will remain."
-                onConfirm={handleResetStats}
-                confirmText={group.name}
-                buttonContent={
-                    <>
-                        <ReloadIcon className="size-3 mr-2" /> Reset all stats
-                    </>
-                }
-            />
-            <TypeToConfirmAlertDialog
-                title="Are you sure you want to reset all tasks?"
-                description="This action cannot be undone. This will permanently delete all tasks. Meaning a fresh start. Stats will remain."
-                onConfirm={handleResetTasks}
-                confirmText={group.name}
-                buttonContent={
-                    <>
-                        <ReloadIcon className="size-3 mr-2" /> Reset all tasks
-                    </>
-                }
-            />
-        </div>
-    );
-};
-
 // TODO : is it better to drill stuff like session, or let components use useAuth hook?
-function GroupTwo() {
+function Group() {
     const { groupID } = Route.useParams();
     const { session } = useAuth();
     const { data, error, isLoading } = useGetGroup({
         enabled: !!session,
         groupID: groupID,
     });
+    const isWorkEnabled = useWorkStatus();
 
     if (error) {
         return (
@@ -384,19 +85,19 @@ function GroupTwo() {
             icon: Target,
             label: "Todays targets",
             value: "todays-targets-section",
-            section: <GroupTodaysTargets group={data} />,
+            section: <TodaysTargets group={data} />,
         },
         {
             icon: CheckSquare,
             label: "Your tasks for today",
             value: "your-tasks-for-today-section",
-            section: <GroupYourTasksToday groupID={groupID} />,
+            section: <YourTasksToday groupID={groupID} />,
         },
         {
             icon: CheckCheckIcon,
             label: "Other user tasks",
             value: "other-user-tasks-section",
-            section: <GroupOtherUsersTasks groupID={groupID} />,
+            section: <OtherUsersTasks groupID={groupID} />,
         },
         {
             icon: Trophy,
@@ -405,22 +106,22 @@ function GroupTwo() {
             section: <Leaderboard groupID={groupID} />,
         },
         {
-            icon: Users,
+            icon: UsersIcon,
             label: "Group users",
             value: "group-users-section",
-            section: <GroupUsers groupID={groupID} />,
+            section: <Users groupID={groupID} />,
         },
         {
             icon: UserPlus,
             label: "Invite",
             value: "invite-section",
-            section: <InviteSection groupID={groupID} />,
+            section: <Invite groupID={groupID} />,
         },
         {
             icon: GearIcon,
             label: "Manage group",
             value: "manage-group-section",
-            section: <GroupManage group={data} />,
+            section: <Manage group={data} />,
         },
     ];
 
@@ -435,7 +136,6 @@ function GroupTwo() {
                   section.value == "manage-group-section"
               )
                   return undefined;
-
               return section;
           });
 
@@ -443,11 +143,12 @@ function GroupTwo() {
         <div className="flex flex-col h-[calc(100vh-4.1rem)] overflow-hidden">
             <div className="flex flex-1 overflow-hidden relative">
                 <Sidebar groupID={groupID} sections={filteredSection} />
-                {/* Main Content */}
                 <main className="flex-1 overflow-y-auto relative">
-                    <div className="w-full sticky top-0 z-50">
-                        <WorkOverMessage />
-                    </div>
+                    {!isWorkEnabled && (
+                        <div className="w-full sticky top-0 z-50">
+                            <WorkOverBanner />
+                        </div>
+                    )}
                     {/* Shadow thingy so looks like components disappearing into void */}
                     {/* <div className="w-full h-[5rem] sticky top-0 bg-gradient-to-b  from-background to-transparent"></div> */}
                     <h1 className="font-bold text-7xl text-center text-muted-foreground mb-32 mt-10">
@@ -473,55 +174,3 @@ function GroupTwo() {
         </div>
     );
 }
-
-const WorkOverMessage = () => {
-    const [isOpen, setIsOpen] = useState(false);
-
-    return (
-        <Collapsible
-            open={isOpen}
-            onOpenChange={setIsOpen}
-            className="relative"
-        >
-            <CollapsibleTrigger className="flex bg-blue-800 w-full items-center gap-2 px-4 absolute top-0 z-50 justify-between">
-                {!isOpen && (
-                    <>
-                        <div className="flex items-center gap-2">
-                            <AlertCircleIcon className="size-3" /> Todays work
-                            is over.{" "}
-                        </div>
-                        <CaretDownIcon />
-                    </>
-                )}
-                {isOpen && (
-                    <div className="w-full flex justify-end py-1">
-                        <CaretUpIcon />
-                    </div>
-                )}
-            </CollapsibleTrigger>
-            <CollapsibleContent className="bg-blue-800 ">
-                <Alert className="bg-inherit py-6 border-none rounded-none px-12 ">
-                    <AlertTitle className="flex items-center">
-                        <AlertTriangle className="size-4 mr-2" /> Well, that's a
-                        wrap! Today is officially DONE. 🎉
-                    </AlertTitle>
-                    <AlertDescription className="space-y-6">
-                        <div className="text-white opacity-80 max-w-[40rem]">
-                            The day's hustle has officially expired. Make sure
-                            you swing by after (time) to check off your
-                            accomplishments once again, and, of course, shame
-                            the slackers.
-                        </div>
-                        <div className="flex items-start text-xs max-w-[29rem] text-white opacity-70">
-                            <Info className="size-6 mr-2" />
-                            We hit the reset button daily at (time), wiping the
-                            slate clean and getting ready to judge all over
-                            again. Make sure your tasks are checked off by then,
-                            or else... 🍅👀
-                        </div>
-                    </AlertDescription>
-                </Alert>
-            </CollapsibleContent>
-        </Collapsible>
-    );
-};

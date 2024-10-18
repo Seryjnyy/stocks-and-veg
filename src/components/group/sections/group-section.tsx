@@ -2,7 +2,6 @@ import { currentSectionInGroupPageAtom } from "@/lib/atoms/atoms";
 import { cn } from "@/lib/utils";
 import { ReactNode } from "@tanstack/react-router";
 import { useAtom } from "jotai";
-import React from "react";
 import { InView } from "react-intersection-observer";
 
 interface GroupSectionProps {

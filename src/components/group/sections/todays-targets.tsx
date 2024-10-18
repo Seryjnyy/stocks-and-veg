@@ -6,57 +6,12 @@ import { useGetGroupUser } from "@/lib/hooks/queries/use-get-group-user";
 import { Tables } from "@/lib/supabase/database.types";
 import { useGetGroupTomatoes } from "@/lib/tomatoService";
 import { ArrowDown } from "lucide-react";
-import CountdownTimer from "../countdown-timer";
+import CountdownTimer from "../../countdown-timer";
 import TomatoGroupUserButton from "../tomato-group-user-button";
-import { Skeleton } from "../ui/skeleton";
-import GroupUserProfile from "./group-user-profile";
-import GroupUserNotFound from "../errors";
+import { Skeleton } from "../../ui/skeleton";
+import GroupUserProfile from "../group-user-profile";
 
-const Target = ({ target }: { target: Tables<"tomato_target"> }) => {
-    const { data, isError, isLoading } = useGetGroupUser({
-        groupID: target.group_id,
-        userID: target.user_id,
-    });
-
-    return (
-        <div className="flex justify-between items-center border rounded-lg  px-4 py-1 flex-wrap gap-2">
-            {data && (
-                <GroupUserProfile
-                    groupUser={data}
-                    viewMore
-                    // variant={"dashed"}
-                    usBadge
-                    creatorBadge
-                />
-            )}
-            {/* {isError || (!data && <GroupUserNotFound />)} */}
-            {isLoading && <Skeleton className="w-[16rem] h-16" />}
-            <div className="flex flex-row  items-center gap-2  p-2">
-                <span className="text-sm text-muted-foreground">
-                    Tomatoes received so far
-                </span>
-                <span className="text-lg font-bold">
-                    {target.tomatoes_received}
-                </span>
-            </div>
-            <TomatoGroupUserButton target={target} />
-        </div>
-    );
-};
-
-const TargetsList = ({ targets }: { targets: Tables<"tomato_target">[] }) => {
-    return targets.map((target) => (
-        <li key={target.id}>
-            <Target target={target} />
-        </li>
-    ));
-};
-
-export default function GroupTodaysTargets({
-    group,
-}: {
-    group: Tables<"group">;
-}) {
+export default function TodaysTargets({ group }: { group: Tables<"group"> }) {
     const { data, isError, isLoading } = useGetGroupTomatoes({
         groupID: group.id,
     });
@@ -98,9 +53,50 @@ export default function GroupTodaysTargets({
                 )}
 
                 <ul className="space-y-2">
-                    <TargetsList targets={data || []} />
+                    <TargetList targets={data || []} />
                 </ul>
             </div>
         </>
     );
 }
+
+const TargetList = ({ targets }: { targets: Tables<"tomato_target">[] }) => {
+    return targets.map((target) => (
+        <li key={target.id}>
+            <Target target={target} />
+        </li>
+    ));
+};
+
+const Target = ({ target }: { target: Tables<"tomato_target"> }) => {
+    // TODO: Error not handled
+    const { data, isError, isLoading } = useGetGroupUser({
+        groupID: target.group_id,
+        userID: target.user_id,
+    });
+
+    return (
+        <div className="flex justify-between items-center border rounded-lg  px-4 py-1 flex-wrap gap-2">
+            {data && (
+                <GroupUserProfile
+                    groupUser={data}
+                    viewMore
+                    // variant={"dashed"}
+                    usBadge
+                    creatorBadge
+                />
+            )}
+            {/* {isError || (!data && <GroupUserNotFound />)} */}
+            {isLoading && <Skeleton className="w-[16rem] h-16" />}
+            <div className="flex flex-row  items-center gap-2  p-2">
+                <span className="text-sm text-muted-foreground">
+                    Tomatoes received so far
+                </span>
+                <span className="text-lg font-bold">
+                    {target.tomatoes_received}
+                </span>
+            </div>
+            <TomatoGroupUserButton target={target} />
+        </div>
+    );
+};
