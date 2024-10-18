@@ -26,7 +26,8 @@ declare module "@tanstack/react-router" {
 const App = () => {
     const auth = useAuth();
 
-    console.log(auth.session);
+    // TODO : why so many rerenders?
+    // console.log(auth.session);
     return <RouterProvider router={router} context={{ auth }} />;
 };
 

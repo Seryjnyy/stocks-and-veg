@@ -75,9 +75,21 @@ export default {
                         opacity: 0,
                     },
                 },
+                reaction: {
+                    "0%": {
+                        opacity: 1,
+                        transform: "translateY(-25px)",
+                    },
+
+                    "100%": {
+                        opacity: 0,
+                        transform: "translateY(-200px)", // Increased distance to 200px
+                    },
+                },
             },
             animation: {
                 explosion: "explode 2s cubic-bezier(0,0,0.2,1) forwards",
+                reaction: "reaction 2s cubic-bezier(0,0,0.2,1) forwards",
             },
         },
     },

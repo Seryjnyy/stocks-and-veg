@@ -1,5 +1,5 @@
 import { useAuth } from "@/hooks/use-auth";
-import { TOMATO_EMOJI } from "@/lib/utils";
+import { cn, TOMATO_EMOJI } from "@/lib/utils";
 import { Link, useLocation, useNavigate } from "@tanstack/react-router";
 import { User2 } from "lucide-react";
 import { Button } from "./ui/button";
@@ -23,7 +23,11 @@ import {
     SheetTitle,
     SheetTrigger,
 } from "@/components/ui/sheet";
-import { UserAvatar, UserDetail } from "./group/group-user-profile";
+import {
+    UserAvatar,
+    UserDetail,
+    userDetailVariants,
+} from "./group/group-user-profile";
 
 export default function Nav() {
     const { session, signOut, profile } = useAuth();
@@ -83,7 +87,14 @@ export default function Nav() {
                                                 size={"xs"}
                                             />
                                         )}
-                                        <span className="ml-2 max-w-[5rem] truncate">
+                                        <span
+                                            className={cn(
+                                                userDetailVariants({
+                                                    size: "lg",
+                                                }),
+                                                "ml-2 min-w-fit"
+                                            )}
+                                        >
                                             {profile?.username}
                                         </span>
                                     </Button>
