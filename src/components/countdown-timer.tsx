@@ -12,6 +12,7 @@ export default function CountdownTimer({
 }) {
     const [timeLeft, setTimeLeft] = useState<number | undefined>(undefined);
 
+    // TODO : I want to put this in a hook, with some global state or something to ensure its synchronised everywhere
     useEffect(() => {
         const dateNow = Date.parse(new Date().toISOString());
         const dateExpiry = getExpiryDateUnixFromDate(expireDate);

@@ -1,9 +1,9 @@
 import { VariantProps } from "class-variance-authority";
 import React from "react";
-import { Button, buttonVariants } from "./components/ui/button";
+import { Button, buttonVariants } from "./ui/button";
 import { Clock, Loader2 } from "lucide-react";
-import { cn } from "./lib/utils";
-import useWorkStatus from "./hooks/use-work-status";
+import { cn } from "../lib/utils";
+import useWorkStatus from "../hooks/use-work-status";
 
 export interface ButtonProps
     extends React.ButtonHTMLAttributes<HTMLButtonElement>,
