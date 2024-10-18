@@ -1,74 +1,27 @@
-import {
-    Form,
-    FormControl,
-    FormDescription,
-    FormField,
-    FormItem,
-    FormLabel,
-    FormMessage,
-} from "@/components/ui/form";
-import {
-    Collapsible,
-    CollapsibleContent,
-    CollapsibleTrigger,
-} from "@/components/ui/collapsible";
+import BackButton from "@/components/back-button";
 import CountdownTimer from "@/components/countdown-timer";
-import {
-    avatarVariants,
-    GroupUserAvatar,
-    UserAvatar,
-} from "@/components/group/group-user-profile";
+import { GroupUserAvatar } from "@/components/group/group-user-profile";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import useScreenSize from "@/hooks/use-screen-size";
-import { toast, useToast } from "@/hooks/use-toast";
+import { ToastAction } from "@/components/ui/toast";
+import { useToast } from "@/hooks/use-toast";
+import useWorkStatus from "@/hooks/use-work-status";
 import { useGetGroupUser } from "@/lib/hooks/queries/use-get-group-user";
 import { GroupUserWithProfile } from "@/lib/hooks/queries/use-get-group-users";
 import { useGetUserProfile } from "@/lib/hooks/queries/use-get-profile";
+import { Tables } from "@/lib/supabase/database.types";
 import supabase from "@/lib/supabase/supabaseClient";
 import { useGetGroupUserTomato } from "@/lib/tomatoService";
 import { cn, getExpiryDateUnixFromDate, TOMATO_EMOJI } from "@/lib/utils";
-import {
-    ArrowLeftIcon,
-    CaretDownIcon,
-    CaretUpIcon,
-    ChatBubbleIcon,
-    EnterIcon,
-    ExitIcon,
-} from "@radix-ui/react-icons";
 import { RealtimeChannel } from "@supabase/supabase-js";
 import { useQueryClient } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import { differenceInMilliseconds } from "date-fns";
-import debounce from "lodash/debounce";
-import {
-    ArrowDownIcon,
-    ArrowLeft,
-    ArrowRight,
-    ArrowUp,
-    Clock,
-    Loader2,
-    Users,
-    Users2,
-} from "lucide-react";
-import { useEffect, useRef, useState } from "react";
-import { useAuth } from "@/hooks/use-auth";
-import { Timeout } from "node_modules/@tanstack/react-router/dist/esm/utils";
-import { useChatSubscription } from "./use-chat-subscription";
-import { useCreateChatMsg } from "./use-create-chat-msg";
-import { Tables } from "@/lib/supabase/database.types";
-import { useGetTomatoTargetChatMsgs } from "./use-get-tomato-target-chat-msgs";
-import SpinnerButton from "@/spinner-button";
-import { z } from "zod";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import { useInView } from "react-intersection-observer";
-import { Provider, useStore } from "jotai";
-import BackButton from "@/components/back-button";
-import { atom, createStore, useAtom } from "jotai";
-import { Toast, ToastAction } from "@/components/ui/toast";
-import useWorkStatus from "@/hooks/use-work-status";
+import { atom, Provider, useAtom } from "jotai";
+import { ArrowLeft, Clock, Loader2, Users2 } from "lucide-react";
+import { useEffect, useState } from "react";
+import Chat from "./chat";
+import ChatInput from "./chat-input";
+import ChatReactions from "./chat-reactions";
 
 const OnlineMark = () => {
     return <div className="size-2 rounded-full bg-green-500 "></div>;
@@ -109,7 +62,7 @@ const User = ({ userID, groupID }: { userID: string; groupID: string }) => {
     );
 };
 
-interface TestProps {
+interface TomatoLiveRoomProps {
     targetUser: GroupUserWithProfile;
     currentUser: GroupUserWithProfile;
 }
@@ -118,24 +71,20 @@ interface TestProps {
 // Then also need to refetch their group data whenever they send a message that they threw stuff
 // TODO : in parent component make sure user can't get here if not authorised
 
-const sessionErrorAtom = atom("");
-const isSessionValidAtom = atom(true);
+export const isSessionValidAtom = atom(true);
 
-export function TomatoLiveRoom({ targetUser, currentUser }: TestProps) {
+export function TomatoLiveRoom({
+    targetUser,
+    currentUser,
+}: TomatoLiveRoomProps) {
     return (
         <Provider>
-            <TomatoLiveRoomComponent
-                targetUser={targetUser}
-                currentUser={currentUser}
-            />
+            <Room targetUser={targetUser} currentUser={currentUser} />
         </Provider>
     );
 }
 
-export function TomatoLiveRoomComponent({
-    targetUser,
-    currentUser,
-}: TestProps) {
+export function Room({ targetUser, currentUser }: TomatoLiveRoomProps) {
     const [onlineUsers, setOnlineUsers] = useState<string[]>([]);
     const queryClient = useQueryClient();
     const [threwTomato, setThrewTomato] = useState(false);
@@ -156,7 +105,7 @@ export function TomatoLiveRoomComponent({
         userID: targetUser.user_id,
         groupID: targetUser.group_id,
     });
-    const [sessionError, setSessionError] = useAtom(sessionErrorAtom);
+
     const [isSessionValid, setIsSessionValid] = useAtom(isSessionValidAtom);
     const isWorkEnabled = useWorkStatus();
 
@@ -436,519 +385,6 @@ export function TomatoLiveRoomComponent({
     );
 }
 
-const ChatUserPresenceMsg = ({
-    userID,
-    event,
-}: {
-    userID: string;
-    event: "joined" | "left";
-}) => {
-    const {
-        data: user,
-        isLoading,
-        isError,
-    } = useGetUserProfile({ user_id: userID });
-
-    if (!user || isLoading || isError) return null;
-
-    return (
-        <div className="flex gap-2 text-sm">
-            <UserAvatar user={user} size={"xs"}>
-                <div className="backdrop-brightness-50 w-full h-full flex justify-center items-center">
-                    {event == "joined" ? <EnterIcon /> : <ExitIcon />}
-                </div>
-            </UserAvatar>
-
-            <span className="text-muted-foreground max-w-[15rem] md:max-w-[20rem] break-words">
-                {user.username}
-            </span>
-            <span>{event}</span>
-        </div>
-    );
-};
-
-const ChatTomatoMsg = ({ userID, id }: { userID: string; id: number }) => {
-    const {
-        data: user,
-        isLoading,
-        isError,
-    } = useGetUserProfile({ user_id: userID });
-
-    if (!user || isLoading || isError) return null;
-
-    return (
-        <div
-            className={`flex gap-2 text-sm animate-in fade-in-0 slide-in-from-left-14 duration-300`}
-            key={id}
-        >
-            <UserAvatar user={user} size={"xs"}>
-                <div className="backdrop-brightness-60 w-full h-full flex justify-center items-center">
-                    {TOMATO_EMOJI}
-                </div>
-            </UserAvatar>
-            <span className="text-muted-foreground max-w-[8rem] md:max-w-[15rem] truncate">
-                {user.username}{" "}
-            </span>
-            <span>threw a tomato</span>
-        </div>
-    );
-};
-
-const ChatMsg = ({ userID, message }: { userID: string; message: string }) => {
-    const {
-        data: user,
-        isLoading,
-        isError,
-    } = useGetUserProfile({ user_id: userID });
-
-    // TODO : do better here
-    if (!user || isLoading || isError) return null;
-
-    return (
-        <div className="w-full p-2 select-none">
-            <div className="flex gap-2">
-                <div>
-                    {user ? (
-                        <UserAvatar user={user} size={"xs"} />
-                    ) : (
-                        <div
-                            className={cn(
-                                avatarVariants({ size: "xs" }),
-                                "bg-gray-700 rounded-lg"
-                            )}
-                        ></div>
-                    )}
-                </div>
-                <div className="flex flex-col leading-none">
-                    <span className="text-sm text-muted-foreground max-w-[10rem] truncate">
-                        {user.username}
-                    </span>
-                    <span className="max-w-[15rem] md:max-w-[20rem] break-words">
-                        {message}
-                    </span>
-                </div>
-            </div>
-        </div>
-    );
-};
-
-// TODO : If I want to have indicators for presence updates when chat is closed, I will have to lift the state up cause this doesn't run if collapsed
-// TODO : this is really strange, it doesn't show up sometimes initially, like at all, not even rendered
-const ChatPresence = ({ channel }: { channel?: RealtimeChannel }) => {
-    const [event, setEvent] = useState<{
-        id: number;
-        event: string;
-        userID: string;
-    } | null>(null);
-
-    useEffect(() => {
-        let timeoutID: Timeout | null = null;
-
-        const handlePresenceEvent = (eventType: string, presences: any[]) => {
-            if (presences && presences.length > 0) {
-                if (timeoutID != null) {
-                    clearTimeout(timeoutID);
-                }
-
-                setEvent({
-                    id: Date.now(),
-                    event: eventType,
-                    userID: presences[0].user_id,
-                });
-
-                timeoutID = setTimeout(() => {
-                    setEvent(null);
-                }, 3000);
-            }
-        };
-
-        channel
-            ?.on("presence", { event: "join" }, ({ key, newPresences }) => {
-                handlePresenceEvent("joined", newPresences);
-            })
-            .on("presence", { event: "leave" }, ({ key, leftPresences }) => {
-                handlePresenceEvent("left", leftPresences);
-            })
-            .on("broadcast", { event: "tomato_thrown" }, (payload) => {
-                console.log("TOMATO THROWN EVENT");
-                const res = payload.payload;
-
-                if (!res || !res.userID) {
-                    return;
-                }
-
-                handlePresenceEvent("tomato", [
-                    { user_id: payload.payload.userID },
-                ]);
-            });
-    }, [channel]);
-
-    return (
-        <div className="w-full border p-2 select-none pointer-events-none  min-h-11 ">
-            {event && (event.event == "joined" || event.event == "left") && (
-                <ChatUserPresenceMsg
-                    userID={event.userID}
-                    event={event.event as "joined" | "left"}
-                />
-            )}
-            {event && event.event == "tomato" && (
-                <ChatTomatoMsg userID={event.userID} id={event.id} />
-            )}
-        </div>
-    );
-};
-
-// TODO : sending a message should scroll to the most recent message
-// TODO : indicator for new messages user hasn't seen, would have to move out of collapsible content
-const Chat = ({
-    tomatoTarget,
-    isOpen,
-}: {
-    tomatoTarget: Tables<"tomato_target">;
-    isOpen: boolean;
-}) => {
-    const {
-        data: chatMsgs,
-        isLoading: isMsgsLoading,
-        isError: isMsgError,
-    } = useGetTomatoTargetChatMsgs({
-        tomatoTargetID: tomatoTarget?.id ?? "",
-    });
-
-    const { status } = useChatSubscription({
-        channelName: `${tomatoTarget?.id}-db`,
-        tomatoTargetID: tomatoTarget.id,
-        // callback: (payload) => {
-        //     console.log("UPDATE", payload);
-        // },
-    });
-
-    const { ref, inView } = useInView();
-    const [initialRender, setInitialRender] = useState(true);
-    const newestMsgRef = useRef<HTMLDivElement>(null);
-
-    useEffect(() => {
-        if (inView) {
-            handleScrollToRecent();
-        } else if (initialRender && newestMsgRef.current && isOpen) {
-            // On initial render when we finally have the ref to the newest chat message scroll to it
-            handleScrollToRecent("instant");
-
-            // This is done so that the button doesn't flash on when chat is open
-            // it flashes because it starts at the top and scrolls to to bottom of chat causing the button to be visible for that second before it gets to the bottom
-            setTimeout(() => {
-                setInitialRender(false);
-            }, 500);
-        }
-        console.log("initial render", initialRender, newestMsgRef.current);
-    }, [chatMsgs, inView, newestMsgRef, isOpen]);
-
-    const handleScrollToRecent = (
-        behavior: "smooth" | "auto" | "instant" = "smooth"
-    ) => {
-        if (newestMsgRef.current) {
-            newestMsgRef.current.scrollIntoView({ behavior: behavior });
-        } else {
-            console.log("doesn't exist");
-        }
-    };
-
-    // TODO : loading and error
-    if (isMsgsLoading || isMsgError || !chatMsgs) return null;
-
-    return (
-        <div className="relative">
-            {!initialRender && (
-                <Button
-                    variant={"secondary"}
-                    className={cn(
-                        "fixed -bottom-12 left-2 transition-all opacity-0 duration-0 delay-0",
-                        {
-                            "opacity-100 duration-500": !inView,
-                        }
-                    )}
-                    onClick={() => handleScrollToRecent()}
-                >
-                    <ArrowDownIcon className="size-3 animate-bounce" />
-                    <ChatBubbleIcon className="size-3 absolute top-0 right-0 text-blue-400" />
-                </Button>
-            )}
-
-            <ul className=" h-full flex-col flex justify-end pt-12">
-                {chatMsgs?.map((msg, index) => (
-                    <div ref={ref} key={msg.id}>
-                        <div
-                            ref={
-                                index == chatMsgs.length - 1
-                                    ? newestMsgRef
-                                    : undefined
-                            }
-                        >
-                            <ChatMsg
-                                userID={msg.user_id}
-                                message={msg.message}
-                            />
-                        </div>
-                    </div>
-                ))}
-            </ul>
-        </div>
-    );
-};
-
-const ChatSection = ({
-    testUser,
-    channel,
-    tomatoTarget,
-}: {
-    testUser: GroupUserWithProfile;
-    channel?: RealtimeChannel;
-    tomatoTarget?: Tables<"tomato_target">;
-}) => {
-    const [isOpen, setIsOpen] = useState(false);
-
-    return (
-        <Collapsible open={isOpen} onOpenChange={setIsOpen}>
-            <CollapsibleTrigger asChild className="mx-2 my-2">
-                <Button
-                    variant={"outline"}
-                    size={"sm"}
-                    className="flex gap-1 z-50"
-                >
-                    <ChatBubbleIcon />
-                    {isOpen ? <CaretDownIcon /> : <CaretUpIcon />}
-                </Button>
-            </CollapsibleTrigger>
-            <CollapsibleContent
-                className={cn(
-                    "animate-in fade-in-0 duration-300 hidden  ",
-                    isOpen && "block"
-                )}
-                forceMount
-            >
-                <section className="w-full   h-[16rem] flex flex-col relative backdrop-blur-sm animate-in slide-in-from-bottom-14 duration-300">
-                    <div className="absolute -top-1 left-0 right-0 h-[70%] bg-gradient-to-b from-background to-transparent pointer-events-none z-10 "></div>
-                    <ScrollArea className="flex-1 max-h-full  ">
-                        {tomatoTarget && (
-                            <Chat tomatoTarget={tomatoTarget} isOpen={isOpen} />
-                        )}
-                    </ScrollArea>
-                    <footer className="">
-                        <ChatPresence channel={channel} />
-                    </footer>
-                </section>
-            </CollapsibleContent>
-        </Collapsible>
-    );
-};
-
-const Reactions = ({ channel }: { channel?: RealtimeChannel }) => {
-    const { session } = useAuth();
-    const [reactions, setReactions] = useState<
-        { id: number; reaction: string; timestamp: number }[]
-    >([]);
-
-    const [isSessionValid] = useAtom(isSessionValidAtom);
-    const screenSize = useScreenSize();
-    let emojis = ["🤣", "😂", "🙂", "😊", "😇", "🥰", "😍", "🤩", "😘", "😗"];
-    emojis = screenSize == "xs" ? emojis.slice(0, 7) : emojis;
-
-    // TODO : maybe have some delay between each press
-    const handleReaction = (emoji: string) => {
-        if (!session || !channel || !isSessionValid) return;
-
-        channel.send({
-            type: "broadcast",
-            event: "reaction",
-            payload: { emoji: emoji, userID: session.user.id },
-        });
-
-        setReactions((prev) => [
-            ...prev,
-            { id: Date.now(), reaction: emoji, timestamp: Date.now() },
-        ]);
-    };
-
-    useEffect(() => {
-        channel?.on("broadcast", { event: "reaction" }, (payload) => {
-            const res = payload.payload;
-
-            if (!res || !res.emoji || !res.userID) return;
-
-            // TODO : for now its sending us the broadcast too, not sure if I need to do that yet, so for now I will just leave it
-            // and add some checks for it, but if turns out not needed then remove these, there will be one in throw tomatoes too
-            if (res.userID == session?.user.id) return;
-
-            setReactions((prev) => [
-                ...prev,
-                { id: Date.now(), reaction: res.emoji, timestamp: Date.now() },
-            ]);
-        });
-    }, [channel]);
-
-    useEffect(() => {
-        // TODO : idk if having this interval is bad, it runs every 5 seconds
-        // TODO : also every time it clears up it removes all emojis on the screen which can be a bit jarring
-        // thats why the time is set to 10seconds so it happens less, but if you do too much time will it be a problem?
-        // TODO: yh I don't like how it just cuts off suddenly because of the clean up
-        const cleanup = setInterval(() => {
-            setReactions((prev) =>
-                prev.filter(
-                    (reaction) => Date.now() - reaction.timestamp < 10000
-                )
-            );
-        }, 10000);
-
-        return () => {
-            clearInterval(cleanup);
-        };
-    }, []);
-
-    return (
-        <div className="flex justify-center gap-2 ">
-            {emojis.map((emoji, index) => (
-                <Button
-                    key={index}
-                    variant={"ghost"}
-                    className="text-xl px-3 select-none "
-                    onClick={() => handleReaction(emoji)}
-                    disabled={!channel || !isSessionValid}
-                >
-                    {emoji}
-                </Button>
-            ))}
-            <div className="fixed bottom-36 md:right-20 sm:right-10 right-5  p-3 flex justify-center">
-                {reactions.map((reaction, index) => (
-                    <div
-                        key={index}
-                        className="text-4xl px-2 absolute  top-0 animate-reaction select-none"
-                    >
-                        {reaction.reaction}
-                    </div>
-                ))}
-            </div>
-        </div>
-    );
-};
-
-const chatInputSchema = z.object({
-    message: z.string().min(1).max(200),
-});
-
-type chatInputSchemaType = z.infer<typeof chatInputSchema>;
-
-const ChatInput = ({
-    currentUser,
-    tomatoTarget,
-}: {
-    currentUser: GroupUserWithProfile;
-    tomatoTarget: Tables<"tomato_target"> | undefined;
-}) => {
-    const [isSessionValid] = useAtom(isSessionValidAtom);
-    const isWorkEnabled = useWorkStatus();
-    const {
-        mutate,
-        isPending: isSending,
-        isError: isSendingError,
-    } = useCreateChatMsg();
-
-    const { toast } = useToast();
-
-    const form = useForm<chatInputSchemaType>({
-        resolver: zodResolver(chatInputSchema),
-        defaultValues: {
-            message: "",
-        },
-    });
-
-    const onSubmit = (values: chatInputSchemaType) => {
-        if (!isSessionValid) return;
-
-        const msg = values.message.trim();
-        form.reset();
-
-        // Check if msg is only whitespace
-        if (msg.length == 0) {
-            return;
-        }
-
-        handleSend(msg);
-    };
-
-    const handleSend = (message: string) => {
-        if (!tomatoTarget || !currentUser || !isSessionValid || !isWorkEnabled)
-            return;
-
-        mutate(
-            [
-                {
-                    message: message,
-                    group_user_id: currentUser.id,
-                    group_id: tomatoTarget.group_id,
-                    tomato_target_id: tomatoTarget.id,
-                },
-            ],
-            {
-                onError: (error) => {
-                    toast({
-                        title: "Error sending message",
-                        description: error.message,
-                        variant: "destructive",
-                    });
-                },
-            }
-        );
-    };
-
-    return (
-        <div className="flex gap-3 items-center mx-auto w-fit">
-            {currentUser.profile && (
-                <UserAvatar user={currentUser.profile} size={"sm"} />
-            )}
-            <Form {...form}>
-                <form
-                    onSubmit={form.handleSubmit(onSubmit)}
-                    className="flex gap-3 items-center"
-                >
-                    <FormField
-                        control={form.control}
-                        name="message"
-                        render={({ field }) => (
-                            <FormItem className="p-0 m-0 h-fit  relative space-y-0">
-                                <FormLabel className="sr-only">
-                                    Message
-                                </FormLabel>
-                                <FormControl>
-                                    <Input
-                                        className="max-w-[15rem] md:max-w-[28rem] min-w-[15rem] md:min-w-[28rem] border"
-                                        placeholder="Add comment..."
-                                        {...field}
-                                        disabled={!isSessionValid}
-                                    />
-                                </FormControl>
-                                <FormMessage className="absolute text-xs" />
-                            </FormItem>
-                        )}
-                    />
-                    <SpinnerButton
-                        className="px-3"
-                        disabled={
-                            !tomatoTarget ||
-                            isSending ||
-                            isSendingError ||
-                            form.getValues().message.length == 0 ||
-                            !isSessionValid
-                        }
-                        isPending={isSending}
-                    >
-                        <ArrowUp className="size-4 " />
-                    </SpinnerButton>
-                </form>
-            </Form>
-        </div>
-    );
-};
-
 const Footer = ({
     currentUser,
     channel,
@@ -961,14 +397,13 @@ const Footer = ({
     return (
         <footer className="fixed bottom-0 w-full ">
             <div className="relative">
-                <ChatSection
-                    testUser={currentUser}
+                <Chat
                     channel={channel}
                     tomatoTarget={tomatoTarget ?? undefined}
                 />
             </div>
             <div className="w-full bg-secondary/30 p-4">
-                <Reactions channel={channel} />
+                <ChatReactions channel={channel} />
             </div>
             <div className=" bg-secondary/50 w-full p-4">
                 <ChatInput
