@@ -21,7 +21,7 @@ import { useGetGroupUsers } from "@/hooks/supabase/group/use-get-group-users";
 import { useGetUserProfile } from "@/hooks/supabase/profile/use-get-profile";
 import { useGetUserGroups } from "@/hooks/supabase/groups/use-get-user-groups";
 import { Tables } from "@/lib/supabase/database.types";
-import { useGetGroupTomatoes } from "@/lib/tomatoService";
+
 import { timestampSplit } from "@/lib/utils";
 import { createLazyFileRoute, Link } from "@tanstack/react-router";
 import {
@@ -32,6 +32,7 @@ import {
     Target,
     Users,
 } from "lucide-react";
+import { useGetGroupTomatoTargets } from "@/hooks/supabase/group/use-get-group-tomato-targets";
 
 export const Route = createLazyFileRoute("/groups")({
     component: GroupsTabs,
@@ -207,7 +208,9 @@ function Component2({ group }: { group: Tables<"group"> }) {
 }
 
 const GroupTargetUsers = ({ groupID }: { groupID: string }) => {
-    const { data: groupTomatoes, isLoading } = useGetGroupTomatoes({ groupID });
+    const { data: tomatoTargets, isLoading } = useGetGroupTomatoTargets({
+        groupID,
+    });
 
     if (isLoading) return <Skeleton className="w-full h-20" />;
 
@@ -219,7 +222,7 @@ const GroupTargetUsers = ({ groupID }: { groupID: string }) => {
             </div>
             <div className="flex overflow-x-auto">
                 <ul className="flex -space-x-2">
-                    {groupTomatoes?.map((tomato) => {
+                    {tomatoTargets?.map((tomato) => {
                         if (!tomato.user_id) return null;
                         return (
                             <li key={tomato.user_id}>
@@ -228,8 +231,8 @@ const GroupTargetUsers = ({ groupID }: { groupID: string }) => {
                         );
                     })}
                 </ul>
-                {!groupTomatoes ||
-                    (groupTomatoes.length === 0 && (
+                {!tomatoTargets ||
+                    (tomatoTargets.length === 0 && (
                         <div className="text-sm text-gray-400">No targets.</div>
                     ))}
             </div>

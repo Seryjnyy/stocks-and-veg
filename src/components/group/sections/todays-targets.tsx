@@ -1,18 +1,23 @@
 import DataError from "@/components/data-error";
 import Loading from "@/components/loading";
 import { Button } from "@/components/ui/button";
-import { useGetGroupUser } from "@/hooks/supabase/group/use-get-group-user";
+import { useGetGroupTomatoTargets } from "@/hooks/supabase/group/use-get-group-tomato-targets";
 
 import { Tables } from "@/lib/supabase/database.types";
-import { useGetGroupTomatoes } from "@/lib/tomatoService";
+
 import { ArrowDown } from "lucide-react";
 import CountdownTimer from "../../countdown-timer";
 import TomatoGroupUserButton from "../tomato-group-user-button";
 import { Skeleton } from "../../ui/skeleton";
 import GroupUserProfile from "../group-user-profile";
+import { useGetGroupUser } from "@/hooks/supabase/group/use-get-group-user";
 
 export default function TodaysTargets({ group }: { group: Tables<"group"> }) {
-    const { data, isError, isLoading } = useGetGroupTomatoes({
+    const {
+        data: tomatoTargets,
+        isError,
+        isLoading,
+    } = useGetGroupTomatoTargets({
         groupID: group.id,
     });
 
@@ -24,7 +29,7 @@ export default function TodaysTargets({ group }: { group: Tables<"group"> }) {
         <>
             <div className="absolute -top-0 right-0 space-x-2">
                 <span className="text-muted-foreground text-xs">
-                    {data?.length ?? 0}
+                    {tomatoTargets?.length ?? 0}
                 </span>
                 <CountdownTimer
                     className=" text-muted-foreground text-xs border-l pl-2"
@@ -33,9 +38,11 @@ export default function TodaysTargets({ group }: { group: Tables<"group"> }) {
             </div>
             <div>
                 {isError ||
-                    (!data && <DataError message="Couldn't fetch targets." />)}
+                    (!tomatoTargets && (
+                        <DataError message="Couldn't fetch targets." />
+                    ))}
 
-                {data?.length == 0 && (
+                {tomatoTargets?.length == 0 && (
                     <div className="flex justify-center text-muted-foreground flex-col items-center gap-2 ">
                         <h3>No targets today. You all did well yesterday.</h3>
                         {/* TODO : can break if section values change */}
@@ -53,7 +60,7 @@ export default function TodaysTargets({ group }: { group: Tables<"group"> }) {
                 )}
 
                 <ul className="space-y-2">
-                    <TargetList targets={data || []} />
+                    <TargetList targets={tomatoTargets || []} />
                 </ul>
             </div>
         </>
@@ -70,16 +77,20 @@ const TargetList = ({ targets }: { targets: Tables<"tomato_target">[] }) => {
 
 const Target = ({ target }: { target: Tables<"tomato_target"> }) => {
     // TODO: Error not handled
-    const { data, isError, isLoading } = useGetGroupUser({
+    const {
+        data: groupUser,
+        isError,
+        isLoading,
+    } = useGetGroupUser({
         groupID: target.group_id,
         userID: target.user_id,
     });
 
     return (
         <div className="flex justify-between items-center border rounded-lg  px-4 py-1 flex-wrap gap-2">
-            {data && (
+            {groupUser && (
                 <GroupUserProfile
-                    groupUser={data}
+                    groupUser={groupUser}
                     viewMore
                     // variant={"dashed"}
                     usBadge

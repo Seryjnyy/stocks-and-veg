@@ -1,43 +1,33 @@
 import DataError from "@/components/data-error";
 import Loading from "@/components/loading";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import {
-    Collapsible,
-    CollapsibleContent,
-    CollapsibleTrigger,
-} from "@/components/ui/collapsible";
-import { useAuth } from "@/hooks/use-auth";
 import { useGetGroup } from "@/hooks/supabase/group/use-get-group";
-import { CaretDownIcon, CaretUpIcon, GearIcon } from "@radix-ui/react-icons";
+import { useAuth } from "@/hooks/use-auth";
+import { GearIcon } from "@radix-ui/react-icons";
 
-import OtherUsersTasks from "@/components/group/sections/other-users-tasks";
-import { Badge } from "@/components/ui/badge";
-import { createFileRoute, Link } from "@tanstack/react-router";
-import {
-    AlertCircleIcon,
-    AlertTriangle,
-    CheckCheckIcon,
-    CheckSquare,
-    CrownIcon,
-    Info,
-    Target,
-    Trophy,
-    UserPlus,
-    Users as UsersIcon,
-} from "lucide-react";
-import { useState } from "react";
 import BackButton from "@/components/back-button";
 import GroupSection from "@/components/group/sections/group-section";
 import Invite from "@/components/group/sections/invite";
 import Leaderboard from "@/components/group/sections/leaderboard";
 import Manage from "@/components/group/sections/manage";
+import OtherUsersTasks from "@/components/group/sections/other-users-tasks";
 import TodaysTargets from "@/components/group/sections/todays-targets";
 import Users from "@/components/group/sections/users";
 import YourTasksToday from "@/components/group/sections/your-tasks-today";
 import Sidebar from "@/components/group/sidebar";
+import WorkOverBanner from "@/components/group/work-over-banner";
+import { Badge } from "@/components/ui/badge";
 import useWorkStatus from "@/hooks/use-work-status";
 import { GroupSection as GroupSectionType } from "@/lib/types";
-import WorkOverBanner from "@/components/group/work-over-banner";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import {
+    CheckCheckIcon,
+    CheckSquare,
+    CrownIcon,
+    Target,
+    Trophy,
+    UserPlus,
+    Users as UsersIcon,
+} from "lucide-react";
 
 export const Route = createFileRoute("/groups/$groupID")({
     component: Group,
