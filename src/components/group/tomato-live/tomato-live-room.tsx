@@ -119,7 +119,7 @@ interface TestProps {
 // TODO : in parent component make sure user can't get here if not authorised
 
 const sessionErrorAtom = atom("");
-const isSessionValidAtom = atom(false);
+const isSessionValidAtom = atom(true);
 
 export function TomatoLiveRoom({ targetUser, currentUser }: TestProps) {
     return (
@@ -160,12 +160,6 @@ export function TomatoLiveRoomComponent({
     const [isSessionValid, setIsSessionValid] = useAtom(isSessionValidAtom);
     const isWorkEnabled = useWorkStatus();
 
-    // TODO : idk if better to have this here or directly in chat
-    const { status } = useChatSubscription({
-        channelName: `${targetUserTomato?.id}-db`,
-        tomatoTargetID: targetUserTomato?.id ?? "",
-    });
-
     const handleThrowTomato = async () => {
         // console.log(targetUserTomato);
         console.log("chuckding tomato");
@@ -183,7 +177,9 @@ export function TomatoLiveRoomComponent({
     };
 
     useEffect(() => {
-        const tempChannel = supabase.channel("room1", {
+        if (!targetUserTomato) return;
+
+        const tempChannel = supabase.channel("targetUserTomato.id", {
             config: { broadcast: { self: true } },
         });
         tempChannel
@@ -222,10 +218,9 @@ export function TomatoLiveRoomComponent({
             // setChannel(null);
 
             tempChannel && supabase.removeChannel(tempChannel);
-            // supabase.removeAllChannels()
             cleanUp();
         };
-    }, []);
+    }, [targetUserTomato]);
 
     useEffect(() => {
         if (targetUserTomato) {
@@ -273,6 +268,7 @@ export function TomatoLiveRoomComponent({
                         ),
                     });
                 }
+                setIsSessionValid(false);
             } else {
                 console.log("CHECKED FINE");
             }
@@ -602,7 +598,7 @@ const Chat = ({
     tomatoTarget,
     isOpen,
 }: {
-    tomatoTarget?: Tables<"tomato_target">;
+    tomatoTarget: Tables<"tomato_target">;
     isOpen: boolean;
 }) => {
     const {
@@ -613,7 +609,13 @@ const Chat = ({
         tomatoTargetID: tomatoTarget?.id ?? "",
     });
 
-    console.log(status);
+    const { status } = useChatSubscription({
+        channelName: `${tomatoTarget?.id}-db`,
+        tomatoTargetID: tomatoTarget.id,
+        // callback: (payload) => {
+        //     console.log("UPDATE", payload);
+        // },
+    });
 
     const { ref, inView } = useInView();
     const [initialRender, setInitialRender] = useState(true);
@@ -721,7 +723,9 @@ const ChatSection = ({
                 <section className="w-full   h-[16rem] flex flex-col relative backdrop-blur-sm animate-in slide-in-from-bottom-14 duration-300">
                     <div className="absolute -top-1 left-0 right-0 h-[70%] bg-gradient-to-b from-background to-transparent pointer-events-none z-10 "></div>
                     <ScrollArea className="flex-1 max-h-full  ">
-                        <Chat tomatoTarget={tomatoTarget} isOpen={isOpen} />
+                        {tomatoTarget && (
+                            <Chat tomatoTarget={tomatoTarget} isOpen={isOpen} />
+                        )}
                     </ScrollArea>
                     <footer className="">
                         <ChatPresence channel={channel} />
