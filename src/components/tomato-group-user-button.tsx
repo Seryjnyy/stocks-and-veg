@@ -9,6 +9,31 @@ import { VariantProps } from "class-variance-authority";
 import useWorkStatus from "@/hooks/use-work-status";
 import SpinnerButton from "@/spinner-button";
 
+const TomatoButton = ({
+    isUs,
+    size,
+}: {
+    isUs: boolean;
+    size: VariantProps<typeof buttonVariants>["size"];
+}) => {
+    return (
+        <SpinnerButton variant={"secondary"} size={size} isPending={false}>
+            {!isUs && <>{TOMATO_EMOJI} Chuck tomatoes </>}
+            {isUs && (
+                <>
+                    <span className="relative ml-2">
+                        <EyeIcon className="size-4 mr-2" />
+                        <span className="absolute top-0 -left-2">
+                            {TOMATO_EMOJI}
+                        </span>
+                    </span>
+                    View yourself
+                </>
+            )}
+        </SpinnerButton>
+    );
+};
+
 export default function TomatoGroupUserButton({
     target,
     size,
@@ -18,25 +43,11 @@ export default function TomatoGroupUserButton({
 }) {
     const isWorkEnabled = useWorkStatus();
     const { session } = useAuth();
-    const isUs = session && session.user.id == target.user_id;
+    const isUs = session?.user.id == target.user_id;
 
-    if (!isWorkEnabled)
-        return (
-            <SpinnerButton variant={"secondary"} size={size} isPending={false}>
-                {!isUs && <>{TOMATO_EMOJI} Chuck tomatoes </>}
-                {isUs && (
-                    <>
-                        <span className="relative">
-                            <EyeIcon className="size-4 mr-2" />
-                            <span className="absolute top-0 -left-2">
-                                {TOMATO_EMOJI}
-                            </span>
-                        </span>
-                        View yourself
-                    </>
-                )}
-            </SpinnerButton>
-        );
+    if (!session) return null;
+
+    if (!isWorkEnabled) return <TomatoButton isUs={isUs} size={size} />;
 
     return (
         <Link
@@ -46,20 +57,7 @@ export default function TomatoGroupUserButton({
                 userID: target.user_id,
             }}
         >
-            <SpinnerButton variant={"secondary"} size={size} isPending={false}>
-                {!isUs && <>{TOMATO_EMOJI} Chuck tomatoes </>}
-                {isUs && (
-                    <>
-                        <span className="relative">
-                            <EyeIcon className="size-4 mr-2" />
-                            <span className="absolute top-0 -left-2">
-                                {TOMATO_EMOJI}
-                            </span>
-                        </span>
-                        View yourself
-                    </>
-                )}
-            </SpinnerButton>
+            <TomatoButton isUs={isUs} size={size} />
         </Link>
     );
 }
