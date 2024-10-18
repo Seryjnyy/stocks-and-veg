@@ -1,14 +1,11 @@
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/hooks/use-auth";
 import { useGetGroup } from "@/lib/hooks/queries/use-get-group";
 import { useGetGroupUser } from "@/lib/hooks/queries/use-get-group-user";
-import { useAuth } from "@/hooks/use-auth";
 import supabase from "@/lib/supabase/supabaseClient";
-import {
-    useGetGroupUserTomato,
-    useUpdateTomatoTarget,
-} from "@/lib/tomatoService";
-import { createFileRoute, Link } from "@tanstack/react-router";
-import { Test } from "./test";
+import { useGetGroupUserTomato } from "@/lib/tomatoService";
+import { createFileRoute } from "@tanstack/react-router";
+import { TomatoLiveRoom } from "../components/group/tomato-live/tomato-live-room";
 
 // TODO : user can travel to this page through link, need to redirect or give message that they can't do it
 export const Route = createFileRoute("/groups/$groupID/tomato/$userID")({
@@ -156,7 +153,7 @@ function Tomato() {
                 <div>Your tomatoes</div>
                 {currentUser && <div>{`${currentUser?.tomatoes}`}count</div>}
             </div> */}
-            <Test targetUser={targetUser} currentUser={currentUser} />
+            <TomatoLiveRoom targetUser={targetUser} currentUser={currentUser} />
         </div>
     );
 }

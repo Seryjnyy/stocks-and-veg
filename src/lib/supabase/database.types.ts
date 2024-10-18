@@ -9,6 +9,30 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      feature_control: {
+        Row: {
+          expires_at: string
+          id: string
+          is_enabled: boolean
+          last_updated_at: string
+          type: Database["public"]["Enums"]["feature"]
+        }
+        Insert: {
+          expires_at: string
+          id?: string
+          is_enabled: boolean
+          last_updated_at: string
+          type: Database["public"]["Enums"]["feature"]
+        }
+        Update: {
+          expires_at?: string
+          id?: string
+          is_enabled?: boolean
+          last_updated_at?: string
+          type?: Database["public"]["Enums"]["feature"]
+        }
+        Relationships: []
+      }
       group: {
         Row: {
           created_at: string
@@ -398,7 +422,7 @@ export type Database = {
       }
     }
     Enums: {
-      [_ in never]: never
+      feature: "daily_work"
     }
     CompositeTypes: {
       [_ in never]: never

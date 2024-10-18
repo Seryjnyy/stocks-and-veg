@@ -1,4 +1,4 @@
-import { currentSectionInGroupPageAtom } from "@/lib/atoms/current-section-group-page";
+import { currentSectionInGroupPageAtom } from "@/lib/atoms/atoms";
 import { cn } from "@/lib/utils";
 import { ReactNode } from "@tanstack/react-router";
 import { useAtom } from "jotai";

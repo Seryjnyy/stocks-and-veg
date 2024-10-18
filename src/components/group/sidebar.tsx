@@ -20,7 +20,7 @@ import { SidebarClose, SidebarOpen } from "lucide-react";
 import { useState } from "react";
 
 import CountdownTimer from "@/components/countdown-timer";
-import { currentSectionInGroupPageAtom } from "@/lib/atoms/current-section-group-page";
+import { currentSectionInGroupPageAtom } from "@/lib/atoms/atoms";
 import { useAtom } from "jotai";
 import { GroupSection } from "@/lib/types";
 
