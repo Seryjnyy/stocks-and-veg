@@ -10,6 +10,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
+import useWorkStatus from "@/hooks/use-work-status";
 import { CONFIG } from "@/lib/config";
 import { useCreateTask } from "@/lib/hooks/mutations/use-create-task";
 import { GroupUserWithProfile } from "@/lib/hooks/queries/use-get-group-users";
@@ -48,12 +49,12 @@ export default function CreateTaskForm({
             desc: "",
         },
     });
-
+    const isWorkEnabled = useWorkStatus();
     const { mutateAsync, isPending } = useCreateTask();
 
     const onSubmit = (values: taskSchemaType) => {
         console.log(values);
-        if (!session) return;
+        if (!session || !isWorkEnabled) return;
 
         mutateAsync(
             [
@@ -100,7 +101,9 @@ export default function CreateTaskForm({
                             <FormControl>
                                 <Input
                                     {...field}
-                                    disabled={disabled || isPending}
+                                    disabled={
+                                        disabled || isPending || !isWorkEnabled
+                                    }
                                 />
                             </FormControl>
                             <FormDescription className="sr-only">
@@ -120,7 +123,9 @@ export default function CreateTaskForm({
                             <FormControl>
                                 <Input
                                     {...field}
-                                    disabled={disabled || isPending}
+                                    disabled={
+                                        disabled || isPending || !isWorkEnabled
+                                    }
                                 />
                             </FormControl>
                             <FormDescription className="sr-only">

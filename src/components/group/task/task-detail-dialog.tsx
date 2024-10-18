@@ -22,6 +22,7 @@ import { Button } from "@/components/ui/button";
 import DeleteTaskDialog from "./task-delete-dialog";
 import UserTaskTodayCompletion from "./task-completion";
 import TaskCompletion from "./task-completion";
+import useWorkStatus from "@/hooks/use-work-status";
 
 const TaskDetailDialog = ({
     task,
@@ -32,8 +33,11 @@ const TaskDetailDialog = ({
 }) => {
     const { session } = useAuth();
     const { mutateAsync: deleteTask, isPending } = useDeleteTask();
+    const isWorkEnabled = useWorkStatus();
 
     const onDeleteTask = async () => {
+        if (!isWorkEnabled) return;
+
         await deleteTask({ id: task.id });
     };
 

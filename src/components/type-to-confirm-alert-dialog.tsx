@@ -1,3 +1,5 @@
+import useWorkStatus from "@/hooks/use-work-status";
+import SpinnerButton from "@/spinner-button";
 import { ReactNode } from "@tanstack/react-router";
 import { useState } from "react";
 import {
@@ -11,7 +13,7 @@ import {
     AlertDialogTitle,
     AlertDialogTrigger,
 } from "./ui/alert-dialog";
-import { Button, buttonVariants } from "./ui/button";
+import { buttonVariants } from "./ui/button";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
 
@@ -29,6 +31,7 @@ export default function TypeToConfirmAlertDialog({
     buttonContent: ReactNode;
 }) {
     const [confirmValue, setConfirmValue] = useState("");
+    const isWorkEnabled = useWorkStatus();
 
     const handleConfirm = () => {
         onConfirm();
@@ -37,7 +40,9 @@ export default function TypeToConfirmAlertDialog({
     return (
         <AlertDialog>
             <AlertDialogTrigger asChild>
-                <Button variant="destructive">{buttonContent}</Button>
+                <SpinnerButton variant="destructive" isPending={false}>
+                    {buttonContent}
+                </SpinnerButton>
             </AlertDialogTrigger>
             <AlertDialogContent>
                 <AlertDialogHeader>
@@ -66,7 +71,7 @@ export default function TypeToConfirmAlertDialog({
                     <AlertDialogCancel>Cancel</AlertDialogCancel>
                     <AlertDialogAction
                         onClick={handleConfirm}
-                        disabled={confirmValue != confirmText}
+                        disabled={confirmValue != confirmText || !isWorkEnabled}
                         className={buttonVariants({
                             variant: "destructive",
                         })}

@@ -47,6 +47,7 @@ import {
     ArrowLeft,
     ArrowRight,
     ArrowUp,
+    Clock,
     Loader2,
     Users,
     Users2,
@@ -67,6 +68,7 @@ import { Provider, useStore } from "jotai";
 import BackButton from "@/components/back-button";
 import { atom, createStore, useAtom } from "jotai";
 import { Toast, ToastAction } from "@/components/ui/toast";
+import useWorkStatus from "@/hooks/use-work-status";
 
 const OnlineMark = () => {
     return <div className="size-2 rounded-full bg-green-500 "></div>;
@@ -156,6 +158,7 @@ export function TomatoLiveRoomComponent({
     });
     const [sessionError, setSessionError] = useAtom(sessionErrorAtom);
     const [isSessionValid, setIsSessionValid] = useAtom(isSessionValidAtom);
+    const isWorkEnabled = useWorkStatus();
 
     // TODO : idk if better to have this here or directly in chat
     const { status } = useChatSubscription({
@@ -284,6 +287,8 @@ export function TomatoLiveRoomComponent({
     // }, 1000);
 
     const handleClick = () => {
+        if (!isWorkEnabled) return;
+
         if (currentUser.tomatoes <= 0) {
             toast({
                 title: "You don't have any tomatoes to throw.",
@@ -318,10 +323,13 @@ export function TomatoLiveRoomComponent({
                     {threwTomato && <Loader2 className="animate-spin size-3" />}
                 </span>
                 <Button
-                    className="size-16 text-3xl bg-red-950 select-none "
+                    className="size-16 text-3xl bg-red-950 select-none relative"
                     onClick={handleClick}
-                    disabled={!isAbleToThrowTomato}
+                    disabled={!isAbleToThrowTomato || !isWorkEnabled}
                 >
+                    {!isWorkEnabled && (
+                        <Clock className="size-5 mr-2 absolute top-1 left-1 text-blue-400" />
+                    )}
                     {TOMATO_EMOJI}
                 </Button>
             </div>
@@ -827,7 +835,7 @@ const ChatInput = ({
     tomatoTarget: Tables<"tomato_target"> | undefined;
 }) => {
     const [isSessionValid] = useAtom(isSessionValidAtom);
-
+    const isWorkEnabled = useWorkStatus();
     const {
         mutate,
         isPending: isSending,
@@ -858,7 +866,8 @@ const ChatInput = ({
     };
 
     const handleSend = (message: string) => {
-        if (!tomatoTarget || !currentUser || !isSessionValid) return;
+        if (!tomatoTarget || !currentUser || !isSessionValid || !isWorkEnabled)
+            return;
 
         mutate(
             [

@@ -12,7 +12,7 @@ import { cva, VariantProps } from "class-variance-authority";
 import { Tables } from "@/lib/supabase/database.types";
 import useLevel from "@/hooks/use-level";
 
-const avatarVariants = cva("overflow-visible relative", {
+export const avatarVariants = cva("overflow-visible relative", {
     variants: {
         size: {
             xs: "size-6",
@@ -81,7 +81,7 @@ export const UserAvatar = ({
     );
 };
 
-const userDetailVariants = cva("text-start", {
+export const userDetailVariants = cva("text-start", {
     variants: {
         size: {
             responsive:
@@ -121,6 +121,7 @@ export const GroupUserAvatar = ({
     usBadge,
     creatorBadge,
     size,
+    children,
 }: GroupUserAvatarProps) => {
     const { session } = useAuth();
     const { data } = useGetGroup({
@@ -149,6 +150,8 @@ export const GroupUserAvatar = ({
                     <CrownIcon className="size-[0.6rem]" />
                 </Badge>
             ) : null}
+
+            {children}
         </UserAvatar>
     );
 };

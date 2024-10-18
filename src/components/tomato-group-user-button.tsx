@@ -6,6 +6,8 @@ import { Button, buttonVariants } from "./ui/button";
 import React from "react";
 import { EyeIcon } from "lucide-react";
 import { VariantProps } from "class-variance-authority";
+import useWorkStatus from "@/hooks/use-work-status";
+import SpinnerButton from "@/spinner-button";
 
 export default function TomatoGroupUserButton({
     target,
@@ -14,18 +16,13 @@ export default function TomatoGroupUserButton({
     target: Tables<"tomato_target">;
     size?: VariantProps<typeof buttonVariants>["size"];
 }) {
+    const isWorkEnabled = useWorkStatus();
     const { session } = useAuth();
     const isUs = session && session.user.id == target.user_id;
 
-    return (
-        <Link
-            to="/groups/$groupID/tomato/$userID"
-            params={{
-                groupID: target.group_id,
-                userID: target.user_id,
-            }}
-        >
-            <Button variant={"secondary"} size={size}>
+    if (!isWorkEnabled)
+        return (
+            <SpinnerButton variant={"secondary"} size={size} isPending={false}>
                 {!isUs && <>{TOMATO_EMOJI} Chuck tomatoes </>}
                 {isUs && (
                     <>
@@ -38,7 +35,31 @@ export default function TomatoGroupUserButton({
                         View yourself
                     </>
                 )}
-            </Button>
+            </SpinnerButton>
+        );
+
+    return (
+        <Link
+            to="/groups/$groupID/tomato/$userID"
+            params={{
+                groupID: target.group_id,
+                userID: target.user_id,
+            }}
+        >
+            <SpinnerButton variant={"secondary"} size={size} isPending={false}>
+                {!isUs && <>{TOMATO_EMOJI} Chuck tomatoes </>}
+                {isUs && (
+                    <>
+                        <span className="relative">
+                            <EyeIcon className="size-4 mr-2" />
+                            <span className="absolute top-0 -left-2">
+                                {TOMATO_EMOJI}
+                            </span>
+                        </span>
+                        View yourself
+                    </>
+                )}
+            </SpinnerButton>
         </Link>
     );
 }

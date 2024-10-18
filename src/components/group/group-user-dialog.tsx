@@ -75,6 +75,7 @@ const LeaveGroupDialog = ({
                     size={"sm"}
                     disabled={isPending}
                     isPending={isPending}
+                    disableWorkCheck
                 >
                     <ExitIcon className="size-3 mr-2" /> Leave group
                 </SpinnerButton>
@@ -93,6 +94,7 @@ const LeaveGroupDialog = ({
                     <AlertDialogCancel>Cancel</AlertDialogCancel>
                     <AlertDialogAction>
                         <SpinnerButton
+                            disableWorkCheck
                             isPending={isPending}
                             onClick={handleLeaveGroup}
                         >
@@ -120,6 +122,7 @@ const RemoveUserDialog = ({
                     size={"sm"}
                     disabled={isPending}
                     isPending={isPending}
+                    disableWorkCheck
                 >
                     <Trash2 className="size-3 mr-2" /> Remove user
                 </SpinnerButton>
@@ -140,6 +143,7 @@ const RemoveUserDialog = ({
                         <SpinnerButton
                             isPending={isPending}
                             onClick={handleRemoveUser}
+                            disableWorkCheck
                         >
                             Remove
                         </SpinnerButton>

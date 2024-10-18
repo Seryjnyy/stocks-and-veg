@@ -1,8 +1,10 @@
 import { useAuth } from "@/hooks/use-auth";
+import useWorkStatus from "@/hooks/use-work-status";
 import { useCreateTaskCompletion } from "@/lib/hooks/mutations/use-create-task-completion";
 import { useDeleteTaskCompletion } from "@/lib/hooks/mutations/use-delete-task-completion";
 import { TaskWithCompletion } from "@/lib/types";
 import { cn, timestampSplit } from "@/lib/utils";
+
 import SpinnerButton from "@/spinner-button";
 import { CheckIcon } from "@radix-ui/react-icons";
 import { useQueryClient } from "@tanstack/react-query";
@@ -24,13 +26,13 @@ const TaskCompletion = ({
     const queryClient = useQueryClient();
     const { mutateAsync, isPending } = useCreateTaskCompletion();
     const [animKey, setAnimKey] = useState(0);
-
+    const isWorkEnabled = useWorkStatus();
     const { mutateAsync: deleteTaskCompletion, isPending: isDeletePending } =
         useDeleteTaskCompletion();
     const isOurTask = task.user_id == session?.user.id;
 
     const onCompleteTask = async () => {
-        if (!isOurTask) return;
+        if (!isOurTask || !isWorkEnabled) return;
 
         setAnimKey((prev) => prev + 1);
         await mutateAsync(
@@ -53,7 +55,7 @@ const TaskCompletion = ({
     };
 
     const onUndoCompletion = async () => {
-        if (!isOurTask) return;
+        if (!isOurTask || !isWorkEnabled) return;
         if (task.task_completion.length == 0) return;
 
         await deleteTaskCompletion(

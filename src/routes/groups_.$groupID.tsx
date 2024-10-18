@@ -60,6 +60,7 @@ import { GroupSection as GroupSectionType } from "@/lib/types";
 import GroupSection from "@/components/group/group-section";
 import Leaderboard from "@/components/group/leaderboard";
 import TypeToConfirmAlertDialog from "@/components/type-to-confirm-alert-dialog";
+import useWorkStatus from "@/hooks/use-work-status";
 
 export const Route = createFileRoute("/groups/$groupID")({
     component: GroupTwo,
@@ -223,6 +224,7 @@ export default function InviteSection({ groupID }: { groupID: string }) {
                         <SpinnerButton
                             isPending={isPending}
                             disabled={isPending || isLoading}
+                            disableWorkCheck
                             onClick={handleGenerateLink}
                             className="w-full"
                             variant={"outline"}
@@ -244,6 +246,7 @@ export default function InviteSection({ groupID }: { groupID: string }) {
 }
 
 const GroupManage = ({ group }: { group: Tables<"group"> }) => {
+    const isWorkEnabled = useWorkStatus();
     const { mutateAsync: deleteGroup } = useDeleteGroup();
 
     const { toast } = useToast();
@@ -274,10 +277,14 @@ const GroupManage = ({ group }: { group: Tables<"group"> }) => {
     };
 
     const handleResetTasks = async () => {
+        if (!isWorkEnabled) return;
+
         console.error("Not implemented.");
     };
 
     const handleResetStats = async () => {
+        if (!isWorkEnabled) return;
+
         console.error("Not implemented.");
     };
     return (
