@@ -7,14 +7,24 @@ import { Button } from "../ui/button";
 import { Skeleton } from "../ui/skeleton";
 import GroupCreateTaskModal from "./group-create-task-modal";
 import Task from "./task/task";
+import { useGetGroupUser } from "@/lib/hooks/queries/use-get-group-user";
 
 export default function GroupYourTasksToday({ groupID }: { groupID: string }) {
+    const { session } = useAuth();
     const {
         data: tasks,
         isError,
         isLoading,
     } = useGetGroupTasks({ groupID: groupID });
-    const { session } = useAuth();
+
+    const {
+        data: groupUser,
+        isError: isGroupUserError,
+        isLoading: isGroupUserLoading,
+    } = useGetGroupUser({
+        groupID: groupID,
+        userID: session?.user.id,
+    });
 
     const userTasks =
         (tasks && tasks.filter((task) => task.user_id == session?.user.id)) ||
@@ -73,10 +83,18 @@ export default function GroupYourTasksToday({ groupID }: { groupID: string }) {
                         {completedTasks.length}
                     </span>
                     <GroupCreateTaskModal
-                        groupID={groupID}
+                        groupUser={groupUser ?? undefined}
                         userTasksCount={userTasks.length}
                     >
-                        <Button size={"sm"} variant={"outline"}>
+                        <Button
+                            size={"sm"}
+                            variant={"outline"}
+                            disabled={
+                                isGroupUserLoading ||
+                                isGroupUserError ||
+                                !groupUser
+                            }
+                        >
                             <Plus className="size-3 mr-2" /> Add task
                         </Button>
                     </GroupCreateTaskModal>

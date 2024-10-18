@@ -12,15 +12,16 @@ import CreateTaskForm from "./create-task-form";
 import { CONFIG } from "@/lib/config";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertTriangle } from "lucide-react";
+import { GroupUserWithProfile } from "@/lib/hooks/queries/use-get-group-users";
 
 export default function GroupCreateTaskModal({
-    groupID,
     userTasksCount,
     children,
+    groupUser,
 }: {
-    groupID: string;
     userTasksCount: number;
     children: React.ReactNode;
+    groupUser: GroupUserWithProfile | undefined;
 }) {
     const isTaskLimitReached = userTasksCount >= CONFIG.maxTasks;
 
@@ -47,10 +48,12 @@ export default function GroupCreateTaskModal({
                         </span>
                     </Alert>
                 )}
-                <CreateTaskForm
-                    groupID={groupID}
-                    disabled={isTaskLimitReached}
-                />
+                {groupUser && (
+                    <CreateTaskForm
+                        groupUser={groupUser}
+                        disabled={isTaskLimitReached}
+                    />
+                )}
             </DialogContent>
         </Dialog>
     );

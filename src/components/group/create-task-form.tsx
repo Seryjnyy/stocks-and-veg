@@ -12,6 +12,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
 import { CONFIG } from "@/lib/config";
 import { useCreateTask } from "@/lib/hooks/mutations/use-create-task";
+import { GroupUserWithProfile } from "@/lib/hooks/queries/use-get-group-users";
 import { GenericFormProps } from "@/lib/types";
 import SpinnerButton from "@/spinner-button";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -29,11 +30,11 @@ const taskSchema = z.object({
 type taskSchemaType = z.infer<typeof taskSchema>;
 
 interface CreateTaskFormProps extends GenericFormProps {
-    groupID: string;
+    groupUser: GroupUserWithProfile;
 }
 
 export default function CreateTaskForm({
-    groupID,
+    groupUser,
     onError,
     onSuccess,
     disabled,
@@ -59,7 +60,8 @@ export default function CreateTaskForm({
                 {
                     name: values.name.trim(),
                     desc: values.desc.trim(),
-                    group_id: groupID,
+                    group_id: groupUser.group_id,
+                    group_user_id: groupUser.id,
                     user_id: session.user.id,
                 },
             ],
