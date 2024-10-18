@@ -42,7 +42,15 @@ import { useQueryClient } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import { differenceInMilliseconds } from "date-fns";
 import debounce from "lodash/debounce";
-import { ArrowDownIcon, ArrowUp, Loader2, Users, Users2 } from "lucide-react";
+import {
+    ArrowDownIcon,
+    ArrowLeft,
+    ArrowRight,
+    ArrowUp,
+    Loader2,
+    Users,
+    Users2,
+} from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { Timeout } from "node_modules/@tanstack/react-router/dist/esm/utils";
@@ -58,6 +66,7 @@ import { useInView } from "react-intersection-observer";
 import { Provider, useStore } from "jotai";
 import BackButton from "@/components/back-button";
 import { atom, createStore, useAtom } from "jotai";
+import { Toast, ToastAction } from "@/components/ui/toast";
 
 const OnlineMark = () => {
     return <div className="size-2 rounded-full bg-green-500 "></div>;
@@ -171,39 +180,6 @@ export function TomatoLiveRoomComponent({
     };
 
     useEffect(() => {
-        if (targetUserTomato) {
-            const timeDiff = Math.abs(
-                differenceInMilliseconds(
-                    Date.parse(targetUserTomato.created_at),
-                    Date.parse(new Date().toISOString())
-                )
-            );
-            console.log("🚀 ~ useEffect ~ timeDiff:", timeDiff);
-
-            const dateNow = Date.parse(new Date().toISOString());
-            const dateCreated = Date.parse(targetUserTomato.created_at);
-
-            if (
-                targetUserTomato &&
-                dateNow >
-                    Date.parse(
-                        getExpiryDateUnixFromDate(
-                            Date.parse(targetUserTomato.created_at)
-                        ).toString()
-                    )
-            ) {
-                console.log("CHECKED EXPIRED!");
-                // setIsOutOfTime(dateNow > dateCreated);
-                if (dateNow > dateCreated) {
-                    setSessionError("Session has ended.");
-                    setIsSessionValid(false);
-                }
-            } else {
-                console.log("CHECKED FINE");
-            }
-            console.log(dateNow > dateCreated ? "true" : "false");
-        }
-
         const tempChannel = supabase.channel("room1", {
             config: { broadcast: { self: true } },
         });
@@ -247,6 +223,59 @@ export function TomatoLiveRoomComponent({
             cleanUp();
         };
     }, []);
+
+    useEffect(() => {
+        if (targetUserTomato) {
+            const timeDiff = Math.abs(
+                differenceInMilliseconds(
+                    Date.parse(targetUserTomato.created_at),
+                    Date.parse(new Date().toISOString())
+                )
+            );
+            console.log("🚀 ~ useEffect ~ timeDiff:", timeDiff);
+
+            const dateNow = Date.parse(new Date().toISOString());
+            const dateCreated = Date.parse(targetUserTomato.created_at);
+
+            if (
+                targetUserTomato &&
+                dateNow >
+                    Date.parse(
+                        getExpiryDateUnixFromDate(
+                            Date.parse(targetUserTomato.created_at)
+                        ).toString()
+                    )
+            ) {
+                console.log("CHECKED EXPIRED!");
+                // setIsOutOfTime(dateNow > dateCreated);
+                if (dateNow > dateCreated) {
+                    setIsSessionValid(false);
+
+                    toast({
+                        title: "Session has ended. You can't throw tomatoes anymore.",
+                        variant: "warning",
+                        action: (
+                            <Link
+                                to="/groups/$groupID"
+                                params={{ groupID: currentUser.group_id }}
+                            >
+                                <ToastAction
+                                    altText="Go back to group page."
+                                    className="group"
+                                >
+                                    <ArrowLeft className="size-4 group-hover:-translate-x-1 transition-all mr-2" />
+                                    Back
+                                </ToastAction>
+                            </Link>
+                        ),
+                    });
+                }
+            } else {
+                console.log("CHECKED FINE");
+            }
+            console.log(dateNow > dateCreated ? "true" : "false");
+        }
+    }, [targetUserTomato]);
 
     // TODO : debounce not working, making multiple calls regardless
     // const intermediate = debounce(() => {
@@ -310,7 +339,11 @@ export function TomatoLiveRoomComponent({
                             {onlineUsers.length} users
                         </div>
                         <div className="text-muted-foreground text-xs space-x-2 border-l pl-2">
-                            {sessionError && <span>Session has ended</span>}
+                            {!isSessionValid && (
+                                <span className="text-destructive">
+                                    Session has ended
+                                </span>
+                            )}
                             {targetUserTomato && (
                                 <CountdownTimer
                                     expireDate={Date.parse(
