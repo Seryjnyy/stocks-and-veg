@@ -1,3 +1,9 @@
+import {
+    Collapsible,
+    CollapsibleContent,
+    CollapsibleTrigger,
+} from "@/components/ui/collapsible";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import DataError from "@/components/data-error";
 import Loading from "@/components/loading";
 import {
@@ -23,9 +29,15 @@ import {
     useGetGroupUsers,
 } from "@/lib/hooks/queries/use-get-group-users";
 import { useGetInviteLink } from "@/lib/hooks/queries/use-get-invite-link";
-import { formatInviteLink } from "@/lib/utils";
+import { formatInviteLink, TOMATO_EMOJI } from "@/lib/utils";
 import SpinnerButton from "@/spinner-button";
-import { GearIcon, ReloadIcon } from "@radix-ui/react-icons";
+import {
+    CaretDownIcon,
+    CaretUpIcon,
+    Cross1Icon,
+    GearIcon,
+    ReloadIcon,
+} from "@radix-ui/react-icons";
 
 import GroupOtherUsersTasks from "@/components/group/group-other-users-tasks";
 import GroupTodaysTargets from "@/components/group/group-todays-targets";
@@ -38,10 +50,14 @@ import { Tables } from "@/lib/supabase/database.types";
 import { cn } from "@/lib/utils";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import {
+    AlertCircleIcon,
+    AlertTriangle,
     CheckCheckIcon,
     CheckSquare,
     Copy,
+    Cross,
     CrownIcon,
+    Info,
     RefreshCw,
     Target,
     Trash2,
@@ -429,6 +445,9 @@ function GroupTwo() {
                 <Sidebar groupID={groupID} sections={filteredSection} />
                 {/* Main Content */}
                 <main className="flex-1 overflow-y-auto relative">
+                    <div className="w-full sticky top-0 z-50">
+                        <WorkOverMessage />
+                    </div>
                     {/* Shadow thingy so looks like components disappearing into void */}
                     {/* <div className="w-full h-[5rem] sticky top-0 bg-gradient-to-b  from-background to-transparent"></div> */}
                     <h1 className="font-bold text-7xl text-center text-muted-foreground mb-32 mt-10">
@@ -454,3 +473,55 @@ function GroupTwo() {
         </div>
     );
 }
+
+const WorkOverMessage = () => {
+    const [isOpen, setIsOpen] = useState(false);
+
+    return (
+        <Collapsible
+            open={isOpen}
+            onOpenChange={setIsOpen}
+            className="relative"
+        >
+            <CollapsibleTrigger className="flex bg-blue-800 w-full items-center gap-2 px-4 absolute top-0 z-50 justify-between">
+                {!isOpen && (
+                    <>
+                        <div className="flex items-center gap-2">
+                            <AlertCircleIcon className="size-3" /> Todays work
+                            is over.{" "}
+                        </div>
+                        <CaretDownIcon />
+                    </>
+                )}
+                {isOpen && (
+                    <div className="w-full flex justify-end py-1">
+                        <CaretUpIcon />
+                    </div>
+                )}
+            </CollapsibleTrigger>
+            <CollapsibleContent className="bg-blue-800 ">
+                <Alert className="bg-inherit py-6 border-none rounded-none px-12 ">
+                    <AlertTitle className="flex items-center">
+                        <AlertTriangle className="size-4 mr-2" /> Well, that's a
+                        wrap! Today is officially DONE. 🎉
+                    </AlertTitle>
+                    <AlertDescription className="space-y-6">
+                        <div className="text-white opacity-80 max-w-[40rem]">
+                            The day's hustle has officially expired. Make sure
+                            you swing by after (time) to check off your
+                            accomplishments once again, and, of course, shame
+                            the slackers.
+                        </div>
+                        <div className="flex items-start text-xs max-w-[29rem] text-white opacity-70">
+                            <Info className="size-6 mr-2" />
+                            We hit the reset button daily at (time), wiping the
+                            slate clean and getting ready to judge all over
+                            again. Make sure your tasks are checked off by then,
+                            or else... 🍅👀
+                        </div>
+                    </AlertDescription>
+                </Alert>
+            </CollapsibleContent>
+        </Collapsible>
+    );
+};
