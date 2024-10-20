@@ -71,6 +71,8 @@ const TaskCompletion = ({
         );
     };
 
+    const completionTime = new Date(task.task_completion[0].completed_at);
+
     if (task.task_completion.length > 0) {
         return (
             <div className="relative">
@@ -90,10 +92,9 @@ const TaskCompletion = ({
                     )}
                 </div>
                 {timeOfCompletion && (
-                    <span className=" text-xs text-muted-foreground/80 pt-1 px-2 right-0 absolute">
-                        {new Date(
-                            task.task_completion[0].completed_at
-                        ).toLocaleTimeString()}
+                    <span className=" text-[0.6rem] text-muted-foreground/80 pt-1 px-2 right-0 absolute flex gap-1">
+                        <span>{completionTime.toLocaleTimeString()}</span>
+                        <span>{completionTime.toLocaleDateString()}</span>
                     </span>
                 )}
             </div>
