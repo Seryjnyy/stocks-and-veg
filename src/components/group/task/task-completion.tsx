@@ -3,7 +3,7 @@ import useWorkStatus from "@/hooks/use-work-status";
 import { useCreateTaskCompletion } from "@/hooks/supabase/group/use-create-task-completion";
 import { useDeleteTaskCompletion } from "@/hooks/supabase/group/use-delete-task-completion";
 import { TaskWithCompletion } from "@/lib/types";
-import { cn, timestampSplit } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 
 import SpinnerButton from "@/components/spinner-button";
 import { CheckIcon } from "@radix-ui/react-icons";
@@ -91,11 +91,9 @@ const TaskCompletion = ({
                 </div>
                 {timeOfCompletion && (
                     <span className=" text-xs text-muted-foreground/80 pt-1 px-2 right-0 absolute">
-                        {
-                            timestampSplit(task.task_completion[0].completed_at)
-                                .time
-                        }{" "}
-                        (UTC)
+                        {new Date(
+                            task.task_completion[0].completed_at
+                        ).toLocaleTimeString()}
                     </span>
                 )}
             </div>
