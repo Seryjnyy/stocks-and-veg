@@ -22,6 +22,7 @@ import { useEffect, useState } from "react";
 import Chat from "./chat";
 import ChatInput from "./chat-input";
 import ChatReactions from "./chat-reactions";
+import WorkEnabledCountdownTimer from "../work-enabled-countdown-timer";
 
 interface TomatoLiveRoomProps {
     targetUser: GroupUserWithProfile;
@@ -32,7 +33,7 @@ interface TomatoLiveRoomProps {
 // Then also need to refetch their group data whenever they send a message that they threw stuff
 // TODO : in parent component make sure user can't get here if not authorised
 
-export const isSessionValidAtom = atom(true);
+export const isSessionValidAtom = atom(false);
 
 export function TomatoLiveRoom({
     targetUser,
@@ -68,7 +69,7 @@ export function Room({ targetUser, currentUser }: TomatoLiveRoomProps) {
     });
 
     const [isSessionValid, setIsSessionValid] = useAtom(isSessionValidAtom);
-    const isWorkEnabled = useWorkStatus();
+    const { isWorkEnabled } = useWorkStatus();
 
     const handleThrowTomato = async () => {
         // console.log(targetUserTomato);
@@ -133,64 +134,39 @@ export function Room({ targetUser, currentUser }: TomatoLiveRoomProps) {
     }, [targetUserTomato]);
 
     useEffect(() => {
+        let isTargetValid = false;
         if (targetUserTomato) {
-            const timeDiff = Math.abs(
-                differenceInMilliseconds(
-                    Date.parse(targetUserTomato.created_at),
-                    Date.parse(new Date().toISOString())
-                )
-            );
-            console.log("🚀 ~ useEffect ~ timeDiff:", timeDiff);
+            const dateNow = Date.now();
 
-            const dateNow = Date.parse(new Date().toISOString());
-            const dateCreated = Date.parse(targetUserTomato.created_at);
-
-            if (
-                targetUserTomato &&
-                dateNow >
-                    Date.parse(
-                        getExpiryDateUnixFromDate(
-                            Date.parse(targetUserTomato.created_at)
-                        ).toString()
-                    )
-            ) {
-                console.log("CHECKED EXPIRED!");
-                // setIsOutOfTime(dateNow > dateCreated);
-                if (dateNow > dateCreated) {
-                    setIsSessionValid(false);
-
-                    toast({
-                        title: "Session has ended. You can't throw tomatoes anymore.",
-                        variant: "warning",
-                        action: (
-                            <Link
-                                to="/groups/$groupID"
-                                params={{ groupID: currentUser.group_id }}
-                            >
-                                <ToastAction
-                                    altText="Go back to group page."
-                                    className="group"
-                                >
-                                    <ArrowLeft className="size-4 group-hover:-translate-x-1 transition-all mr-2" />
-                                    Back
-                                </ToastAction>
-                            </Link>
-                        ),
-                    });
-                }
-                setIsSessionValid(false);
-            } else {
-                console.log("CHECKED FINE");
+            if (dateNow < new Date(targetUserTomato.created_at).getTime()) {
+                console.log();
+                isTargetValid = true;
             }
-            console.log(dateNow > dateCreated ? "true" : "false");
         }
-    }, [targetUserTomato]);
 
-    useEffect(() => {
-        if (!isWorkEnabled) {
-            setIsSessionValid(false);
+        if (!(isWorkEnabled && isTargetValid)) {
+            toast({
+                title: "Session has ended. You can't throw tomatoes anymore.",
+                variant: "warning",
+                action: (
+                    <Link
+                        to="/groups/$groupID"
+                        params={{ groupID: currentUser.group_id }}
+                    >
+                        <ToastAction
+                            altText="Go back to group page."
+                            className="group"
+                        >
+                            <ArrowLeft className="size-4 group-hover:-translate-x-1 transition-all mr-2" />
+                            Back
+                        </ToastAction>
+                    </Link>
+                ),
+            });
         }
-    }, [isWorkEnabled]);
+
+        setIsSessionValid(isWorkEnabled && isTargetValid);
+    }, [targetUserTomato, isWorkEnabled]);
 
     // TODO : debounce not working, making multiple calls regardless
     // const intermediate = debounce(() => {
@@ -258,17 +234,17 @@ export function Room({ targetUser, currentUser }: TomatoLiveRoomProps) {
                             <Users2 className="size-3" />
                             {onlineUsers.length} users
                         </div>
-                        <div className="text-muted-foreground text-xs space-x-2 border-l pl-2">
+                        <div className="text-muted-foreground text-xs space-x-2 border-l pl-2 flex">
                             {!isSessionValid && (
                                 <span className="text-destructive">
                                     Session has ended
                                 </span>
                             )}
+                            {/* TODO : not sure if time should come from work feature status or the tomato target */}
                             {targetUserTomato && (
-                                <CountdownTimer
-                                    expireDate={Date.parse(
-                                        targetUserTomato.created_at
-                                    )}
+                                <WorkEnabledCountdownTimer
+                                    withIcon={false}
+                                    expired={!isSessionValid}
                                 />
                             )}
                         </div>
