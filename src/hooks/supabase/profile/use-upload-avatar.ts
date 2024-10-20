@@ -3,7 +3,8 @@ import { useUpload } from "@supabase-cache-helpers/storage-react-query";
 import { Session } from "@supabase/supabase-js";
 
 export const useUploadAvatar = () => {
-    return useUpload(supabase.storage.from("avatars"), {
+    return useUpload(supabase.storage.from("avatar"), {
+        upsert: true,
         buildFileName: ({ fileName, path }) => `${path}/${fileName}`,
     });
 };
