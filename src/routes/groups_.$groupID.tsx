@@ -41,12 +41,15 @@ function Group() {
         enabled: !!session,
         groupID: groupID,
     });
-    const isWorkEnabled = useWorkStatus();
+    const { isWorkEnabled } = useWorkStatus();
 
     if (error) {
         return (
-            <div className="flex justify-center items-center px-12  py-12">
-                <DataError message={error.message} />
+            <div className="flex justify-center  px-12  py-12 flex-col gap-4">
+                <Link to="/groups" className="w-fit">
+                    <BackButton />
+                </Link>
+                <DataError message="Group data is missing." />
             </div>
         );
     }
@@ -56,14 +59,7 @@ function Group() {
     }
 
     if (data == null) {
-        return (
-            <div className="flex justify-center  px-12  py-12 flex-col gap-4">
-                <Link to="/groups" className="w-fit">
-                    <BackButton />
-                </Link>
-                <DataError message="Group data is missing." />
-            </div>
-        );
+        return null;
     }
 
     const sections: GroupSectionType[] = [
