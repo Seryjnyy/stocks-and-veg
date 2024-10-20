@@ -11,6 +11,7 @@ import TomatoGroupUserButton from "../tomato-group-user-button";
 import { Skeleton } from "../../ui/skeleton";
 import GroupUserProfile from "../group-user-profile";
 import { useGetGroupUser } from "@/hooks/supabase/group/use-get-group-user";
+import WorkEnabledCountdownTimer from "../work-enabled-countdown-timer";
 
 export default function TodaysTargets({ group }: { group: Tables<"group"> }) {
     const {
@@ -25,15 +26,18 @@ export default function TodaysTargets({ group }: { group: Tables<"group"> }) {
         return <Loading />;
     }
 
+    // TODO : add check if target is expired maybe, not necessary cause things get disabled, and maybe less confusing than things disappearing
+    // This would be if data wasn't being deleted properly, as targets table should only hold
+    // Add date to so its clear for what day they are getting punished
     return (
         <>
-            <div className="absolute -top-0 right-0 space-x-2">
+            <div className="absolute -top-0 right-0 flex items-center gap-2">
                 <span className="text-muted-foreground text-xs">
                     {tomatoTargets?.length ?? 0}
                 </span>
-                <CountdownTimer
-                    className=" text-muted-foreground text-xs border-l pl-2"
-                    expireDate={Date.parse(new Date().toISOString())}
+                <WorkEnabledCountdownTimer
+                    withIcon={false}
+                    className="border-l pl-2 "
                 />
             </div>
             <div>

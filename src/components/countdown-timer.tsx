@@ -1,27 +1,28 @@
-import React, { useEffect, useState } from "react";
+import { cn } from "@/lib/utils";
+import { differenceInMilliseconds } from "date-fns";
+import { useEffect, useState } from "react";
 import Countdown from "react-countdown";
-import { differenceInMilliseconds, set } from "date-fns";
-import { cn, getExpiryDateUnixFromDate } from "@/lib/utils";
 
 export default function CountdownTimer({
     className,
     expireDate,
+    onExpire,
 }: {
     className?: string;
     expireDate: number;
+    onExpire?: () => void;
 }) {
     const [timeLeft, setTimeLeft] = useState<number | undefined>(undefined);
 
-    // TODO : I want to put this in a hook, with some global state or something to ensure its synchronised everywhere
     useEffect(() => {
-        const dateNow = Date.parse(new Date().toISOString());
-        const dateExpiry = getExpiryDateUnixFromDate(expireDate);
+        const dateNow = Date.now();
+        const dateExpiry = expireDate;
 
         const timeDiff = Math.abs(
             differenceInMilliseconds(new Date(dateNow), dateExpiry)
         );
 
-        if (dateNow > Date.parse(dateExpiry.toString())) {
+        if (dateNow > dateExpiry) {
             setTimeLeft(0);
         } else {
             setTimeLeft(dateNow + timeDiff);
@@ -29,13 +30,12 @@ export default function CountdownTimer({
     }, []);
 
     if (!timeLeft) {
-        return (
-            <span className="text-muted-foreground text-xs">00:00:00:00</span>
-        );
+        return <span className={cn(className)}>00:00:00:00</span>;
     }
 
     return (
         <Countdown
+            onComplete={onExpire}
             precision={0}
             date={timeLeft}
             className={cn(className)}

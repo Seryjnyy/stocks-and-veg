@@ -19,11 +19,11 @@ import { cn } from "@/lib/utils";
 import { SidebarClose, SidebarOpen } from "lucide-react";
 import { useState } from "react";
 
-import CountdownTimer from "@/components/countdown-timer";
 import { currentSectionInGroupPageAtom } from "@/atoms/atoms";
 import { useAtom } from "jotai";
 import { GroupSection } from "@/lib/types";
 import useWorkStatus from "@/hooks/use-work-status";
+import WorkEnabledCountdownTimer from "./work-enabled-countdown-timer";
 
 const Sidebar = ({
     sections,
@@ -35,7 +35,7 @@ const Sidebar = ({
     const { session } = useAuth();
     const [expanded, setExpanded] = useState(true);
     const [drawerOpen, setDrawerOpen] = useState(false);
-    const isWorkEnabled = useWorkStatus();
+    const { isWorkEnabled } = useWorkStatus();
 
     // TODO : well don't need jotai rn, but If at some point sidebar is split it could be useful -\o/-
     const [currentSection, _] = useAtom(currentSectionInGroupPageAtom);
@@ -211,10 +211,7 @@ const TimeRemaining = ({
             >
                 {expanded && "Time remaining today to do tasks."}
             </span>
-            <CountdownTimer
-                className=" text-blue-400 text-xs"
-                expireDate={Date.parse(new Date().toISOString())}
-            />
+            <WorkEnabledCountdownTimer withIcon={false} textColor="primary" />
         </div>
     );
 };

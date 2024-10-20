@@ -40,7 +40,7 @@ export default function TomatoGroupUserButton({
     target: Tables<"tomato_target">;
     size?: VariantProps<typeof buttonVariants>["size"];
 }) {
-    const isWorkEnabled = useWorkStatus();
+    const { isWorkEnabled } = useWorkStatus();
     const { session } = useAuth();
     const isUs = session?.user.id == target.user_id;
 

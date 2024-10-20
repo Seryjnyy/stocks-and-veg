@@ -15,6 +15,8 @@ export type Database = {
           id: string
           is_enabled: boolean
           last_updated_at: string
+          revalidated_at: string
+          starts_at: string
           type: Database["public"]["Enums"]["feature"]
         }
         Insert: {
@@ -22,6 +24,8 @@ export type Database = {
           id?: string
           is_enabled: boolean
           last_updated_at: string
+          revalidated_at: string
+          starts_at: string
           type: Database["public"]["Enums"]["feature"]
         }
         Update: {
@@ -29,6 +33,8 @@ export type Database = {
           id?: string
           is_enabled?: boolean
           last_updated_at?: string
+          revalidated_at?: string
+          starts_at?: string
           type?: Database["public"]["Enums"]["feature"]
         }
         Relationships: []

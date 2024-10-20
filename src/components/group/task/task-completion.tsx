@@ -26,7 +26,7 @@ const TaskCompletion = ({
     const queryClient = useQueryClient();
     const { mutateAsync, isPending } = useCreateTaskCompletion();
     const [animKey, setAnimKey] = useState(0);
-    const isWorkEnabled = useWorkStatus();
+    const { isWorkEnabled } = useWorkStatus();
     const { mutateAsync: deleteTaskCompletion, isPending: isDeletePending } =
         useDeleteTaskCompletion();
     const isOurTask = task.user_id == session?.user.id;

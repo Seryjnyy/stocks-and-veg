@@ -48,7 +48,7 @@ export default function CreateTaskForm({
             desc: "",
         },
     });
-    const isWorkEnabled = useWorkStatus();
+    const { isWorkEnabled } = useWorkStatus();
     const { mutateAsync, isPending } = useCreateTask();
 
     const onSubmit = (values: taskSchemaType) => {

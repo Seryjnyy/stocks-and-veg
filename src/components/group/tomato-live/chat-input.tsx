@@ -37,7 +37,7 @@ export default function ChatInput({
     tomatoTarget,
 }: ChatInputProps) {
     const [isSessionValid] = useAtom(isSessionValidAtom);
-    const isWorkEnabled = useWorkStatus();
+    const { isWorkEnabled } = useWorkStatus();
     const {
         mutate,
         isPending: isSending,

@@ -12,6 +12,7 @@ export interface ButtonProps
     isPending: boolean;
     disableWorkCheck?: boolean;
 }
+// TODO : what a stupid way to do this with disable work check, I need to separate components because its just dumb
 export default function SpinnerButton({
     children,
     isPending,
@@ -20,7 +21,7 @@ export default function SpinnerButton({
     disableWorkCheck,
     ...props
 }: ButtonProps) {
-    const isWorkEnabled = useWorkStatus();
+    const { isWorkEnabled } = useWorkStatus();
 
     const considerWorkStatus = disableWorkCheck ? true : isWorkEnabled;
     return (

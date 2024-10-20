@@ -31,7 +31,7 @@ export default function TypeToConfirmAlertDialog({
     buttonContent: ReactNode;
 }) {
     const [confirmValue, setConfirmValue] = useState("");
-    const isWorkEnabled = useWorkStatus();
+    const { isWorkEnabled } = useWorkStatus();
 
     const handleConfirm = () => {
         onConfirm();

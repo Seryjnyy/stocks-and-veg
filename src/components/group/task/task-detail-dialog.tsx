@@ -33,7 +33,7 @@ const TaskDetailDialog = ({
 }) => {
     const { session } = useAuth();
     const { mutateAsync: deleteTask, isPending } = useDeleteTask();
-    const isWorkEnabled = useWorkStatus();
+    const { isWorkEnabled } = useWorkStatus();
 
     const onDeleteTask = async () => {
         if (!isWorkEnabled) return;

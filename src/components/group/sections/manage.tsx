@@ -10,7 +10,7 @@ import useWorkStatus from "@/hooks/use-work-status";
 import { useDeleteGroup } from "@/hooks/supabase/groups/use-delete-group";
 
 export default function Manage({ group }: { group: Tables<"group"> }) {
-    const isWorkEnabled = useWorkStatus();
+    const { isWorkEnabled } = useWorkStatus();
     const { mutateAsync: deleteGroup } = useDeleteGroup();
 
     const { toast } = useToast();
