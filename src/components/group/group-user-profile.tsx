@@ -1,18 +1,17 @@
 import { useGetGroup } from "@/hooks/supabase/group/use-get-group";
 import { GroupUserWithProfile } from "@/hooks/supabase/group/use-get-group-users";
+import { useGetUserAvatar } from "@/hooks/supabase/profile/use-get-user-avatar";
 import { useAuth } from "@/hooks/use-auth";
-import { CrownIcon, User2 } from "lucide-react";
-import { Badge } from "../ui/badge";
-import GroupUserDialog from "./group-user-dialog";
-import { ReactNode } from "@tanstack/react-router";
-import { Progress } from "../ui/progress";
-import { cn } from "@/lib/utils";
-import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
-import { cva, VariantProps } from "class-variance-authority";
-import { Tables } from "@/lib/supabase/database.types";
 import useLevel from "@/hooks/use-level";
-import { useFileUrl } from "@supabase-cache-helpers/storage-react-query";
-import supabase from "@/lib/supabase/supabaseClient";
+import { Tables } from "@/lib/supabase/database.types";
+import { cn } from "@/lib/utils";
+import { ReactNode } from "@tanstack/react-router";
+import { cva, VariantProps } from "class-variance-authority";
+import { CrownIcon, User2 } from "lucide-react";
+import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
+import { Badge } from "../ui/badge";
+import { Progress } from "../ui/progress";
+import GroupUserDialog from "./group-user-dialog";
 
 export const avatarVariants = cva("overflow-visible relative", {
     variants: {
@@ -78,29 +77,24 @@ export const UserAvatar = ({
         data: url,
         isLoading,
         isError,
-    } = useFileUrl(
-        supabase.storage.from("avatar"),
-        `${user.user_id}/${user.user_id}.png`,
-        "private",
-        {
-            refetchOnWindowFocus: false,
-            enabled: !imgUrl,
-        }
-    );
+    } = useGetUserAvatar({
+        user_id: user.user_id,
+        enabled: !imgUrl,
+    });
 
     console.log(url, isError, isLoading);
 
     return (
-        <Avatar
-            className={cn(
-                avatarVariants({ size, className }),
-                "overflow-hidden"
-            )}
-        >
+        <Avatar className={cn(avatarVariants({ size, className }))}>
             {url && !isLoading && !isError && !imgUrl && (
-                <AvatarImage src={url} />
+                <AvatarImage src={url} className="overflow-hidden rounded-lg" />
             )}
-            {imgUrl && <AvatarImage src={imgUrl} />}
+            {imgUrl && (
+                <AvatarImage
+                    src={imgUrl}
+                    className="overflow-hidden rounded-lg"
+                />
+            )}
             <AvatarFallback
                 className="relative overflow-visible"
                 style={{
