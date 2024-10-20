@@ -1,4 +1,6 @@
 import { UserAvatar } from "@/components/group/group-user-profile";
+import EditUserAvatar from "@/components/profile/edit-user-avatar";
+import SpinnerButton from "@/components/spinner-button";
 import {
     AlertDialog,
     AlertDialogAction,
@@ -11,12 +13,6 @@ import {
     AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Separator } from "@/components/ui/separator";
-import { useAuth } from "@/hooks/use-auth";
-import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
 import {
     Form,
     FormControl,
@@ -26,14 +22,19 @@ import {
     FormLabel,
     FormMessage,
 } from "@/components/ui/form";
-import { z } from "zod";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import { useToast } from "@/hooks/use-toast";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Separator } from "@/components/ui/separator";
 import { useUpdateUsername } from "@/hooks/supabase/profile/use-update-username";
-import SpinnerButton from "@/components/spinner-button";
-import { LogOut, Save } from "lucide-react";
+import { useAuth } from "@/hooks/use-auth";
+import { useToast } from "@/hooks/use-toast";
+import { Tables } from "@/lib/supabase/database.types";
 import { timestampSplit } from "@/lib/utils";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { createFileRoute } from "@tanstack/react-router";
+import { LogOut, Save } from "lucide-react";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
 
 export const Route = createFileRoute("/profile")({
     component: UserProfile,
@@ -134,21 +135,6 @@ const UpdateUsernameForm = ({ profile }: { profile: Tables<"profile"> }) => {
 function UserProfile() {
     const { profile } = useAuth();
 
-    const [avatarUrl, setAvatarUrl] = useState(
-        "/placeholder.svg?height=100&width=100"
-    );
-
-    const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onloadend = () => {
-                setAvatarUrl(reader.result as string);
-            };
-            reader.readAsDataURL(file);
-        }
-    };
-
     const handleLogout = () => {
         // Implement logout logic here
         console.log("Logging out...");
@@ -169,7 +155,7 @@ function UserProfile() {
             <h1 className="text-2xl font-bold">Profile</h1>
 
             <div className="flex items-center space-x-4">
-                {profile && <UserAvatar user={profile} size={"xl"} />}
+                {profile && <UserAvatar user={profile} size={"7xl"} />}
                 <div>
                     <h2 className="text-xl font-semibold">
                         {profile?.username}
@@ -186,15 +172,11 @@ function UserProfile() {
             <div className="space-y-4">
                 <div>{profile && <UpdateUsernameForm profile={profile} />}</div>
                 <div>
-                    <Label htmlFor="avatar">Avatar</Label>
-                    <Input
-                        id="avatar"
-                        type="file"
-                        accept="image/*"
-                        onChange={handleAvatarChange}
-                    />
+                    <Label htmlFor="edit-avatar">Avatar</Label>
+                    <div id="edit-avatar" className="pt-2">
+                        <EditUserAvatar />
+                    </div>
                 </div>
-                <Button>Save Changes</Button>
             </div>
 
             <Separator />
