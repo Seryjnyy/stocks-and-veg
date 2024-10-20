@@ -26,6 +26,7 @@ import { useToast } from "@/hooks/use-toast";
 import { SaveIcon, Trash2Icon } from "lucide-react";
 import { UserAvatar } from "../group/group-user-profile";
 import SpinnerButton from "../spinner-button";
+import "react-image-crop/dist/ReactCrop.css";
 
 export type FileWithPreview = FileWithPath & {
     preview: string;
