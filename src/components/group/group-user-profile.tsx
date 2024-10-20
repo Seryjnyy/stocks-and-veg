@@ -7,10 +7,12 @@ import GroupUserDialog from "./group-user-dialog";
 import { ReactNode } from "@tanstack/react-router";
 import { Progress } from "../ui/progress";
 import { cn } from "@/lib/utils";
-import { Avatar, AvatarFallback } from "../ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { cva, VariantProps } from "class-variance-authority";
 import { Tables } from "@/lib/supabase/database.types";
 import useLevel from "@/hooks/use-level";
+import { useFileUrl } from "@supabase-cache-helpers/storage-react-query";
+import supabase from "@/lib/supabase/supabaseClient";
 
 export const avatarVariants = cva("overflow-visible relative", {
     variants: {
@@ -20,6 +22,7 @@ export const avatarVariants = cva("overflow-visible relative", {
             md: "size-10",
             lg: "size-12",
             xl: "size-16",
+            "7xl": "size-40",
         },
     },
     defaultVariants: {
@@ -61,22 +64,50 @@ interface UserAvatarProps
         VariantProps<typeof avatarVariants> {
     user: Tables<"profile">;
 }
+
+// TODO : Should separate stuff here i think, its not longer just a UI component but also has data fetching logic now
+// TODO : yh this will be a mess, adding imgUrl option for the profile cropper only
 export const UserAvatar = ({
     user,
     size,
     className,
     children,
-}: UserAvatarProps) => {
+    imgUrl,
+}: UserAvatarProps & { imgUrl?: string }) => {
+    const {
+        data: url,
+        isLoading,
+        isError,
+    } = useFileUrl(
+        supabase.storage.from("avatar"),
+        `${user.user_id}/${user.user_id}.png`,
+        "private",
+        {
+            refetchOnWindowFocus: false,
+            enabled: !imgUrl,
+        }
+    );
+
+    console.log(url, isError, isLoading);
+
     return (
-        <Avatar className={cn(avatarVariants({ size, className }))}>
+        <Avatar
+            className={cn(
+                avatarVariants({ size, className }),
+                "overflow-hidden"
+            )}
+        >
+            {url && !isLoading && !isError && !imgUrl && (
+                <AvatarImage src={url} />
+            )}
+            {imgUrl && <AvatarImage src={imgUrl} />}
             <AvatarFallback
                 className="relative overflow-visible"
                 style={{
                     backgroundImage: `linear-gradient(to top, ${stringToRGB(user.user_id)}, ${stringToRGB(user.id)})`,
                 }}
-            >
-                {children}
-            </AvatarFallback>
+            ></AvatarFallback>
+            {children}
         </Avatar>
     );
 };
