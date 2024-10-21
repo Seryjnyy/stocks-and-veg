@@ -8,8 +8,11 @@ import { cn } from "@/lib/utils";
 import SpinnerButton from "@/components/spinner-button";
 import { CheckIcon } from "@radix-ui/react-icons";
 import { useQueryClient } from "@tanstack/react-query";
-import { Undo2 } from "lucide-react";
+import { Camera, CameraIcon, PlusIcon, Undo2 } from "lucide-react";
 import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import AddProofDialog from "./add-proof-dialog";
+import ViewProofDialog from "./view-proof-dialog";
 
 const TaskCompletion = ({
     task,
@@ -24,7 +27,8 @@ const TaskCompletion = ({
 }) => {
     const { session } = useAuth();
     const queryClient = useQueryClient();
-    const { mutateAsync, isPending } = useCreateTaskCompletion();
+    const { mutateAsync: updateTaskCompletion, isPending } =
+        useCreateTaskCompletion();
     const [animKey, setAnimKey] = useState(0);
     const { isWorkEnabled } = useWorkStatus();
     const { mutateAsync: deleteTaskCompletion, isPending: isDeletePending } =
@@ -35,23 +39,13 @@ const TaskCompletion = ({
         if (!isOurTask || !isWorkEnabled) return;
 
         setAnimKey((prev) => prev + 1);
-        await mutateAsync(
-            [
-                {
-                    user_id: task.user_id,
-                    group_id: task.group_id,
-                    task_id: task.id,
-                },
-            ]
-            // {
-            //     onSuccess: () => {
-            //         // queryClient.invalidateQueries({
-            //         //     queryKey: ["completion", task.id],
-            //         // });
-            //     },
-            // }
-        );
-        // refetch();
+        await updateTaskCompletion([
+            {
+                user_id: task.user_id,
+                group_id: task.group_id,
+                task_id: task.id,
+            },
+        ]);
     };
 
     const onUndoCompletion = async () => {
@@ -80,6 +74,12 @@ const TaskCompletion = ({
         return (
             <div className="relative">
                 <div className="flex items-center gap-2">
+                    {!task.task_completion[0].proof_path && isOurTask && (
+                        <AddProofDialog task={task} />
+                    )}
+                    {task.task_completion[0].proof_path && (
+                        <ViewProofDialog task={task} />
+                    )}
                     <CheckIcon className="text-purple-400" />
                     {isOurTask && undo && (
                         <SpinnerButton
