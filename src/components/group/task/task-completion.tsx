@@ -71,7 +71,10 @@ const TaskCompletion = ({
         );
     };
 
-    const completionTime = new Date(task.task_completion[0].completed_at);
+    const completionTime =
+        task.task_completion.length > 0
+            ? new Date(task.task_completion[0].completed_at)
+            : null;
 
     if (task.task_completion.length > 0) {
         return (
@@ -91,7 +94,7 @@ const TaskCompletion = ({
                         </SpinnerButton>
                     )}
                 </div>
-                {timeOfCompletion && (
+                {timeOfCompletion && completionTime && (
                     <span className=" text-[0.6rem] text-muted-foreground/80 pt-1 px-2 right-0 absolute flex gap-1">
                         <span>{completionTime.toLocaleTimeString()}</span>
                         <span>{completionTime.toLocaleDateString()}</span>
