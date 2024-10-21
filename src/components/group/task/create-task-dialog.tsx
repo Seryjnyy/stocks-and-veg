@@ -10,7 +10,7 @@ import {
 import { CONFIG } from "@/lib/config";
 import { GroupUserWithProfile } from "@/hooks/supabase/group/use-get-group-users";
 import { AlertTriangle } from "lucide-react";
-import React from "react";
+import React, { useState } from "react";
 import CreateTaskForm from "./create-task-form";
 
 export default function GroupCreateTaskDialog({
@@ -22,10 +22,11 @@ export default function GroupCreateTaskDialog({
     children: React.ReactNode;
     groupUser: GroupUserWithProfile | undefined;
 }) {
+    const [open, setOpen] = useState(false);
     const isTaskLimitReached = userTasksCount >= CONFIG.maxTasks;
 
     return (
-        <Dialog>
+        <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>{children}</DialogTrigger>
             <DialogContent>
                 <DialogHeader>
@@ -51,6 +52,7 @@ export default function GroupCreateTaskDialog({
                     <CreateTaskForm
                         groupUser={groupUser}
                         disabled={isTaskLimitReached}
+                        onSuccess={() => setOpen(false)}
                     />
                 )}
             </DialogContent>
