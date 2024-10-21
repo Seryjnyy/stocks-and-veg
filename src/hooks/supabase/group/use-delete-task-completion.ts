@@ -6,22 +6,12 @@ export const useDeleteTaskCompletion = () => {
         supabase.from("task_completion"),
         ["id"],
         "task_id",
-        // {
-        //     revalidateRelations: [
-        //         {
-        //             relation: "task",
-        //             relationIdColumn: "id",
-        //             fKeyColumn: "task_id",
-        //         },
-        //     ],
-        // }
         {
-            // revalidateTables: [{ table: "task", schema: "public" }],
             revalidateRelations: [
                 {
                     relation: "task",
-                    relationIdColumn: "id",
-                    fKeyColumn: "task_id",
+                    relationIdColumn: "task_id",
+                    fKeyColumn: "id",
                 },
             ],
         }

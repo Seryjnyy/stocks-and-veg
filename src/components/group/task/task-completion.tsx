@@ -1,16 +1,14 @@
-import { useAuth } from "@/hooks/use-auth";
-import useWorkStatus from "@/hooks/use-work-status";
 import { useCreateTaskCompletion } from "@/hooks/supabase/group/use-create-task-completion";
 import { useDeleteTaskCompletion } from "@/hooks/supabase/group/use-delete-task-completion";
+import { useAuth } from "@/hooks/use-auth";
+import useWorkStatus from "@/hooks/use-work-status";
 import { TaskWithCompletion } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
 import SpinnerButton from "@/components/spinner-button";
 import { CheckIcon } from "@radix-ui/react-icons";
-import { useQueryClient } from "@tanstack/react-query";
-import { Camera, CameraIcon, PlusIcon, Undo2 } from "lucide-react";
+import { Undo2 } from "lucide-react";
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
 import AddProofDialog from "./add-proof-dialog";
 import ViewProofDialog from "./view-proof-dialog";
 
@@ -26,7 +24,6 @@ const TaskCompletion = ({
     timeOfCompletion?: boolean;
 }) => {
     const { session } = useAuth();
-    const queryClient = useQueryClient();
     const { mutateAsync: updateTaskCompletion, isPending } =
         useCreateTaskCompletion();
     const [animKey, setAnimKey] = useState(0);
@@ -52,14 +49,9 @@ const TaskCompletion = ({
         if (!isOurTask || !isWorkEnabled) return;
         if (task.task_completion.length == 0) return;
 
-        await deleteTaskCompletion(
-            { ...task.task_completion[0] },
+        deleteTaskCompletion(
+            { id: task.task_completion[0].id },
             {
-                onSuccess: () => {
-                    queryClient.invalidateQueries({
-                        queryKey: ["task"],
-                    });
-                },
                 onError: () => console.log("error"),
             }
         );
