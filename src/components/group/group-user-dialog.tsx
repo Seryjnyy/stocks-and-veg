@@ -520,7 +520,7 @@ const Leaderboard = ({
 
     return (
         <div className="flex  justify-between border rounded-lg p-4 relative">
-            <div className="flex flex-col gap-1">
+            <div className="flex flex-col gap-1 pr-3">
                 <p className="text-xl font-semibold">
                     {leaderboardData.userPosition
                         ? addOrdinalSuffix(leaderboardData.userPosition)
