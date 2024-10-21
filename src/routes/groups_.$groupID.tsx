@@ -139,7 +139,8 @@ function Group() {
                             <CrownIcon className="size-3" />
                         </Badge>
                     </h1>
-                    <div className="space-y-[30rem] xl:mx-48 lg:mx-32 md:mx-6 sm:mx-20 mx-2 pb-28">
+                    {/* <div className="space-y-[30rem] xl:mx-48 lg:mx-32 md:mx-6 sm:mx-20 mx-2 pb-28 overflow-hidden bg-red-500"> */}
+                    <div className="space-y-[30rem] xl:px-48 lg:px-32 md:px-6 sm:px-20 px-2 pb-28 overflow-hidden ">
                         {filteredSection.map((section) => (
                             <GroupSection
                                 sectionData={{

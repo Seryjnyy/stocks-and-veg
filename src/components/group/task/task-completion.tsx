@@ -113,7 +113,7 @@ const TaskCompletion = ({
                 <div
                     key={animKey}
                     className={cn(
-                        "h-[10rem] w-[10rem]   rounded-full absolute -z-10 -bottom-[3rem] left-0 opacity-80",
+                        "h-[10rem] w-[10rem]   rounded-full absolute -z-10 -bottom-[3rem] left-0 opacity-80 ",
                         animKey > 0 &&
                             "animate-explosion bg-gradient-to-r from-purple-500 to-indigo-600"
                     )}
