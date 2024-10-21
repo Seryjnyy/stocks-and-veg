@@ -82,8 +82,6 @@ export const UserAvatar = ({
         enabled: !imgUrl,
     });
 
-    console.log(url, isError, isLoading);
-
     return (
         <Avatar className={cn(avatarVariants({ size, className }))}>
             {url && !isLoading && !isError && !imgUrl && (

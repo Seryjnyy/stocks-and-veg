@@ -7,10 +7,6 @@ import { useAuth } from "@/hooks/use-auth";
 import { UserAvatar } from "../group/group-user-profile";
 import ImageCropper, { FileWithPreview } from "./avatar-image-cropper";
 
-const accept = {
-    "image/*": [],
-};
-
 export default function EditUserAvatar() {
     const [selectedFile, setSelectedFile] =
         React.useState<FileWithPreview | null>(null);
@@ -38,7 +34,7 @@ export default function EditUserAvatar() {
 
     const { getRootProps, getInputProps } = useDropzone({
         onDrop,
-        accept,
+        accept: { "image/*": [] },
         multiple: false,
     });
 

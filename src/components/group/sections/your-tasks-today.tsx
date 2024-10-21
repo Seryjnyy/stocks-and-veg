@@ -1,5 +1,6 @@
+import { useGetGroupUser } from "@/hooks/supabase/group/use-get-group-user";
+import { useGetUserGroupTasks } from "@/hooks/supabase/group/use-get-user-group-tasks";
 import { useAuth } from "@/hooks/use-auth";
-import { useGetGroupTasks } from "@/hooks/supabase/group/use-get-group-tasks";
 import { TaskWithCompletion } from "@/lib/types";
 import { Plus } from "lucide-react";
 import DataError from "../../data-error";
@@ -7,15 +8,18 @@ import { Button } from "../../ui/button";
 import { Skeleton } from "../../ui/skeleton";
 import GroupCreateTaskDialog from "../task/create-task-dialog";
 import Task from "../task/task";
-import { useGetGroupUser } from "@/hooks/supabase/group/use-get-group-user";
 
 export default function YourTasksToday({ groupID }: { groupID: string }) {
     const { session } = useAuth();
     const {
-        data: tasks,
+        data: userTasks,
         isError,
         isLoading,
-    } = useGetGroupTasks({ groupID: groupID });
+    } = useGetUserGroupTasks({
+        groupID: groupID,
+        userID: session?.user.id,
+        enabled: !!session,
+    });
 
     const {
         data: groupUser,
@@ -26,32 +30,24 @@ export default function YourTasksToday({ groupID }: { groupID: string }) {
         userID: session?.user.id,
     });
 
-    const userTasks =
-        (tasks && tasks.filter((task) => task.user_id == session?.user.id)) ||
-        [];
+    const completedTasks =
+        userTasks?.filter((task) => task.task_completion.length > 0) || [];
 
-    const completedTasks = userTasks.filter(
-        (task) => task.task_completion.length > 0
-    );
-
-    const uncompletedTasks = userTasks.filter(
-        (task) => task.task_completion.length == 0
-    );
+    const uncompletedTasks =
+        userTasks?.filter((task) => task.task_completion.length == 0) || [];
 
     return (
         <>
-            <span className="absolute top-8 right-1 text-xs text-muted-foreground">
-                {completedTasks.length}/{userTasks.length}
-            </span>
             <div>
                 <ul className="flex flex-col gap-2">
                     {isLoading && <Skeleton className="w-full h-12" />}
 
                     <li>
                         {uncompletedTasks.length > 0 && (
-                            <span className="text-xs text-muted-foreground">
-                                Uncompleted
-                            </span>
+                            <div className="flex justify-between items-center px-1 pb-1 text-xs text-muted-foreground">
+                                <span>Uncompleted</span>
+                                <span>{uncompletedTasks.length}</span>
+                            </div>
                         )}
                         <ul className="flex flex-col gap-2">
                             <TaskList tasks={uncompletedTasks} />
@@ -59,9 +55,12 @@ export default function YourTasksToday({ groupID }: { groupID: string }) {
                     </li>
                     <li>
                         {completedTasks.length > 0 && (
-                            <span className="text-xs text-muted-foreground">
-                                Completed
-                            </span>
+                            <div className="flex justify-between items-center px-1 pb-1 text-xs text-muted-foreground">
+                                <span className="text-xs text-muted-foreground">
+                                    Completed
+                                </span>
+                                <span>{completedTasks.length}</span>
+                            </div>
                         )}
                         <ul className="flex flex-col gap-2">
                             <TaskList tasks={completedTasks} />
@@ -71,7 +70,7 @@ export default function YourTasksToday({ groupID }: { groupID: string }) {
                     {isError && (
                         <DataError message="Sorry, something has gone wrong." />
                     )}
-                    {userTasks.length == 0 && (
+                    {(userTasks || []).length == 0 && (
                         <li className="w-full flex justify-center text-muted-foreground py-3 border rounded-xl">
                             You don't have any tasks. Create some.
                         </li>
@@ -79,12 +78,12 @@ export default function YourTasksToday({ groupID }: { groupID: string }) {
                 </ul>
                 <footer className="flex items-center justify-between mt-2 border px-3 py-1 rounded-lg bg-secondary/50 text-secondary-foreground ">
                     <span className="text-muted-foreground text-xs">
-                        All : {userTasks.length} | Completed:{" "}
+                        All : {(userTasks || []).length} | Completed:{" "}
                         {completedTasks.length}
                     </span>
                     <GroupCreateTaskDialog
                         groupUser={groupUser ?? undefined}
-                        userTasksCount={userTasks.length}
+                        userTasksCount={(userTasks || []).length}
                     >
                         <Button
                             size={"sm"}

@@ -230,6 +230,7 @@ export type Database = {
           date: string
           group_id: string
           id: string
+          proof_path: string | null
           task_id: string
           user_id: string
         }
@@ -238,6 +239,7 @@ export type Database = {
           date?: string
           group_id: string
           id?: string
+          proof_path?: string | null
           task_id: string
           user_id: string
         }
@@ -246,6 +248,7 @@ export type Database = {
           date?: string
           group_id?: string
           id?: string
+          proof_path?: string | null
           task_id?: string
           user_id?: string
         }
