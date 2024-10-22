@@ -1,6 +1,7 @@
 import supabase from "@/lib/supabase/supabaseClient";
 import { useQuery } from "@supabase-cache-helpers/postgrest-react-query";
 
+// TODO : Turn refetchInterval back on
 export const useGetWorkStatus = () => {
     return useQuery(
         supabase
@@ -12,7 +13,7 @@ export const useGetWorkStatus = () => {
         {
             refetchOnReconnect: true,
             refetchOnWindowFocus: true,
-            refetchInterval: 10000, // TODO : decide on interval
+            // refetchInterval: 10000, // TODO : decide on interval
         }
     );
 };

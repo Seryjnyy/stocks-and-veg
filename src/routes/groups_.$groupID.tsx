@@ -143,6 +143,7 @@ function Group() {
                     <div className="space-y-[30rem] xl:px-48 lg:px-32 md:px-6 sm:px-20 px-2 pb-28 overflow-hidden ">
                         {filteredSection.map((section) => (
                             <GroupSection
+                                key={section.value}
                                 sectionData={{
                                     label: section.label,
                                     value: section.value,
